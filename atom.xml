@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <title>Heartaway</title>
   
-  <subtitle>热爱生活，努力工作</subtitle>
+  <subtitle>技术会被淘汰，但思想会一直永存（多思考，多总结，多分享）；只有技术才是硬通货，看到技术背后的思想价值；</subtitle>
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://heartaway.cn/"/>
@@ -10,7 +10,7 @@
   <id>http://heartaway.cn/</id>
   
   <author>
-    <name>Xinyuan</name>
+    <name>心静志远</name>
     
   </author>
   
