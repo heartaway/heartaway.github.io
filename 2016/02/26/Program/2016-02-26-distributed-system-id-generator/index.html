@@ -15,7 +15,7 @@
 <meta property="og:url" content="http://heartaway.cn/2016/02/26/Program/2016-02-26-distributed-system-id-generator/index.html">
 <meta property="og:site_name" content="Heartaway">
 <meta property="og:description" content="背景：在分布式系统中，对于订单ID如何保证全局唯一地高效的生成，并对性能影响不大的情况下，利于建立索引和业务使用？  方案一：使用数据库主键ID优势：实现简单；弊端：使用数据库增加写库的压力，生成订单的上限受限于数据库的写性能上限；扩展性差； 方案二：单点批量生成订单号的服务；优势：批量降低了数据库的读写压力弊端：服务单点风险； 方案三：使用UUID优势：本地生成ID，不进行远程调用，延迟低；弊">
-<meta property="og:locale" content="default">
+<meta property="og:locale" content="zh-Hans">
 <meta property="og:updated_time" content="2018-11-09T14:26:18.597Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="分布式系统高效唯一ID生成方案">

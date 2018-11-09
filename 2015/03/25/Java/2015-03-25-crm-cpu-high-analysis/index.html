@@ -15,7 +15,7 @@
 <meta property="og:url" content="http://heartaway.cn/2015/03/25/Java/2015-03-25-crm-cpu-high-analysis/index.html">
 <meta property="og:site_name" content="Heartaway">
 <meta property="og:description" content="排查方法： 首先找到cpu使用率高的进程：1top  查看进程对应的应用信息：1ps -ef |grep 进程id 发现是小二后台的进程，由于没有配置gc日志，所以看不当gc日志，但是可通过其他方法排查； 打印堆栈信息，查找占用大量CPU的线程：1jstack 查看GC情况：1jstat -gc 每列的含义： S0C Current survivor space 0 capacity (KB).">
-<meta property="og:locale" content="default">
+<meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/3b592916b5baec5553bf6076f5966a32.png">
 <meta property="og:image" content="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/17d53d36e9a5222ef2b730a9ce5c1eae.png">
 <meta property="og:image" content="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/babc327d486ccbce313f8b16ce951f7d.png">

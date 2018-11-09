@@ -15,7 +15,7 @@
 <meta property="og:url" content="http://heartaway.cn/2016/08/07/Program/2016-08-07-product-puttag-error/index.html">
 <meta property="og:site_name" content="Heartaway">
 <meta property="og:description" content="问题一：同步操作，导致批量处理过慢，锁超时现象：在批量打标过程中，由于之前设计的是同步操作，一次打标的商品数过多时，导致执行时间较长，运营以为操作失败，多次重新导入和点击，导致系统出现不可预知情况。 原因：之前为了数据的一致性，对打标过程使用了事务处理，所以当批量打标的时候，相当于对这批数据都进行了行锁，其它操作这些数据的请求都会等待事务的提交，当等待超时，就报错了，“Lock wait time">
-<meta property="og:locale" content="default">
+<meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/a4ff50ec55e8ce0ba211af1e2e2104cc.png">
 <meta property="og:image" content="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/e0f982ff775609d974f4a48d05aed106.png">
 <meta property="og:image" content="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/14b993b3eb036b86df53b6d7825b3d74.png">
