@@ -333,22 +333,27 @@
   
   
   
-  <div id="cloud-tie-wrapper" class="cloud-tie-wrapper"></div>
+
+  
+
+  
+
+  
+  <div id="gitment-ctn"></div> 
+<link rel="stylesheet" href="//imsun.github.io/gitment/style/default.css">
+<script src="//imsun.github.io/gitment/dist/gitment.browser.js"></script>
 <script>
-  var cloudTieConfig = {
-    url: "http://heartaway.cn/2016/01/03/Think/2016-01-03-2016-my-success-and-fail/", 
-    sourceId: "Think/2016-01-03-2016-my-success-and-fail",
-    productKey: "true",
-    target: "cloud-tie-wrapper"
-  };
+var gitment = new Gitment({
+  id: "http://heartaway.cn/2016/01/03/Think/2016-01-03-2016-my-success-and-fail/",
+  owner: 'heartaway',
+  repo: 'git@github.com:heartaway/gitment.git',
+  oauth: {
+    client_id: 'f65dea6597291a9fe4f8',
+    client_secret: '836a1868414b3eadf585f88c197775350b35ef45',
+  },
+})
+gitment.render('gitment-ctn')
 </script>
-<script src="//img1.cache.netease.com/f2e/tie/yun/sdk/loader.js"></script>
-  
-
-  
-
-  
-
   
 
 
