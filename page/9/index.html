@@ -152,482 +152,6 @@
           <div id="js-content" class="content-ll">
             
   
-    <article id="post-Basic/2017-03-14-mail-html" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/03/14/Basic/2017-03-14-mail-html/">制作符合Mail格式的HTML</a>
-    </h1>
-  
-
-        
-        <a href="/2017/03/14/Basic/2017-03-14-mail-html/" class="archive-article-date">
-  	<time datetime="2017-03-13T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2017-03-14</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <blockquote>
-<p>我们在做报表类方案的时，我们通过web页面进行了数据展示，此时期望能够把这个网页通过邮件客户端发送到用户邮箱中，如果我们为了保持页面和邮件内的样式的统一，就很期望做到页面内容的复用，不再为邮件内容单独制定一套模板，当用户的内容样式谁内容而不同时，无法通过单一的模板来解决，是否可以通过复用页面的html内容来达到目的呢？</p>
-</blockquote>
-<p>比如我们的页面结构是模块化的，每一个模块内的内容可能都随着模块的不同而呈现出不同的样式，如下图：<br><a href="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/85c79200d05ddb180dbb9c9e13d4faa7.png" target="_blank" rel="noopener">http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/85c79200d05ddb180dbb9c9e13d4faa7.png</a><br><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/85c79200d05ddb180dbb9c9e13d4faa7.png" alt=""></p>
-<p>如果我们让用户一键拷贝内容，在一键发送邮件，既可以做到页面内容的复用，也可以简化用户复制粘贴以及启动邮件客户端的繁琐任务。</p>
-<p>问题来了，在我们实践过程中，为了支持足够美观的模块，使用了CSS3、HTML5等一些新特性，但是在内容复制到邮件客户端进行发送后，收到的邮件随着客户端的不同而呈现出不同的样式（当然，是样式错乱），这里面发生了什么呢？</p>
-<p>经过查询一番资料，发现，不同的邮件客户端有不同的HTML过滤规则，我们需要遵循<a href="https://en.wikipedia.org/wiki/HTML_email" target="_blank" rel="noopener">HTML Email</a>规范。</p>
-<h4 id="html-email基本原则："><a href="#html-email基本原则：" class="headerlink" title="html email基本原则："></a>html email基本原则：</h4><ol>
-<li>只能从外部引用图片，没有外部样式表，字体，视频（html5开始改变这一点）等。</li>
-<li>在电子邮件客户端（电子邮件客户端=为Outlook，Gmail，Hotmail，Yahoo等）中对CSS元素的支持有限。 您可以查看一个<a href="https://www.campaignmonitor.com/css/" target="_blank" rel="noopener">对比表格</a>，什么客户端支持什么的样式功能。</li>
-<li>表格最常用于布局html电子邮件。</li>
-<li>测试，你需要测试你的邮件在不同的电子邮件客户端下。</li>
-</ol>
-<h4 id="html-email-文档类型申明："><a href="#html-email-文档类型申明：" class="headerlink" title="html email 文档类型申明："></a>html email 文档类型申明：</h4><p>目前，兼容性最好的Doctype是XHTML 1.0 Strict，事实上Gmail和Hotmail会删掉你的Doctype，换上这个Doctype。</p>
-<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">html</span> <span class="attr">xmlns</span>=<span class="string">"http://www.w3.org/1999/xhtml"</span>&gt;</span></span><br><span class="line">　<span class="tag">&lt;<span class="name">head</span>&gt;</span></span><br><span class="line">　　<span class="tag">&lt;<span class="name">meta</span> <span class="attr">http-equiv</span>=<span class="string">"Content-Type"</span> <span class="attr">content</span>=<span class="string">"text/html; charset=UTF-8"</span> /&gt;</span></span><br><span class="line">　　<span class="tag">&lt;<span class="name">title</span>&gt;</span>HTML Email编写指南<span class="tag">&lt;/<span class="name">title</span>&gt;</span></span><br><span class="line">　　<span class="tag">&lt;<span class="name">meta</span> <span class="attr">name</span>=<span class="string">"viewport"</span> <span class="attr">content</span>=<span class="string">"width=device-width, initial-scale=1.0"</span>/&gt;</span></span><br><span class="line">　<span class="tag">&lt;/<span class="name">head</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br></pre></td></tr></table></figure>
-<h4 id="使用table代替css布局"><a href="#使用table代替css布局" class="headerlink" title="使用table代替css布局"></a>使用table代替css布局</h4><p>由于电子邮件无法支持标准，是不可使用div、section或article——替代的是使用table。此外，你需要使用大量的表格嵌套，因为HTML电子邮件既不支持colspan和rowspan属性。<br><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/5de5be6777232569dc731140fc61e24c.png" alt=""></p>
-<p>这是多个table容器，并且使用嵌套table格式。我们一般会在最外面设置一个table（#backgroundTable），充当排序的容器 ，它指定了电子邮件客户端中的可见空间的宽度。因为一些客户端任意地限制区域呈现 ，不设置可能导致奇怪对齐的内容。然后我们再在内部设置一个table，用来作为真正内容的容器，第二个table最好设置一定的宽度，防止超过客户端的显示宽度。</p>
-<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">table</span> <span class="attr">cellpadding</span>=<span class="string">"0"</span> <span class="attr">cellspacing</span>=<span class="string">"0"</span> <span class="attr">border</span>=<span class="string">"0"</span> <span class="attr">style</span>=<span class="string">"margin:0; padding:0; width:100% !important; line-height: 100% !important;"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">tr</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">td</span> <span class="attr">valign</span>=<span class="string">"top"</span>&gt;</span> </span><br><span class="line">        	<span class="tag">&lt;<span class="name">table</span> <span class="attr">align</span>=<span class="string">"center"</span> <span class="attr">border</span>=<span class="string">"1"</span> <span class="attr">cellpadding</span>=<span class="string">"0"</span> <span class="attr">cellspacing</span>=<span class="string">"0"</span> <span class="attr">width</span>=<span class="string">"600"</span> <span class="attr">style</span>=<span class="string">"border-collapse: collapse;"</span>&gt;</span></span><br><span class="line">        	<span class="tag">&lt;<span class="name">tr</span>&gt;</span><span class="tag">&lt;<span class="name">td</span>&gt;</span>邮件内容<span class="tag">&lt;/<span class="name">td</span>&gt;</span><span class="tag">&lt;/<span class="name">tr</span>&gt;</span></span><br><span class="line">        	<span class="tag">&lt;/<span class="name">table</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">td</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">tr</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">table</span>&gt;</span></span><br></pre></td></tr></table></figure>
-<p>第一个table设置的样式表有助于重置某些电子邮件客户端特定的格式。</p>
-<p><strong>table自适应？</strong><br>table 在 bootstrap panel中无法宽度自适应，解决办法是使用固定表格：table-layout:fixed;</p>
-<p><strong>Max-Width都支持？</strong><br>并不是所有邮箱客户端都支持max-width。为了让邮件兼容Outlook和Lotus Notes 8 &amp; 8.5，我们要把每个table放在条件语句里，这样就会有一个固定宽度table。这种方法针对IE（Lotus Notes使用IE内核）和Microsoft Outlook。</p>
-<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!--[if (gte mso 9)|(IE)]&gt;</span></span><br><span class="line"><span class="comment">&lt;table width="600" align="center" cellpadding="0" cellspacing="0" border="0"&gt;</span></span><br><span class="line"><span class="comment">    &lt;tr&gt;</span></span><br><span class="line"><span class="comment">        &lt;td&gt;</span></span><br><span class="line"><span class="comment">            &lt;![endif]--&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">table</span> <span class="attr">class</span>=<span class="string">"content"</span> <span class="attr">align</span>=<span class="string">"center"</span> <span class="attr">cellpadding</span>=<span class="string">"0"</span> <span class="attr">cellspacing</span>=<span class="string">"0"</span> <span class="attr">border</span>=<span class="string">"0"</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">tr</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">td</span>&gt;</span></span><br><span class="line">                        Hello!</span><br><span class="line">                    <span class="tag">&lt;/<span class="name">td</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;/<span class="name">tr</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">table</span>&gt;</span></span><br><span class="line">            <span class="comment">&lt;!--[if (gte mso 9)|(IE)]&gt;</span></span><br><span class="line"><span class="comment">        &lt;/td&gt;</span></span><br><span class="line"><span class="comment">    &lt;/tr&gt;</span></span><br><span class="line"><span class="comment">&lt;/table&gt;</span></span><br><span class="line"><span class="comment">&lt;![endif]--&gt;</span></span><br></pre></td></tr></table></figure>
-<p>奇怪的是，苹果邮箱客户端（通常非常先进）也不支持max-width属性。但它支持media queries，所以只要viewport是600px宽的屏幕，我们可以在’content’样式里添加固定宽度。</p>
-<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">style</span> <span class="attr">type</span>=<span class="string">"text/css"</span>&gt;</span><span class="undefined"></span></span><br><span class="line"><span class="undefined">@media only screen and (min-device-width: 601px) &#123;</span></span><br><span class="line"><span class="undefined">.content &#123;width: 600px !important;&#125;</span></span><br><span class="line"><span class="undefined">&#125;</span></span><br><span class="line"><span class="undefined"></span><span class="tag">&lt;/<span class="name">style</span>&gt;</span></span><br></pre></td></tr></table></figure>
-<p><strong>多列布局：</strong><br>我们在进行多列布局的时候，不能把列宽度给占满了，需要预留一定的空间，比较好的实践是：预留25px的空间来防止Outlook堆叠你的table。因为Outlook会在边框宽度上占用一定的宽度。<br><img src="https://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/983e0ff2eb534e206e702f2065829ee4.png" alt=""><br>如何达到预留空间的方式呢？通过使用table的align属性实现。</p>
-<h4 id="使用表格代替段落"><a href="#使用表格代替段落" class="headerlink" title="使用表格代替段落"></a>使用表格代替段落</h4><p>同样，由于缺乏对标准的支持，使用标准的标签，如h1,h2,h3或p并不是一个好主意。我发现这些渲染在电子邮件客户端存在相当大的麻烦。<br>你最好选择将每一块文本放在息的单元格中，并且将行内样式应用于这个单元格。</p>
-<h4 id="CSS行内样式代替样式表"><a href="#CSS行内样式代替样式表" class="headerlink" title="CSS行内样式代替样式表"></a>CSS行内样式代替样式表</h4><p>所有的CSS规则，最好都采用行内样式。因为放置在网页头部的样式，很可能会被客户端删除。客户端对CSS规则的支持情况，请看<a href="https://www.campaignmonitor.com/css/" target="_blank" rel="noopener">这里</a>，可以看到很多css的伪标签都是不被支持的。<br>不要忘记：你不能将多个类应用于HTML电子邮件，因为它不支持的这些。每个元素最多可以有一个类。</p>
-<p>也不要忘记：你不能用简短的样式缩写如font-size（例如：style=”font:8px/14px Arial,sans-serif”），因为HTML电子邮件不支持它，你需要展开单独写，margin也不例外。</p>
-<h3 id="简化开发框架："><a href="#简化开发框架：" class="headerlink" title="简化开发框架："></a>简化开发框架：</h3><p>我们可以参考 <a href="https://github.com/seanpowell/Email-Boilerplate" target="_blank" rel="noopener">https://github.com/seanpowell/Email-Boilerplate</a> 这里的要求，然后填充我们自由的邮件。<br><a href="https://webdesign.tutsplus.com/articles/build-an-html-email-template-from-scratch--webdesign-12770" target="_blank" rel="noopener">https://webdesign.tutsplus.com/articles/build-an-html-email-template-from-scratch--webdesign-12770</a> 这里给出了我们如何使用table一步一步创建出期望的HTML Email，以供参考。</p>
-<h3 id="参考："><a href="#参考：" class="headerlink" title="参考："></a>参考：</h3><p><a href="http://www.ruanyifeng.com/blog/2013/06/html_email.html" target="_blank" rel="noopener">http://www.ruanyifeng.com/blog/2013/06/html_email.html</a><br><a href="http://www.campaignmonitor.com/blog/post/3317/correct-doctype-to-use-in-html-email/" target="_blank" rel="noopener">http://www.campaignmonitor.com/blog/post/3317/correct-doctype-to-use-in-html-email/</a><br><a href="http://articles.sitepoint.com/article/code-html-email-newsletters" target="_blank" rel="noopener">http://articles.sitepoint.com/article/code-html-email-newsletters</a><br><a href="http://dennisdeacon.wordpress.com/2008/06/09/top-10-email-best-practices/http://www.catswhocode.com/blog/best-practices-for-coding-html-emails" target="_blank" rel="noopener">http://dennisdeacon.wordpress.com/2008/06/09/top-10-email-best-practices/http://www.catswhocode.com/blog/best-practices-for-coding-html-emails</a><br><a href="https://webdesign.tutsplus.com/zh-hans/articles/creating-a-simple-responsive-html-email--webdesign-12978" target="_blank" rel="noopener">https://webdesign.tutsplus.com/zh-hans/articles/creating-a-simple-responsive-html-email--webdesign-12978</a><br><a href="https://webdesign.tutsplus.com/articles/build-an-html-email-template-from-scratch--webdesign-12770" target="_blank" rel="noopener">https://webdesign.tutsplus.com/articles/build-an-html-email-template-from-scratch--webdesign-12770</a></p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Basic//" class="article-tag-list-link color1">Basic</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2017/03/14/Basic/2017-03-14-mail-html/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-Basic/2016-06-06-https-with-wireshark" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2016/06/06/Basic/2016-06-06-https-with-wireshark/">Wireshark监控分析Https的交互过程</a>
-    </h1>
-  
-
-        
-        <a href="/2016/06/06/Basic/2016-06-06-https-with-wireshark/" class="archive-article-date">
-  	<time datetime="2016-06-05T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2016-06-06</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>首先介绍一下Https在Client与Server之间的理论交互过程：<br><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/fbcfb4b7d254a68b4e39ddbeef776927.png" alt=""></p>
-<p>试想，我们期望在网络中传输的数据是被加密的，并且这个数据包在客户端和服务器端都能进行加密和解密，那么需要对称加密算法，客户端和服务端都需要有一个加解密Key（对称加密），对数据包进行加解密，那么这个Key如何产生并在在网络中安全的传递呢？假设这秘钥是有服务端产生，分配给客户端，为了保证安全，需要在派送Key的过程中进行加密，那么客户端在一无所知的情况下，是无法打开这个加密的数据包的，此方案不行。假设我们引入非对称加密算法，把公钥在网络上传输(传给客户端)，私钥只保留在服务端，让客户端生成一个加密Key，并把加密Key通过公钥进行加密，加密后的数据发送给服务端，服务端使用私钥解开数据，提取加密Key，这样服务端和客户端以后的交互都可以使用这个加密Key进行数据交互了。</p>
-<p>这个过程可以参考：<a href="http://www.jianshu.com/p/15703d8c34e9" target="_blank" rel="noopener">http://www.jianshu.com/p/15703d8c34e9</a></p>
-<h3 id="抓包监控分析："><a href="#抓包监控分析：" class="headerlink" title="抓包监控分析："></a>抓包监控分析：</h3><p>首先安装抓包工具Wireshark(最新版为2.0.3)，Mac OS 10.11版本还需要安装X11，OS X 不再随附 X11，但 XQuartz 项目提供适用于 OS X 的 X11 服务器和客户端库，所以需要下载 XQuartz。<br>打开Wireshark &gt; 捕获 &gt; 选项，选择 本地网卡，开启监控数据捕获。<br>这里以腾讯云 <a href="https://www.dnspod.cn" target="_blank" rel="noopener">https://www.dnspod.cn</a> 为例（首次打开此网站，所以可以捕获到证书获取流程），由于本地有很多其他的应用都会进行网络请求，为排除干扰，查询了腾讯云（<a href="https://www.dnspod.cn" target="_blank" rel="noopener">https://www.dnspod.cn</a> ）的IP地址：59.37.116.101，然后在Wireshark 的过滤器中输入：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ip.src==<span class="number">59.37</span>.116.101  or ip.dst==<span class="number">59.37</span>.116.101</span><br></pre></td></tr></table></figure>
-<p>表示只监控IP的起始地或者目的地为腾讯云的数据请求，如图所示：</p>
-<p><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/f3fea5e73ee24a7e97bf9f43a7e29534.png" alt=""></p>
-<p>当然，这里还是可能会有其他tcp流的干扰，找到一个Client Hello 的tcp请求，查看Transmission Control Protool,找到Stream Index 序号，这个Stream Index 是Wireshark标识一次完整的TCP通讯。</p>
-<p><img src="/images/posts/20160606/wirdshark-tencent-cloud-tcp-stream-get.png" alt=""></p>
-<p>所以，调整我们的过滤器为：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ip.src==<span class="number">59.37</span>.116.101  or ip.dst==<span class="number">59.37</span>.116.101 and tcp.stream eq <span class="number">28</span></span><br></pre></td></tr></table></figure>
-<h4 id="1-三次握手建立TCP链接："><a href="#1-三次握手建立TCP链接：" class="headerlink" title="1. 三次握手建立TCP链接："></a>1. 三次握手建立TCP链接：</h4><p>从请求流中，我们可以清晰的看到在建立TLS请求之前，进行了三次TCP请求，这就是我们常说的TCP建立连接的“三次握手”：</p>
-<p><img src="/images/posts/20160606/tcp-third-handshake.png" alt=""></p>
-<h5 id="第一次握手："><a href="#第一次握手：" class="headerlink" title="第一次握手："></a>第一次握手：</h5><p>客户端请求建立连接（Flags=SYN，Seq = 0 ）：</p>
-<p><img src="/images/posts/20160606/tcp-first-handshake.png" alt=""></p>
-<p>SYN标识初始化连接，序列号这里为0，注意括号里面的备注，说0是相对序列号，并不是真正的实际序列号，相对序列号只是方便我们查看。</p>
-<h5 id="第二次握手："><a href="#第二次握手：" class="headerlink" title="第二次握手："></a>第二次握手：</h5><p>服务端发送确认建立连接数据包给客户端（Flags=SYN，ACK，seqNum=0,ackNum=1）：</p>
-<p><img src="/images/posts/20160606/tcp-second-handshake.png" alt=""></p>
-<h5 id="第三次握手："><a href="#第三次握手：" class="headerlink" title="第三次握手："></a>第三次握手：</h5><p>客户端再次发送确认包(ACK) SYN标志位为0,ACK标志位为1.并且把服务器发来ACK的序号字段+1,放在确定字段中发送给对方.并且在数据段放写ISN的+1</p>
-<p><img src="/images/posts/20160606/tcp-third-time-handshake.png" alt=""></p>
-<p>当然还可以通过WireShark自带的统计图形工具查看链接交互过程：</p>
-<p><img src="/images/posts/20160606/https-tcp-graph.png" alt=""></p>
-<p>有关TCP建立链接和释放连接的过程，可以参考：<a href="http://mp.weixin.qq.com/s?__biz=MzAxOTc0NzExNg==&amp;mid=2665513094&amp;idx=1&amp;sn=a2accfc41107ac08d74ec3317995955e&amp;scene=23&amp;srcid=0605GAETrvLCgoti5SQnXy0o#rd" target="_blank" rel="noopener">TCP/IP 之 大明王朝邮差</a></p>
-<h4 id="2-Client-Hello："><a href="#2-Client-Hello：" class="headerlink" title="2. Client Hello："></a>2. Client Hello：</h4><p><img src="/images/posts/20160606/https-tcp-client-hello.png" alt=""></p>
-<p>我们可以看到，从浏览器发出的第一个字节为0×16（十进制的22），它表示了这是一个“握手”记录。</p>
-<p>整个握手记录被拆分为数条信息，其中第一条就是我们的客户端问候（Client Hello），即0×01。在客户端问候中，有几个需要着重注意的地方：</p>
-<h5 id="随机数（Random）："><a href="#随机数（Random）：" class="headerlink" title="随机数（Random）："></a>随机数（Random）：</h5><p><img src="/images/posts/20160606/https-tcp-client-hello-random.png" alt=""></p>
-<p>在客户端问候中，有四个字节以Unix时间格式记录了客户端的协调世界时间（UTC）。协调世界时间是从1970年1月1日开始到当前时刻所经历的秒数。在这个例子中，a1 60 cf bd 就是协调世界时间。在他后面有28字节的随机数，在后面的过程中我们会用到这个随机数。</p>
-<h5 id="SID（Session-ID）："><a href="#SID（Session-ID）：" class="headerlink" title="SID（Session ID）："></a>SID（Session ID）：</h5><p><img src="/images/posts/20160606/https-tcp-client-hello-sid.png" alt=""></p>
-<h5 id="数（Random）："><a href="#数（Random）：" class="headerlink" title="数（Random）："></a>数（Random）：</h5><p>如果出于某种原因，对话中断，就需要重新握手。为了避免重新握手而造成的访问效率低下，这时候引入了session ID的概念， session ID的思想很简单，就是每一次对话都有一个编号（session ID）。如果对话中断，下次重连的时候，只要客户端给出这个编号，且服务器有这个编号的记录，双方就可以重新使用已有的”对话密钥”，而不必重新生成一把。</p>
-<p>在这里，SID是一个空值（Null）。说明我们是第一次访问这个网站，如果我们在几秒钟之前就登陆过了<a href="http://www.baidu.com，我们有可能会恢复之前的会话，从而避免一个完整的握手过程。" target="_blank" rel="noopener">www.baidu.com，我们有可能会恢复之前的会话，从而避免一个完整的握手过程。</a></p>
-<p>session ID是目前所有浏览器都支持的方法，但是它的缺点在于session ID往往只保留在一台服务器上。所以，如果客户端的请求发到另一台服务器，就无法恢复对话。session ticket就是为了解决这个问题而诞生的，目前只有Firefox和Chrome浏览器支持。后面关于https优化部分会着重介绍session ticket。</p>
-<h5 id="密文族（Cipher-Suites）："><a href="#密文族（Cipher-Suites）：" class="headerlink" title="密文族（Cipher Suites）："></a>密文族（Cipher Suites）：</h5><p><img src="/images/posts/20160606/https-tcp-client-hello-cipher.png" alt=""></p>
-<p>密文族是浏览器所支持的加密算法的清单。RFC2246中建议了很多中组合，一般写法是”密钥交换算法-对称加密算法-哈希算法，以“TLS_RSA_WITH_AES_256_CBC_SHA”为例，TLS为协议，RSA为密钥交换的算法，AES_256_CBC是对称加密算法（其中256是密钥长度，CBC是分组方式），SHA是哈希的算法。浏览器支持的加密算法一般会比较多，而服务端会根据自身的业务情况选择比较适合的加密组合发给客户端。（比如综合安全性以及速度、性能等因素）</p>
-<h5 id="Server-name扩展："><a href="#Server-name扩展：" class="headerlink" title="Server_name扩展："></a>Server_name扩展：</h5><p><img src="/images/posts/20160606/https-tcp-client-hello-servername.png" alt=""></p>
-<p>当我们去访问一个站点时，一定是先通过DNS解析出站点对应的ip地址，通过ip地址来访问站点，由于很多时候一个ip地址是给很多的站点公用，因此如果没有server_name这个字段，server是无法给与客户端相应的数字证书的，Server_name扩展则允许服务器对浏览器的请求授予相对应的证书。</p>
-<h4 id="3-Server-Hello"><a href="#3-Server-Hello" class="headerlink" title="3. Server Hello"></a>3. Server Hello</h4><p><img src="/images/posts/20160606/https-tcp-server-hello.png" alt=""></p>
-<p>服务器在收到client hello协议的握手请求后，会先回复一个ACK，标识client hello握手数据包收到了，然后向客户端发送Server hello协议数据包，这个协议包里面包含了Session ID,Cipher Suite,Random 等数据。</p>
-<p>我们记得在client hello里面，客户端给出了21种加密族，而在我们所提供的21个加密族中，服务端挑选了“TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256”。这就意味着服务端会使用ECDHE-RSA算法进行密钥交换，通过AES_128_GCM对称加密算法来加密数据，利用SHA256哈希算法来确保数据完整性 。</p>
-<p>服务端对于session ID一般会有三种选择：</p>
-<ol>
-<li>恢复的session ID：我们之前在client hello里面已经提到，如果client hello里面的session ID在服务端有缓存，服务端会尝试恢复这个session；</li>
-<li>新的session ID：这里又分两种情况，第一种是client hello里面的session ID是空值，此时服务端会给客户端一个新的session ID，第二种是client hello里面的session ID此服务器并没有找到对应的缓存，此时也会回一个新的session ID给客户端；</li>
-<li>NULL：服务端不希望此session被恢复，因此session ID为空。</li>
-</ol>
-<h4 id="4-Certificate"><a href="#4-Certificate" class="headerlink" title="4. Certificate"></a>4. Certificate</h4><p><img src="/images/posts/20160606/https-tcp-certificate.png" alt=""></p>
-<p>我们知道为了安全的将公钥发给客户端，服务端会把公钥放入数字证书中并发给客户端（数字证书可以自签发，但是一般为了保证安全会有一个专门的CA机构签发），所以这个报文就是数字证书，3259 byte 就是证书的长度。</p>
-<p>其次，服务端还向客户端发送了协议为Server Hello Done的报文，意思是告诉客户端hello结束，并且不要求验证客户端的证书。（我们知道TLS协议中验证证书可以是双向的，即服务端也要验证客户端的身份来防止客户端的伪冒，但是这种场景在一般基于web的https中很少(通过U盾的网银是例外，U盾其实就是客户端证书，但这样也非常繁琐)，因为基于web的应用客户数量大，很难为每个客户去提供相应的数字证书。但是对于一些企业之间的对接，出于安全考虑，很多情况下会采用双向认证的方式，因为对于两个企业来说也不存在client、server端的说法。）</p>
-<h4 id="5-客户端验证证书"><a href="#5-客户端验证证书" class="headerlink" title="5. 客户端验证证书"></a>5. 客户端验证证书</h4><p>当客户端收到服务器发来的证书后会进行校验来确保证书是真实的服务器发来的，那么如何验证其真实性呢？主要靠的就是数字签名。algorithmIdentifier（签名的加密算法）为：SHA_RSA（注意这里的加密算法是证书中自带的，并非我们之间client、server里面的Cipher Suites中的算法，Cipher Suites中的算法只有密钥交换算法、对称数据加密算法、校验完整性的哈希算法，不包括相关签名的算法），而下方的encrypted部分就是数字签名，是由CA的私钥加密的，数字证书制作这块前面一篇文章已经介绍过了，这里就不多说了。客户端收到数字证书中的数字签名后，由于证书的签名都是由上一级来完成的，因此会利用上一级证书提供的公钥进行解密，解密后得到签名值和自己再次哈希证书主题的值进行比对，如果两个值是一致的话，则认证通过。</p>
-<h4 id="6-Client-Key-Exchange"><a href="#6-Client-Key-Exchange" class="headerlink" title="6. Client Key Exchange"></a>6. Client Key Exchange</h4><p>客户端验证通过证书后，客户端将采用服务器给出的加密算法以及公钥将后面用于加密数据的对称密钥进行加密并发送给服务器。其实密钥交换这步远没有想象中的那么简单，主要有以下几个步骤（以下为RSA算法密钥交换的过程，腾讯云用的密钥交换算法为ECDHE-RSA，比RSA更为复杂，这里就先介绍RSA算法）：</p>
-<ol>
-<li>客户端生成premaster_secret，首先对称密钥为了保证安全一定是随机密钥，一般的系统或者浏览器都会构建它自己的伪随机数发生器，之所以称之为伪随机数是因为真正意义上的随机数算法并不存在，这些函数还是利用大量的时变、量变参数来通过复杂的运算生成相对意义上的随机数，但是这些数之间还是存在统计学规律的，只是想要找到生成随机数的过程并不那么容易。在进行密钥交换的时候，客户端会利用server hello里面带的随机数2（client hello里面的随机数我们称为随机数1，这是为了方面后面master_secret）生成premaster_secret，premaster_secret长度为48个字节，前2个字节是协议版本号，剩下的46个字节填充随机数。</li>
-</ol>
-<ol start="2">
-<li><p>注意，对称加密不会直接用这个premaster_secret进行加密。因为这个premaster_secret完全由客户端来提供，完成没有服务端的相关信息的参与，因此客户端会利用premaster_secret生成master_secret，然后再用master_secret生成对称密钥算法、MAC 算法的密钥。</p>
-<blockquote>
-<p>master_secret =PRF(pre_master_secret, “master secret”, ClientHello.random +ServerHello.random)</p>
-</blockquote>
-<p>pre_master_secret就是我们之前传送的随机密码串，”mastersecret”是一串ASCII码，再加上之前提到的random1和random2。PRF是在规范中约定的伪随机函数，它将密钥、ASCII码标签、哈希值整合在一起。各有一半的参数分别使用MD5和SHA-1获取哈希值。这是一种十分明智的做法，即使是想要单单破解相对简单MD5和SHA-1也不是那么容易的事情。而且这个函数会将返回值传给自身直至迭代到我们需要的位数。关于PRF的具体细节问题</p>
-</li>
-</ol>
-<ol start="3">
-<li>客户端得到master_secret后，根据协议约定，我们需要利用PRF生成这个会话中所需要的各种密钥，称之为“密钥块”（key block），密钥块用于构成以下密钥：<br>client_write_MAC_secret、server_write_MAC_secret （MAC 算法的密钥）<br>client_write_key、server_write_key （对称算法密钥or会话密钥）<br>client_write_IV、server _write_IV （初始化向量，运用于分组对称加密，如果mode是CBC则需要这个值，这个后面降到算法那篇会重点介绍）<br>以上的6个密钥都是通过PRF运算出来的，具体的运算方法比较复杂，后面讲到算法那张会单独介绍。</li>
-</ol>
-<ol start="4">
-<li><p>至此，经过前几步客户端已经完成了相关密钥的生成。此时客户端通过证书中的服务端的公钥将premaster_secret加密后发给服务端，如下图报文中的Client Key Exchange，通过RSA非对称密钥算法利用数字证书中获得的公钥将premaster加密发给服务端。（这里是一个RSA作为密钥交换算法的报文，需要注意腾讯云我们从server-hello中就知道了腾讯云用了更为复杂的ECDHE_RSA算法用于密钥交换算法，所以我们在访问腾讯云的同样的报文中看到的EC Diffie-Hellman Client Params的算法。）</p>
-<p> <img src="/images/posts/20160606/https-tcp-client-key-exchanger.png" alt=""></p>
-</li>
-<li><p>在发送Client Key Exchange报文的同时，客户端还会回一个Change Cipher Spec的报文（如上图），意思就是通知服务端后续报文将采用协商好的密钥和加密套件进行加密和 MAC计算。</p>
-</li>
-</ol>
-<ol start="6">
-<li>最后，客户端计算已交互的握手消息（除 Change Cipher Spec 消息外所有已交互的消息）的 Hash值，通过前面生成的密钥client_write_MAC_secret对hash值进行加密得到MAC，并通过HandShake Messag报文发送给服务端（如上图）。</li>
-</ol>
-<ol start="7">
-<li>服务端此时会收到一个premaster_secret，以及一个客户端发来的MAC。利用Change Cipher Spec报文中协商好的密钥和算法，服务端也会计算出用于加密的数据的密钥以及MAC的加密密钥。此时服务端会用利用同样的方法计算已交互的握手消息的 Hash 值，并用client_write_MAC_secret解密客户端发来的MAC，两者进行比较，如果二者相同，且 MAC值验证成功，则证明服务端密钥交换协商成功。<br> <img src="/images/posts/20160606/https-tcp-secret-encrypted.png" alt=""></li>
-</ol>
-<ol start="8">
-<li>当服务端密钥交换协商成功的同时，会同样回客户端一个Change Cipher Spec报文（如上图），通知客户端后续报文将采用协商好的密钥和加密套件进行加密和 MAC计算。（注意，这个报文前面还有一个New Session Ticket的报文，这个是百度对于https的优化之一，后面会详细讲，在最为基础的https连接中是没有这个报文的。）</li>
-</ol>
-<ol start="9">
-<li>同样服务端也会计算已交互的握手消息的 Hash值，通过前面生成的密钥server_write_MAC_secret对hash值进行加密得到MAC，并通过HandShake Message报文（如上图）发送给客户端。</li>
-</ol>
-<ol start="10">
-<li>由于客户端在发送消息给服务端前就已经计算出了数据加密的对此密钥，因此只需要验证服务端返回的MAC即可，所以此时客户端端会用利用同样的方法计算已交互的握手消息的 Hash 值，并用server_write_MAC_secret解密服务端发来的MAC，两者进行比较，如果二者相同，且 MAC值验证成功，则证明客户端密钥交换协商成功。</li>
-</ol>
-<ol start="11">
-<li>至此，整个密钥交换的协商全部完成，开始传输应用层的数据。</li>
-</ol>
-<h4 id="7-数据传输"><a href="#7-数据传输" class="headerlink" title="7. 数据传输"></a>7. 数据传输</h4><p>经过之前6大步骤，SSL的连接建立完成，开始有客户端发起Application Data，实际上下图中的encrypted application data就是http协议的数据经过client_write_key、server_write_key进行加密后的传输，我们通过一些工具解密后，发现应用层实际就是标准的http协议，也就是说SSL实际上就是在http协议外面套了层壳</p>
-<p><img src="/images/posts/20160606/https-tcp-data-transport.png" alt=""></p>
-<p>请求链路分析文件（可直接通过wireshark打开）：<br><a href="http://pan.baidu.com/s/1hsi5U4W" target="_blank" rel="noopener">http://pan.baidu.com/s/1hsi5U4W</a></p>
-<h4 id="参考链接："><a href="#参考链接：" class="headerlink" title="参考链接："></a>参考链接：</h4><p><a href="http://www.jianshu.com/p/a766bbf31417" target="_blank" rel="noopener">http://www.jianshu.com/p/a766bbf31417</a></p>
-<p><a href="http://www.cnblogs.com/TankXiao/archive/2012/10/10/2711777.html" target="_blank" rel="noopener">http://www.cnblogs.com/TankXiao/archive/2012/10/10/2711777.html</a></p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Basic//" class="article-tag-list-link color1">Basic</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2016/06/06/Basic/2016-06-06-https-with-wireshark/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-Android/2014-09-11-layout" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2014/09/11/Android/2014-09-11-layout/">Android 高效的 Layout</a>
-    </h1>
-  
-
-        
-        <a href="/2014/09/11/Android/2014-09-11-layout/" class="archive-article-date">
-  	<time datetime="2014-09-10T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2014-09-11</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>我们知道随着我们业务越来越负责，UI布局也会越来越复杂，大量的布局信息必定会带来一定的性能损耗，那么我们怎么才能写出高效的布局呢？</p>
-<p>1.使用 <code>&lt;include&gt; &lt;merge&gt; &lt;viewStub&gt;</code>标签。<br><a href="https://developer.android.com/training/improving-layouts/optimizing-layout.html" target="_blank" rel="noopener">https://developer.android.com/training/improving-layouts/optimizing-layout.html</a></p>
-<p>2.LinearLayout中减少使用layout_weight参数，因为使用此属性会导致子元素被测量两次。</p>
-<p>3.学会测量Layout的层次结构,优化布局<br><a href="https://developer.android.com/training/improving-layouts/optimizing-layout.html" target="_blank" rel="noopener">https://developer.android.com/training/improving-layouts/optimizing-layout.html</a></p>
-<p>4.使得Layout宽而浅，而不是窄而深（在Hierarchy Viewer的Tree视图里面体现）<br>连接真机时，HierarchyVIewer报错了：无法加载设备上的窗口数据</p>
-<p>原因：若需要使用hierarchyviewer，需要手机上开启对应的ViewServer服务。Hierarchy Viewer在连接手机时，手机上必须启动一个叫View Server的客户端与其进行socket通信。而在商业手机上，是无法开启View Server的，故Hierarchy Viewer是无法连接到普通的商业手机。</p>
-<p>解决办法：</p>
-<p>方法一：使用模拟器。</p>
-<p>方法二：App中需要开启View Server，可以参考一下连个类的实现。</p>
-<p><a href="http://pan.baidu.com/s/1sjIulYl" target="_blank" rel="noopener">http://pan.baidu.com/s/1sjIulYl </a>提取码：wrc8</p>
-<p>使用方法：</p>
-<p>引入ViewServer.java 类到Util包中，在需要查看Layout层次结构的Activity类中，加入以下代码：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">(Bundle savedInstanceState)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">super</span>.onCreate(savedInstanceState);</span><br><span class="line">    …</span><br><span class="line">    ViewServer.get(<span class="keyword">this</span>).addWindow(<span class="keyword">this</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onDestroy</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">super</span>.onDestroy();</span><br><span class="line">    ViewServer.get(<span class="keyword">this</span>).removeWindow(<span class="keyword">this</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onResume</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">super</span>.onResume();</span><br><span class="line">    ViewServer.get(<span class="keyword">this</span>).setFocusedWindow(<span class="keyword">this</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>5.使用Lint工具来优化Layout</p>
-<ul>
-<li>使用merge根框架 – 如果FramLayout仅仅是一个纯粹的（没有设置背景，间距等）布局根元素，我们可以使用merge标签来当作根标签；</li>
-<li>无用的分支 – 如果一个layout并没有任何子组件，那么可以被移除，这样可以提高效率</li>
-<li>无用的父控件 – 如果一个layout只有子控件，没有兄弟控件，并且不是一个ScrollView或者根节点，而且没有设置背景，那么我们可以移除这个父控件，直接把子控件提升为父控件</li>
-<li>深层次的layout – 尽量减少内嵌的层级，考虑使用更多平级的组件 RelativeLayout or GridLayout来提升布局性能，默认最大的深度是10<br>Lint工具在android Studio中的使用:<br>Analyze → Inspect code 这个时候会自动启动Lint工具。</li>
-</ul>
-<p>6.虽然官方说LinearLayout 与 RelationLayout在性能上相差无几，但是能使用relative layout的地方尽量不要使用LinearLayout。</p>
-<p>7.有同事对比了RelationLayout 与 FrameLayout的性能，发现FrameLayout性能比RelationLayout更优。原因很简单：因为FrameLayout比RelationLayout更简单，没有那么多属性，所有效率更高。无论是使用那种布局，在都能满足需求的情况下，只要记住，使用属性跟少、更简单的布局方式一定是没错的。<br><a href="http://stackoverflow.com/questions/22875453/framelayout-vs-relativelayout-for-overlays" target="_blank" rel="noopener">http://stackoverflow.com/questions/22875453/framelayout-vs-relativelayout-for-overlays</a></p>
-<p>8.对于textview和imageview组成的layout，直接使用textview替换（drawableTop类似属性）</p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Android//" class="article-tag-list-link color3">Android</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2014/09/11/Android/2014-09-11-layout/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-Android/2014-09-01-listview" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2014/09/01/Android/2014-09-01-listview/">Android 之 Listview</a>
-    </h1>
-  
-
-        
-        <a href="/2014/09/01/Android/2014-09-01-listview/" class="archive-article-date">
-  	<time datetime="2014-08-31T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2014-09-01</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h4 id="ListView显示的三要素："><a href="#ListView显示的三要素：" class="headerlink" title="ListView显示的三要素："></a>ListView显示的三要素：</h4><ol>
-<li>ListView，用来展示列表</li>
-<li>Adapter，用来存在数据&amp;将数据与视图进行绑定</li>
-<li>数据，将被映射的字符串、图片url等等。</li>
-</ol>
-<p>关于Adapter ，请参考 Android 之 Adapter。</p>
-<h4 id="ListView-的工作原理："><a href="#ListView-的工作原理：" class="headerlink" title="ListView 的工作原理："></a>ListView 的工作原理：</h4><p>Adapter的作用就是ListView界面与数据交互的桥梁，当列表里面每一项显示到页面上时，都会调用Adapter的getView方法。<br>系统需要回执ListView时，首先会调用getCount()函数，得到要绘制的这个列表额长度，然后开始从第一行开始绘制，每行的回执方法是调用getView函数。那么Android是不是为每一行都会新创建一个View呢？试想加入行数为几万行，内存肯定会爆掉的，所以Android官方早就想到了这一点，在ListView实现中添加了视图的缓存-Recycler，每当有行移除屏幕的可视区域时，这个被移除的行的View对象就会被添加到Recycler中，也就是在渲染新行时的那个参数convertView。</p>
-<h4 id="ListView的初始化："><a href="#ListView的初始化：" class="headerlink" title="ListView的初始化："></a>ListView的初始化：</h4><p><strong>疑问一：</strong>ListView绘制时是如何获取每行的View的呢？</p>
-<p>首先ListView通过setAdapter方法，将Adapter与ListView关联起来，查看ListView的setAdater方法源码可知，setAdater将传递经来的Adapter的引用复制给了内部全局变量mAdapter，ListView在绘制每行的时候根据行号position调用父类AbsListView中的obtainView，obtainView首先会从recycler中获取是否有匹配的视图，如果存在的话，可以看到则调用adapter.getView方法，并传递了scrapView给convertView变量，否则传递的是null。</p>
-<p><strong>疑问二：</strong>ListView中数据发生变更了，我们一般会调用Adapter的 notifyDataSetChanged()方法， 那么视图是怎么发生变化的呢？</p>
-<p>ListView 中的数据适配器Adapter 采用的是观察者模式（参考之前的”观察者模式“）</p>
-<p>ListView在setAdapter时，会新建ApdateDataSetObserver，并注册此观察者。</p>
-<p>AdapterDataSetObserver类实在AbsListView中定义：</p>
-<p>AdapterView中AdapterDataSetObserver的实现如下(部分省略)：</p>
-<p>AdapterDataSetObserver 实现了DataSetObserver接口，并重写了onChanger方法，里面调用了requestLayout方法，此方法的作用是要求parent view 重新调用它的哦弄Measure onLayout方法重新布局视图，但不会重新绘制任何视图包括该调用者本身。<br>requestLayout的实现方法需要到View类中查看：可参考：<a href="http://blog.csdn.net/androiddevelop/article/details/8561076" target="_blank" rel="noopener">http://blog.csdn.net/androiddevelop/article/details/8561076</a></p>
-<p><strong>疑问三：</strong>RecyclerBin的数据结构是这样的呢？当ListView有多个视图类型（在界面上就是有不同的样式和数据类型）又是怎么选择合适的convertView的呢？<br>首先看一下RecycleBin的类定义（AbsListView中内部类）</p>
-<p>从注释中我们就可以得知 ：</p>
-<p>RecycleBin一共有两个存储结构分别是ActiveViews 和 ScrapViews<br>ActiveViews储存当前在界面(手机显示区域)中显示View，移出界面会存入ScrapViews<br>ScrapViews存储当前已经滑动出当前界面(手机显示区域)显示的View，这些view存储起来相当于回收，当再次请求的时候从此存储中取出反复使用。<br>当ListView中有N个视图类型时，RecycleBin会创建N个scrapView数组，每个类型一个view数组，后面在获取view时会先判断view的类型，然后到对应的数组中去取。</p>
-<p>怎么从ScrapViews中获取可用的view视图呢？getScrapView  → retrieveFromScrap</p>
-<p>retrieveFromScrap（这个不属于RecycleBin类，是属于外部类AbslistView中的方法）<br>   根据position，从mScrapView中找：</p>
-<pre><code>1. 如果有view.scrappedFromPosition = position的，直接返回该view；
-2. 否则返回mScrapView中最后一个；
-3. 如果缓存中没有view，则返回null；
-下面，我们来分析下这三种情况在什么条件下满足？
- a. 第三种情况，这个最简单：
- 一开始，listview稳定后，显示N个，此时mScrapView中是没有缓存view的，当我们向上滚动一小段距离（第一个此时仍显示部分），新的view将会显示，此时listview会调用Adapter.getView，但是缓存中没有，因此convertView是null，所以，我们得分配一块内存来创建新的convertView；
- b. 第二种情况：
- 在a中，我们继续向上滚动，直接第一个view完全移出屏幕（假设没有新的item），此时，第一个view就会被detach，并被加入到mScrapView中；然后，我们还继续向上滚动，直接后面又将要显示新的item view时，此时，系统会从mScrapView中找position对应的View，显然，是找不到的，则将从mScrapView中，取最后一个缓存的view传递给convertView；
-c. 第一种情况：
-紧接着在b中（标示为橙色的文字后面），第一个被完全移出，加入到mScrapView中，且没有新增的item到listview中，此时，缓存中就只有第一个view；然后，我此时向下滑动，则之前的第一个item，将被显示出来，此时，从缓存中查找position对应的view有没有，当然，肯定是找到了，就直接返回了。
-</code></pre><h4 id="ListView使用过程中遇到的问题："><a href="#ListView使用过程中遇到的问题：" class="headerlink" title="ListView使用过程中遇到的问题："></a>ListView使用过程中遇到的问题：</h4><h5 id="Listview-滑动中背景错乱："><a href="#Listview-滑动中背景错乱：" class="headerlink" title="Listview 滑动中背景错乱："></a>Listview 滑动中背景错乱：</h5><p><strong>场景：</strong></p>
-<p>我有一个listView作为菜单，当菜单选中时有一个指示器会展示出来，其他的会被隐藏，默认第一个菜单为选中状态，但是当滑动listview时，新加在出来的item中指示器也展示出来了。</p>
-<p><strong>原因：</strong></p>
-<p>理解了上面的getView和RecycleBin的工作原理之后，这个问题不难定位，肯定是在渲染新行时从scropViews中没有匹配position位置的view，此时默认返回了最后一个view（也就是场景中对应的第一个），这个view是被我们设置了指示器为可见状态，所以就引起了背景的错乱。</p>
-<p><strong>解决办法：</strong></p>
-<p>对于positon等于我们选择的下标时会指示器可见，当position不等于我们选择的下标时，防止convert被复用，我们需要设置指示器为不可见，也就是else中的代码，之前我只写了if中的代码，却忽略了else中的代码。</p>
-<p>这个问题也可以参考：<a href="http://www.myexception.cn/mobile/1612364.html" target="_blank" rel="noopener">http://www.myexception.cn/mobile/1612364.html </a></p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Android//" class="article-tag-list-link color3">Android</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2014/09/01/Android/2014-09-01-listview/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
     <article id="post-Basic/2013-05-02-websocket" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
   <div class="article-inner">
     
@@ -717,6 +241,752 @@ c. 第一种情况：
       
         <p class="article-more-link">
           <a class="article-more-a" href="/2013/05/02/Basic/2013-05-02-websocket/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-Java/2013-04-30-java-final-static" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2013/04/30/Java/2013-04-30-java-final-static/">Java基础 之 final 和 static</a>
+    </h1>
+  
+
+        
+        <a href="/2013/04/30/Java/2013-04-30-java-final-static/" class="archive-article-date">
+  	<time datetime="2013-04-29T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2013-04-30</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h3 id="final"><a href="#final" class="headerlink" title="final"></a>final</h3><h4 id="1-final变量："><a href="#1-final变量：" class="headerlink" title="1.final变量："></a>1.final变量：</h4><p>当你在类中定义变量时，在其前面加上final关键字，那便是说，这个变量一旦被初始化便不可改变，这里不可改变的意思对基本类型来说是其值不可变，而对于对象变量来说其引用不可再变。其初始化可以在两个地方，一是其定义处，也就是说在final变量定义时直接给其赋值，二是在构造函数中。这两个地方只能选其一，要么在定义时给值，要么在构造函数中给值，不能同时既在定义时给了值，又在构造函数中给另外的值。对象变量不可变是指向对象的地址引用不变，对象内部还是可以变化的。</p>
+<p>当函数参数为final类型时，你可以读取使用该参数，但是无法改变该参数的值。</p>
+<p>另外方法中的内部类在用到方法中的参变量时，此参变也必须声明为final才可使用</p>
+<h4 id="2-final方法"><a href="#2-final方法" class="headerlink" title="2.final方法"></a>2.final方法</h4><p>如果一个类不允许其子类覆盖某个方法，则可以把这个方法声明为final方法。<br>使用final方法的原因有二：<br>第一、把方法锁定，防止任何继承类修改它的意义和实现。<br>第二、高效。编译器在遇到调用final方法时候会转入内嵌机制，大大提高执行效率。</p>
+<h4 id="3-final类"><a href="#3-final类" class="headerlink" title="3.final类"></a>3.final类</h4><p>final类不能被继承，因此final类的成员方法没有机会被覆盖，默认都是final的。在设计类时候，如果这个类不需要有子类，类的实现细节不允许改变，并且确信这个类不会载被扩展，那么就设计为final类。</p>
+<h4 id="4-final-方法变量"><a href="#4-final-方法变量" class="headerlink" title="4.final 方法变量"></a>4.final 方法变量</h4><p>为什么需要在方法变量前添加final，使用场景是什么？参考：《Java基础 之 方法参数传递》</p>
+<h3 id="static"><a href="#static" class="headerlink" title="static"></a>static</h3><p>被static修饰的成员变量和成员方法独立于该类的任何对象。也就是说，它不依赖类特定的实例，被类的所有实例共享。只要这个类被加载，Java虚拟机就能根据类名在运行时数据区的方法区内找到他们。因此，static对象可以在它的任何对象创建之前访问，无需引用任何对象。<br>static变量前可以有private修饰，表示这个变量可以在类的静态代码块中，或者类的其他静态成员方法中使用（当然也可以在非静态成员方法中使用–废话），但是不能在其他类中通过类名来直接引用，这一点很重要。实际上你需要搞明白，private是访问权限限定，static表示不要实例化就可以使用</p>
+<p>用static修饰的代码块表示静态代码块，当Java虚拟机（JVM）加载类时，就会执行该代码块</p>
+<h4 id="1-static变量"><a href="#1-static变量" class="headerlink" title="1.static变量"></a>1.static变量</h4><p>按照是否静态的对类成员变量进行分类可分两种：一种是被static修饰的变量，叫静态变量或类变量；另一种是没有被static修饰的变量，叫实例变量。两者的区别是：<br>对于静态变量在内存中只有一个拷贝（节省内存），JVM只为静态分配一次内存，在加载类的过程中完成静态变量的内存分配，可用类名直接访问（方便），当然也可以通过对象来访问（但是这是不推荐的）。对于实例变量，没创建一个实例，就会为实例变量分配一次内存，实例变量可以在内存中有多个拷贝，互不影响（灵活）。</p>
+<h4 id="2-static方法"><a href="#2-static方法" class="headerlink" title="2.static方法"></a>2.static方法</h4><p>静态方法可以直接通过类名调用，任何的实例也都可以调用，因此静态方法中不能用this和super关键字，不能直接访问所属类的实例变量和实例方法(就是不带static的成员变量和成员成员方法)，只能访问所属类的静态成员变量和成员方法。因为static方法独立于任何实例，因此static方法必须被实现，而不能是抽象的abstract。</p>
+<h4 id="3-static代码块"><a href="#3-static代码块" class="headerlink" title="3.static代码块"></a>3.static代码块</h4><p>static代码块也叫静态代码块，是在类中独立于类成员的static语句块，可以有多个，位置可以随便放，它不在任何的方法体内，JVM加载类时会执行这些静态的代码块，如果static代码块有多个，JVM将按照它们在类中出现的先后顺序依次执行它们，每个代码块只会被执行一次。</p>
+<h4 id="4、static和final一块用表示什么"><a href="#4、static和final一块用表示什么" class="headerlink" title="4、static和final一块用表示什么"></a>4、static和final一块用表示什么</h4><p>static final用来修饰成员变量和成员方法，可简单理解为“全局常量”！<br>对于变量，表示一旦给值就不可修改，并且通过类名可以访问。<br>对于方法，表示不可覆盖，并且可以通过类名直接访问。</p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2013/04/30/Java/2013-04-30-java-final-static/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-Java/2013-04-29-java-seriailze-and-un" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2013/04/29/Java/2013-04-29-java-seriailze-and-un/">Java基础 之 序列化与反序列化</a>
+    </h1>
+  
+
+        
+        <a href="/2013/04/29/Java/2013-04-29-java-seriailze-and-un/" class="archive-article-date">
+  	<time datetime="2013-04-28T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2013-04-29</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h4 id="为什么需要对象序列化："><a href="#为什么需要对象序列化：" class="headerlink" title="为什么需要对象序列化："></a>为什么需要对象序列化：</h4><p>解决Java对象在网络上传输和Java对象持久化的问题。序列化将对象转换为二进制流，然后在网络上传输，当抵打目的后在反序列化为Java对象。</p>
+<h4 id="什么是Java对象序列化"><a href="#什么是Java对象序列化" class="headerlink" title="什么是Java对象序列化"></a>什么是Java对象序列化</h4><p>　　Java平台允许我们在内存中创建可复用的Java对象，但一般情况下，只有当JVM处于运行时，这些对象才可能存在，即，这些对象的生命周期不会比JVM的生命周期更长。但在现实应用中，就可能要求在JVM停止运行之后能够保存（持久化）指定的对象，并在将来重新读取被保存的对象。Java对象序列化就能够帮助我们实现该功能。<br>　　<br>　　使用Java对象序列化，在保存对象时，会把其状态保存为一组字节，在未来，再将这些字节组装成对象。必须注意地是，对象序列化保存的是对象的”状态”，即它的成员变量。由此可知，对象序列化不会关注类中的静态变量。<br>　　除了在持久化对象时会用到对象序列化之外，当使用RMI（远程方法调用），或在网络中传递对象时，都会用到对象序列化。Java序列化API为处理对象序列化提供了一个标准机制，该API简单易用，在本文的后续章节中将会陆续讲到。
+　　</p>
+<h4 id="Java对象的序列化和反序列化实践"><a href="#Java对象的序列化和反序列化实践" class="headerlink" title="Java对象的序列化和反序列化实践"></a>Java对象的序列化和反序列化实践</h4><p>当两个进程在进行远程通信时，彼此可以发送各种类型的数据。无论是何种类型的数据，都会以二进制序列的形式在网络上传送。发送方需要把这个 Java 对象转换为字节序列，才能在网络上传送；接收方则需要把字节序列再恢复为 Java 对象。</p>
+<p>把 Java 对象转换为字节序列的过程称为对象的序列化。<br>把字节序列恢复为 Java 对象的过程称为对象的反序列化。</p>
+<h5 id="对象的序列化主要有两种用途："><a href="#对象的序列化主要有两种用途：" class="headerlink" title="对象的序列化主要有两种用途："></a>对象的序列化主要有两种用途：</h5><ol>
+<li>把对象的字节序列永久地保存到硬盘上，通常存放在一个文件中；</li>
+<li>在网络上传送对象的字节序列。</li>
+</ol>
+<p>只有实现了 Serializable 和 Externalizable 接口的类的对象才能被序列化。 Externalizable 接口继承自 Serializable 接口，实现Externalizable 接口的类完全由自身来控制序列化的行为，而仅实现Serializable 接口的类可以采用默认的序列化方式 。</p>
+<h5 id="对象序列化包括如下步骤："><a href="#对象序列化包括如下步骤：" class="headerlink" title="对象序列化包括如下步骤："></a>对象序列化包括如下步骤：</h5><ol>
+<li>创建一个对象输出流，它可以包装一个其他类型的目标输出流，如文件输出流；</li>
+<li>通过对象输出流的 writeObject() 方法写对象。<h5 id="对象反序列化的步骤如下："><a href="#对象反序列化的步骤如下：" class="headerlink" title="对象反序列化的步骤如下："></a>对象反序列化的步骤如下：</h5></li>
+<li>创建一个对象输入流，它可以包装一个其他类型的源输入流，如文件输入流；</li>
+<li>通过对象输入流的 readObject() 方法读取对象。<br>下面让我们来看一个对应的例子，类的内容如下：</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.io.FileInputStream;</span><br><span class="line"><span class="keyword">import</span> java.io.FileOutputStream;</span><br><span class="line"><span class="keyword">import</span> java.io.ObjectInputStream;</span><br><span class="line"><span class="keyword">import</span> java.io.ObjectOutputStream;</span><br><span class="line"><span class="keyword">import</span> java.io.Serializable;</span><br><span class="line"><span class="keyword">import</span> java.util.Date;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ObjectSaver</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        ObjectOutputStream out = <span class="keyword">new</span> ObjectOutputStream</span><br><span class="line">            (<span class="keyword">new</span> FileOutputStream(<span class="string">"D:"</span><span class="string">"objectFile.obj"</span>));</span><br><span class="line">        <span class="comment">// 序列化对象</span></span><br><span class="line">        Customer customer = <span class="keyword">new</span> Customer(<span class="string">" 阿蜜果 "</span>, <span class="number">24</span>);</span><br><span class="line">        out.writeObject(<span class="string">" 你好 !"</span>);</span><br><span class="line">        out.writeObject(<span class="keyword">new</span> Date());</span><br><span class="line">        out.writeObject(customer);</span><br><span class="line">        out.writeInt(<span class="number">123</span>); <span class="comment">// 写入基本类型数据</span></span><br><span class="line">        out.close();</span><br><span class="line">        <span class="comment">// 反序列化对象</span></span><br><span class="line">        ObjectInputStream in = <span class="keyword">new</span> ObjectInputStream</span><br><span class="line">            (<span class="keyword">new</span> FileInputStream(<span class="string">"D:"</span><span class="string">"objectFile.obj"</span>));</span><br><span class="line">        System.out.println(<span class="string">"obj1="</span> + (String)in.readObject());</span><br><span class="line">        System.out.println(<span class="string">"obj2="</span> + (Date)in.readObject());</span><br><span class="line">        Customer obj3 = (Customer)in.readObject();</span><br><span class="line">        System.out.println(<span class="string">"obj3="</span> + obj3);</span><br><span class="line">        <span class="keyword">int</span> obj4 = in.readInt();</span><br><span class="line">        System.out.println(<span class="string">"obj4="</span> + obj4);</span><br><span class="line">        in.close();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Customer</span> <span class="keyword">implements</span> <span class="title">Serializable</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> String name;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> age;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Customer</span><span class="params">(String name, <span class="keyword">int</span> age)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.name = name;</span><br><span class="line">        <span class="keyword">this</span>.age = age;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">"name="</span> + name + <span class="string">", age="</span> + age;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>输出结果如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">obj1= 你好 !</span><br><span class="line">obj2=Sat Sep 15 22:02:21 CST 2007</span><br><span class="line">obj3=name= 阿蜜果 , age=24</span><br><span class="line">obj4=123</span><br></pre></td></tr></table></figure>
+<p>因此例比较简单，在此不再详述。</p>
+<h5 id="实现-Serializable-接口"><a href="#实现-Serializable-接口" class="headerlink" title="实现 Serializable 接口"></a>实现 Serializable 接口</h5><p>ObjectOutputStream 只能对 Serializable 接口的类的对象进行序列化。默认情况下，ObjectOutputStream 按照默认方式序列化，这种序列化方式仅仅对对象的非 transient 的实例变量进行序列化，而不会序列化对象的 transient 的实例变量，也不会序列化静态变量。</p>
+<p>当 ObjectOutputStream 按照默认方式反序列化时，具有如下特点：</p>
+<ol>
+<li>如果在内存中对象所属的类还没有被加载，那么会先加载并初始化这个类。如果在 classpath 中不存在相应的类文件，那么会抛出 ClassNotFoundException ；</li>
+<li>在反序列化时不会调用类的任何构造方法。<br>如果用户希望控制类的序列化方式，可以在可序列化类中提供以下形式的 writeObject() 和 readObject() 方法。</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">writeObject</span><span class="params">(java.io.ObjectOutputStream out)</span> <span class="keyword">throws</span> IOException</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">readObject</span><span class="params">(java.io.ObjectInputStream in)</span> <span class="keyword">throws</span> IOException, ClassNotFoundException</span>;</span><br></pre></td></tr></table></figure>
+<p>当 ObjectOutputStream 对一个 Customer 对象进行序列化时，如果该对象具有 writeObject() 方法，那么就会执行这一方法，否则就按默认方式序列化。在该对象的 writeObjectt() 方法中，可以先调用ObjectOutputStream 的 defaultWriteObject() 方法，使得对象输出流先执行默认的序列化操作。同理可得出反序列化的情况，不过这次是 defaultReadObject() 方法。</p>
+<p>有些对象中包含一些敏感信息，这些信息不宜对外公开。如果按照默认方式对它们序列化，那么它们的序列化数据在网络上传输时，可能会被不法份子窃取。</p>
+<p>对于这类信息，可以对它们进行加密后再序列化，在反序列化时则需要解密，再恢复为原来的信息。</p>
+<p>默认的序列化方式会序列化整个对象图，这需要递归遍历对象图。如果对象图很复杂，递归遍历操作需要消耗很多的空间和时间，它的内部数据结构为双向列表。</p>
+<p>在应用时，如果对某些成员变量都改为 transient 类型，将节省空间和时间，提高序列化的性能。</p>
+<h5 id="实现-Externalizable-接口"><a href="#实现-Externalizable-接口" class="headerlink" title="实现 Externalizable 接口"></a>实现 Externalizable 接口</h5><p>Externalizable 接口继承自 Serializable 接口，如果一个类实现了Externalizable 接口，那么将完全由这个类控制自身的序列化行为。</p>
+<p>Externalizable 接口声明了两个方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">writeExternal</span><span class="params">(ObjectOutput out)</span> <span class="keyword">throws</span> IOException</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">readExternal</span><span class="params">(ObjectInput in)</span> <span class="keyword">throws</span> IOException , ClassNotFoundException</span></span><br></pre></td></tr></table></figure>
+<p>前者负责序列化操作，后者负责反序列化操作。</p>
+<p>在对实现了 Externalizable 接口的类的对象进行反序列化时，会先调用类的不带参数的构造方法，这是有别于默认反序列方式的。</p>
+<p>如果把类的不带参数的构造方法删除，或者把该构造方法的访问权限设置为 private 、默认或 protected 级别，<br>会抛出 java.io.InvalidException: no valid constructor 异常。</p>
+<h5 id="可序列化类的不同版本的序列化兼容性"><a href="#可序列化类的不同版本的序列化兼容性" class="headerlink" title="可序列化类的不同版本的序列化兼容性"></a>可序列化类的不同版本的序列化兼容性</h5><p>凡是实现 Serializable 接口的类都有一个表示序列化版本标识符的静态变量：<br>private static final long serialVersionUID;<br>以上 serialVersionUID 的取值是 Java 运行时环境根据类的内部细节自动生成的。如果对类的 源代码 作了修改，再重新编译，新生成的类文件的serialVersionUID 的取值有可能也会发生变化。</p>
+<p>类的 serialVersionUID 的默认值完全依赖于 Java 编译器的实现，对于同一个类，用不同的 Java 编译器编译，有可能会导致不同的serialVersionUID ，也有可能相同。为了提高哦啊 serialVersionUID 的独立性和确定性，强烈建议在一个可序列化类中显示的定义serialVersionUID ，为它赋予明确的值。显式地定义 serialVersionUID 有</p>
+<h5 id="两种用途："><a href="#两种用途：" class="headerlink" title="两种用途："></a>两种用途：</h5><ol>
+<li>在某些场合，希望类的不同版本对序列化兼容，因此需要确保类的不同版本具有相同的 serialVersionUID ；</li>
+<li>在某些场合，不希望类的不同版本对序列化兼容，因此需要确保类的不同版本具有不同的 serialVersionUID 。</li>
+</ol>
+<h5 id="“transient”——“瞬态"><a href="#“transient”——“瞬态" class="headerlink" title="“transient”——“瞬态"></a>“transient”——“瞬态</h5><h6 id="适用场景："><a href="#适用场景：" class="headerlink" title="适用场景："></a>适用场景：</h6><ol>
+<li>不打算序列化某字段的值，节省空间</li>
+<li>传递序列化流的时候，不传递该值等<br>一个实现了serializable的单例类，必须有一个readResolve方法，用以返回他的唯一实例。</li>
+</ol>
+<p>有可能由于对于一个实现了Serializable的类进行了扩展，或者由于实现了一个扩展自Serializable的接口，使得我们在无意中实现了Serializable。</p>
+<h3 id="复杂对象序列化"><a href="#复杂对象序列化" class="headerlink" title="复杂对象序列化"></a>复杂对象序列化</h3><ul>
+<li>当父类继承Serializable接口，所有子类都可以被序列化</li>
+<li>子类实现了Serializable接口，父类没有，父类中的属性不能序列化（不报错，数据会丢失），但是子类中属性人能正确序列化</li>
+<li>如果序列化的属性是对象，这个对象也必须实现Serializable接口，否则会报错</li>
+<li>在反序列化时，如果对象的属性有修改或删减，修改的部分属性会丢失，但不会报错</li>
+<li>在反序列化时，如果serialVersionUID被修改，那么反序列化时会失败</li>
+<li>如果一个父类没有实现Serializable接口，他的内部类如果不是static的，即使实现了序列化接口，也会序列失败。因为非静态<br>内部类会保存一个指向父类的类型this变量，而序列化类的所有属性必须实现序列化接口，所以要将内部类设置成静态类</li>
+<li>List或者Map容器中包含的泛型类型也必须实现Serializable接口，否则也会报java.io.NotSerializableException</li>
+</ul>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2013/04/29/Java/2013-04-29-java-seriailze-and-un/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-Java/2013-04-28-java-collection" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2013/04/28/Java/2013-04-28-java-collection/">Java基础 之 集合</a>
+    </h1>
+  
+
+        
+        <a href="/2013/04/28/Java/2013-04-28-java-collection/" class="archive-article-date">
+  	<time datetime="2013-04-27T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2013-04-28</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Java 中的广义集合分两大类，Collection 和 Map ;</p>
+<h4 id="Set-成员不能重复"><a href="#Set-成员不能重复" class="headerlink" title="Set : 成员不能重复"></a>Set : 成员不能重复</h4><p>HashSet: 外部无序地遍历成员；覆盖了equals方法，注意修改hashCode方法。<br>TreeSet：外部有序地遍历成员；成员要求实现caparable接口，或者使用 Comparator构造TreeSet。<br>LinkedHashSet：外部按成员的插入顺序遍历成员。</p>
+<h4 id="List：提供基于索引对成员随机访问。"><a href="#List：提供基于索引对成员随机访问。" class="headerlink" title="List：提供基于索引对成员随机访问。"></a>List：提供基于索引对成员随机访问。</h4><p>LinkedList可以实现 队列(queue)，栈（stack），双向队列（deque）。注意LinkedList没有同步方法。<br>ArrayList 实现了可变大小的数组.ArrayList缺省情况下自动增长原来一倍的50%,<br>Vector非常类似ArrayList，但是Vector是同步的，ArrayList是非同步的。Vector缺省情况下自动增长原来一倍的数组长度。</p>
+<h4 id="Map-提供一组key-value的键值对"><a href="#Map-提供一组key-value的键值对" class="headerlink" title="Map:  提供一组key-value的键值对"></a>Map:  提供一组key-value的键值对</h4><p>Hashtable：是同步的。不允许null为key或value。查找value是通过对key进行散列计算，所以确保key对象，要同时复写equals方法和hashCode方法，而不要只写其中一个。Hashtable原理：通过节点的关键码确定节点的位置，即给定的关键码K，通过一定的函数关系H(散列函数)，得到函数值H(K)，将此值解释为这个节点的存储位置。<br>HashMap:非同步的。允许null 为key 或value。<br>WeakHashMap：是一种改进的HashMap，它对key实行“弱引用”，如果一个key不再被外部所引用，那么该key可以被GC回收。<br>IdentityHashMap：它在比较键时，使用的是引用等价而不是值等价性 ，而HashMap使用的是值等价性</p>
+<h3 id="使用总结："><a href="#使用总结：" class="headerlink" title="使用总结："></a>使用总结：</h3><ol>
+<li>如果涉及 堆栈，队列等操作，应该考虑使用List，对需要快速插入元素、删除元素的 使用LinkedList，如果需要快速随机访问元素，应该使用ArrayList</li>
+<li>如果程序在单线程的环境中，或者访问仅仅在一个线程中心进行，那就可以考虑使用非同步的类，执行效率高，如果在多线程可能同时操作一个类，应该使用 同步的类；</li>
+<li>要特别注意哈希表的使用，作为key的对象要正确覆写equals 和 hashcode 方法。</li>
+<li>尽量返回接口而非实际的类型，如返回List而非ArrayList，这样如果以后需要将ArrayList换成LinkedList时，客户端代码不用改变。</li>
+<li>如果一个HashSet  ,Hashtable  或 HashMap被序列化，那么请确认他们的内容没有直接或间接地引用他们自身。</li>
+<li>在对List进行循环的时候不要在循环体内对List元素进行remove操作；</li>
+</ol>
+<h3 id="探究实现原理："><a href="#探究实现原理：" class="headerlink" title="探究实现原理："></a>探究实现原理：</h3><h4 id="ArrayList"><a href="#ArrayList" class="headerlink" title="ArrayList"></a>ArrayList</h4><p><strong>实现原理：</strong>内部维护了一个数组 和 int 型 大小变量 size；</p>
+<p><strong>动态扩容原理：</strong>没有显示定义容量的时候，默认开辟10个数组大小空间；每次add的时候调用ensureCapacity方法，判断添加一个元素后是否超过现有容量，如果超过，那么新开辟之前容量的1.5倍，然后将之前的数据拷贝的新的数组当中.</p>
+<p><strong>总结：</strong>可以看出进行动态扩容实际是进行数组拷贝，这个就会花费一定的时间消耗，所以当我们的数据比较大或者能够与之数据大小的时候，做好提前做一次ensureCapacity，或定义时指定。</p>
+<h4 id="LinkedList"><a href="#LinkedList" class="headerlink" title="LinkedList"></a>LinkedList</h4><p><strong>实现原理:</strong>底层采用双向循环列表实现。(可以使用LinkedList来实现队列和栈)</p>
+<p><strong>Entry类数据模型：</strong>一个数据element，两个指针，一个指向前一个节点，名为previous，一个指向下一个节点，名为next，形成双向列表，LinkedList的无参构造函数初始化的时候就实现了链表的循环。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">header.next = header.previous = header</span><br></pre></td></tr></table></figure>
+<h4 id="HashSet"><a href="#HashSet" class="headerlink" title="HashSet"></a>HashSet</h4><p><strong>实现原理：</strong>HashSet的底层采用HashMap来存放数据，在add的时候调用hashMap的put方法，对应hashmap的key是hashSet的值，value是一个常量对象PRESENT</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Object PRESENT = <span class="keyword">new</span> Object();</span><br></pre></td></tr></table></figure>
+<p>它的原理就是利用 hashMap的key是不可重复的这一特性来用key存储Set的元素值以达到Set的元素不可重复。</p>
+<h4 id="HashMap"><a href="#HashMap" class="headerlink" title="HashMap"></a>HashMap</h4><p><strong>实现原理:</strong> 底层采用 数组链表 作为数据存储模型；Entry[] table；</p>
+<p><strong>Entry类数据模型：</strong>一个泛型Key，一个泛型value，一个指向下一个Entry的指针 next，一个 hash int型值。</p>
+<p>put操作：</p>
+<p>首先判断key是否为null，为null的话就会去table[0]链循环查找key为null的节点Entry，找到则替换value，无则添加；其次对key的hashcode进行hash得到数组下标 i ，遍历 i 链上的所有节点，判断是否有key重复的，有则替换value，并返回，无则继续；最后在 数组中添加 下标为 i 的 Entry链中第一个节点出添加这个节点。Entry[]的长度一定后，随着map里面数据的越来越长，这样同一个i的链就会很长，会不会影响性能？HashMap里面设置一个因素（也称为因子），随着map的size越来越大，Entry[]会以一定的规则加长长度。</p>
+<p>get操作：</p>
+<p>首先判断key是否为null，为null的话就去table[0]链循环查找key为null的节点Entry。不为null，就根据key的hashcode进行hash得到数据下标i ，遍历 下标为 i 的链，查找key元素，如果不存在就返回null。</p>
+<h4 id="Hashtable"><a href="#Hashtable" class="headerlink" title="Hashtable"></a>Hashtable</h4><p><strong>实现原理：</strong>底层采用 数组链表 作为数据存储模型；Entry[] table；<br>HashTable和HashMap采用相同的存储机制，二者的实现基本一致.<br>在Hashtable中调用put方法时，如果key为null，直接抛出NullPointerException<br>Hashtable是线程安全的，内部的方法基本都是synchronized.</p>
+<h4 id="ConcurrentHashMap"><a href="#ConcurrentHashMap" class="headerlink" title="ConcurrentHashMap"></a>ConcurrentHashMap</h4><p><strong>实现原理：</strong>基于一个叫Segment数组的，其实和Entry类似。</p>
+<p>ConcurrentHashMap基于concurrentLevel划分出了多个Segment来对key-value进行存储，从而避免每次锁定整个数组，在默认的情况下，允许16个线程并发无阻塞的操作集合对象，尽可能地减少并发时的阻塞现象。</p>
+<h4 id="WeakHashMap"><a href="#WeakHashMap" class="headerlink" title="WeakHashMap"></a>WeakHashMap</h4><p><strong>实现原理：</strong>内部类Entry继承了WeakReference类，且在构造函数中构造了Key的弱引用，当进行put或者get操作时，都会调用一个函数叫expungeStaleEntries()用来判断，如果key存在弱引用，则进行垃圾回收。</p>
+<p>WeakHashMap在不考了命中率的情况下，多用于缓存系统，就是说在系统内存紧张的时候可随时进行GC，但是如果内存不紧张则可以用来存放一些缓存数据。因为如果使用HashMap的话，它里面的值基本都是强引用，即使内存不足，它也不会进行GC。</p>
+<h3 id="补充："><a href="#补充：" class="headerlink" title="补充："></a>补充：</h3><ol>
+<li>集合的排序：Comparator &amp; Comparable<br>当需要排序的集合或数组不是纯数字时，通常使用 Comparator 或 Comparable 实现对象排序或者自定义排序<br>一个类实现了Camparable接口则表明这个类的对象之间是可以相互比较的，这个类对象组成的集合就可以直接使用sort方法排序。<br>Comparator可以看成一种算法的实现，将算法和数据分离；</li>
+<li>集合工具类：Collections（一系列算法的集合，里面属性都是static）<ul>
+<li>生成单元素集合：    Collections.singletonList、Collections.singletonMap、Collections.singleton</li>
+<li>Checked集合：checkedCollection、checkedList、checkedMap、checkedSet、checkedSortedMap、checkedSortedSet</li>
+<li>同步集合：为一些非线程安全的集合类提供同步机制。</li>
+<li>查找替换：fill、frequency、indexOfSubList、lastIndexOfSubList、max、min、replaceAll</li>
+<li>集合排序：reverse、shuffle、sort、swap、rotate</li>
+</ul>
+</li>
+<li>hashCode()方法的作用：<br>hashCode() 是用来产生哈希码的，而哈希码是用来在散列存储结构中确定对象的存储地址的。对于Object类的 hashCode方法，会针对不同对象返回不同的整数，这一般是通过将该对象的内部地址转换为一个整数来实现的，当两个对象是一样的时（equals为true），他们的hashCode码也是相同的。String的hashCode返回值是基于String的内容的，内容相同，hashCode就相同。在集合中很多地方使用了hashCode，比如保证hashSet的元素不重复，保证hashMap的key不重复，提高hashMap存取数据的效率。</li>
+</ol>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2013/04/28/Java/2013-04-28-java-collection/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-Java/2013-03-21-java-enum" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2013/03/21/Java/2013-03-21-java-enum/">Java基础 之 枚举类型</a>
+    </h1>
+  
+
+        
+        <a href="/2013/03/21/Java/2013-03-21-java-enum/" class="archive-article-date">
+  	<time datetime="2013-03-20T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2013-03-21</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>枚举类型的常见使用场景：</p>
+<h4 id="枚举类型-作为-错误码集合："><a href="#枚举类型-作为-错误码集合：" class="headerlink" title="枚举类型 作为 错误码集合："></a>枚举类型 作为 错误码集合：</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">enum</span> ErrorEnum &#123;</span><br><span class="line">    TFS_ACCESS_ERROR(<span class="string">"101"</span>, <span class="string">"TFS连接失败"</span>)</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 错误代码</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> String errorCode；</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 错误消息</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> String errorMsg;</span><br><span class="line">    ErrorEnum(String errorCode, String errorMsg)&#123;</span><br><span class="line">        <span class="keyword">this</span>.errorCode = errorCode;</span><br><span class="line">        <span class="keyword">this</span>.errorMsg = errorMsg;</span><br><span class="line">    ｝</span><br><span class="line">｝</span><br></pre></td></tr></table></figure>
+<p>定义的枚举 属性都是 枚举类型，这个枚举类型每一个错误吗会对应一个 错误信息；</p>
+<h4 id="使用-枚举类型enum-构建一个状态机："><a href="#使用-枚举类型enum-构建一个状态机：" class="headerlink" title="使用 枚举类型enum 构建一个状态机："></a>使用 枚举类型enum 构建一个状态机：</h4><p>利用enum可以为枚举实例添加方法的特性,可以构造状态机。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> enumeration;</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Person</span> </span>&#123;</span><br><span class="line">    <span class="comment">//自己有一个状态</span></span><br><span class="line">    <span class="keyword">private</span> State s;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Person</span><span class="params">(State s)</span></span>&#123;<span class="keyword">this</span>.s = s;&#125;</span><br><span class="line">    <span class="comment">//调用相应状态下的方法</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">smile</span><span class="params">()</span></span>&#123;</span><br><span class="line">        s.smile();</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">cry</span><span class="params">()</span></span>&#123;</span><br><span class="line">        s.cry();</span><br><span class="line">    &#125;;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//状态</span></span><br><span class="line"><span class="keyword">enum</span> State &#123;</span><br><span class="line">    <span class="comment">//高兴状态下的方法实现</span></span><br><span class="line">    Happy &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">smile</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            System.out.println(<span class="string">"Happy Smile"</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">cry</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            System.out.println(<span class="string">"Happy cry"</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="comment">//悲伤状态下的方法实现</span></span><br><span class="line">    Sad &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">smile</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            System.out.println(<span class="string">"Sad Smile"</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">cry</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            System.out.println(<span class="string">"Happy cry"</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//需要实现的方法</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title">smile</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title">cry</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="使用-枚举类型enum-构建一个职责链："><a href="#使用-枚举类型enum-构建一个职责链：" class="headerlink" title="使用 枚举类型enum 构建一个职责链："></a>使用 枚举类型enum 构建一个职责链：</h4><p>利用enum可以为枚举实例添加方法的特性,可以构造简单的责任链 。<br>人在高兴,悲伤状态下的笑和哭具有不同的意义.</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> enumeration;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">StringHandler</span> </span>&#123;</span><br><span class="line">    <span class="keyword">enum</span> handler &#123;</span><br><span class="line">        Sensitive &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function">String <span class="title">hand</span><span class="params">(String msg)</span> </span>&#123;</span><br><span class="line">                <span class="keyword">return</span> msg.replace(<span class="string">"敏感"</span>, <span class="string">"*"</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;,</span><br><span class="line">        HTML &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function">String <span class="title">hand</span><span class="params">(String msg)</span> </span>&#123;</span><br><span class="line">                <span class="keyword">return</span> msg.replace(<span class="string">"&lt;"</span>, <span class="string">"["</span>).replace(<span class="string">"&gt;"</span>, <span class="string">"]"</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;;</span><br><span class="line">        <span class="comment">//枚举实例须实现此方法</span></span><br><span class="line">        <span class="function"><span class="keyword">abstract</span> String <span class="title">hand</span><span class="params">(String msg)</span></span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//遍历枚举实例处理字符串</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title">hand</span><span class="params">(String msg)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">for</span> (handler h : handler.values()) &#123;</span><br><span class="line">            msg = h.hand(msg);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> msg;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        String msg = <span class="string">"敏感字符,&lt;html&gt;"</span>;</span><br><span class="line">        System.out.println(StringHandler.hand(msg));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="enum-的多路并发："><a href="#enum-的多路并发：" class="headerlink" title="enum 的多路并发："></a>enum 的多路并发：</h4><p>也就是使用 switch。</p>
+<h4 id="查看enum-字节码："><a href="#查看enum-字节码：" class="headerlink" title="查看enum 字节码："></a>查看enum 字节码：</h4><p>类：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">enum</span> EnumTest&#123;</span><br><span class="line">     START,CLOSE,PAUSE</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>编译出来的类似字节码Oolong语言：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br></pre></td><td class="code"><pre><span class="line">.source EnumTest.java</span><br><span class="line">.class <span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">super</span> EnumTest</span><br><span class="line">.<span class="keyword">super</span> java/lang/Enum</span><br><span class="line"></span><br><span class="line">.field <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> START LEnumTest;</span><br><span class="line">.field <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> CLOSE LEnumTest;</span><br><span class="line">.field <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> PAUSE LEnumTest;</span><br><span class="line">.field <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> $VALUES [LEnumTest;</span><br><span class="line"></span><br><span class="line">.<span class="function">method <span class="keyword">public</span> <span class="keyword">static</span> <span class="title">values</span> <span class="params">()</span>[LEnumTest</span>;</span><br><span class="line">.limit stack <span class="number">1</span></span><br><span class="line">.limit locals <span class="number">0</span></span><br><span class="line">.line <span class="number">1</span></span><br><span class="line">l0:    getstatic EnumTest/$VALUES [LEnumTest;</span><br><span class="line">l3:    invokevirtual [LEnumTest;/clone ()Ljava/lang/Object;</span><br><span class="line">l6:    checkcast [LEnumTest;</span><br><span class="line">l9:    areturn</span><br><span class="line"></span><br><span class="line">.end method</span><br><span class="line"></span><br><span class="line">.<span class="function">method <span class="keyword">public</span> <span class="keyword">static</span> <span class="title">valueOf</span> <span class="params">(Ljava/lang/String;)</span>LEnumTest</span>;</span><br><span class="line">.limit stack <span class="number">2</span></span><br><span class="line">.limit locals <span class="number">1</span></span><br><span class="line">.line <span class="number">1</span></span><br><span class="line">l0:    ldc_w</span><br><span class="line">l3:    aload_0</span><br><span class="line">l4:    invokestatic java/lang/Enum/valueOf (Ljava/lang/Class;Ljava/lang/String;)Ljava/lang/Enum;</span><br><span class="line">l7:    checkcast EnumTest</span><br><span class="line">l10:    areturn</span><br><span class="line"></span><br><span class="line">.end method</span><br><span class="line"></span><br><span class="line">.method <span class="keyword">private</span> &lt;init&gt; (Ljava/lang/String;I)V</span><br><span class="line">.limit stack <span class="number">3</span></span><br><span class="line">.limit locals <span class="number">3</span></span><br><span class="line">.line <span class="number">1</span></span><br><span class="line">l0:    aload_0</span><br><span class="line">l1:    aload_1</span><br><span class="line">l2:    iload_2</span><br><span class="line">l3:    invokespecial java/lang/Enum/&lt;init&gt; (Ljava/lang/String;I)V</span><br><span class="line">l6:    <span class="keyword">return</span></span><br><span class="line"></span><br><span class="line">.end method</span><br><span class="line"></span><br><span class="line">.method <span class="keyword">static</span> &lt;clinit&gt; ()V</span><br><span class="line">.limit stack <span class="number">4</span></span><br><span class="line">.limit locals <span class="number">0</span></span><br><span class="line">.line <span class="number">2</span></span><br><span class="line">l0:    <span class="keyword">new</span> EnumTest</span><br><span class="line">l3:    dup</span><br><span class="line">l4:    ldc <span class="string">"START"</span></span><br><span class="line">l6:    iconst_0</span><br><span class="line">l7:    invokespecial EnumTest/&lt;init&gt; (Ljava/lang/String;I)V</span><br><span class="line">l10:    putstatic EnumTest/START LEnumTest;</span><br><span class="line">l13:    <span class="keyword">new</span> EnumTest</span><br><span class="line">l16:    dup</span><br><span class="line">l17:    ldc <span class="string">"CLOSE"</span></span><br><span class="line">l19:    iconst_1</span><br><span class="line">l20:    invokespecial EnumTest/&lt;init&gt; (Ljava/lang/String;I)V</span><br><span class="line">l23:    putstatic EnumTest/CLOSE LEnumTest;</span><br><span class="line">l26:    <span class="keyword">new</span> EnumTest</span><br><span class="line">l29:    dup</span><br><span class="line">l30:    ldc <span class="string">"PAUSE"</span></span><br><span class="line">l32:    iconst_2</span><br><span class="line">l33:    invokespecial EnumTest/&lt;init&gt; (Ljava/lang/String;I)V</span><br><span class="line">l36:    putstatic EnumTest/PAUSE LEnumTest;</span><br><span class="line">.line <span class="number">1</span></span><br><span class="line">l39:    iconst_3</span><br><span class="line">l40:    anewarray EnumTest</span><br><span class="line">l43:    dup</span><br><span class="line">l44:    iconst_0</span><br><span class="line">l45:    getstatic EnumTest/START LEnumTest;</span><br><span class="line">l48:    aastore</span><br><span class="line">l49:    dup</span><br><span class="line">l50:    iconst_1</span><br><span class="line">l51:    getstatic EnumTest/CLOSE LEnumTest;</span><br><span class="line">l54:    aastore</span><br><span class="line">l55:    dup</span><br><span class="line">l56:    iconst_2</span><br><span class="line">l57:    getstatic EnumTest/PAUSE LEnumTest;</span><br><span class="line">l60:    aastore</span><br><span class="line">l61:    putstatic EnumTest/$VALUES [LEnumTest;</span><br><span class="line">l64:    <span class="keyword">return</span></span><br><span class="line">.end method</span><br></pre></td></tr></table></figure>
+<p>从类似字节码可以看出，enum被编译为了 常量类，而且父类是Enum，所以enum定义的类不能在继承其它父类，也不能被其它类集成。<br>枚举类型的field都是 <strong>public static final 静态常量类型；</strong><br>初始化属性时 会现调用私有的父类(enum)构造器，然后初始化自己的所有field。<br>构造器只是在构造枚举值的时候被调用。</p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2013/03/21/Java/2013-03-21-java-enum/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-Java/2013-03-18-java-super-this" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2013/03/18/Java/2013-03-18-java-super-this/">Java基础 之 super 和 this</a>
+    </h1>
+  
+
+        
+        <a href="/2013/03/18/Java/2013-03-18-java-super-this/" class="archive-article-date">
+  	<time datetime="2013-03-17T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2013-03-18</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>super的定义：</p>
+<blockquote>
+<p>The super keyword enables a <a href="http://java.about.com/od/s/g/subclass.htm" target="_blank" rel="noopener">subclass</a> to call the methods and fields of its <a href="http://java.about.com/od/s/g/superclass.htm" target="_blank" rel="noopener">superclass</a>. It is not an instance of the superclass object but a way to tell the compiler which methods or fields to reference. The effect is the same as if the subclass is calling one of its own methods.</p>
+</blockquote>
+<p>this 是对自身对象的一个地址引用，调用的是 invokevirtual。</p>
+<p>super 是类似引用 但不是引用的调用，因为 super 实际上是 调用invokespecial 。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">C extends B,  B extends A;</span><br><span class="line">A a = <span class="keyword">new</span> C();</span><br></pre></td></tr></table></figure>
+<p>那么为C在堆中分配的内存区域中，分为三块，一块是C自己的，一块是B自己的，一块是A的，在C、B、A中都会有连个变量，super 和 this ；this指向当前区域，super指向父类的内存区域；</p>
+<p>从内存分配可以看出this和super变量是属于对象的，所以不能在静态块和静态方法中使用。</p>
+<h4 id="this使用场景："><a href="#this使用场景：" class="headerlink" title="this使用场景："></a>this使用场景：</h4><ol>
+<li>通过this调用另一个构造方法，用法是this(参数列表)，这个仅仅在类的构造方法中，别的地方不能这么用。</li>
+<li>函数参数或者函数中的局部变量和成员变量同名的情况下，成员变量被屏蔽，此时要访问成员变量则需要用“this.成员变量名”的方式来引用成员变量。当然，在没有同名的情况下，可以直接用成员变量的名字，而不用this，用了也不为错。</li>
+<li>在函数中，需要引用该函所属类的当前对象时候，直接用this。</li>
+</ol>
+<h4 id="super的用法："><a href="#super的用法：" class="headerlink" title="super的用法："></a>super的用法：</h4><ol>
+<li>在子类构造方法中要调用父类的构造方法，用“super(参数列表)”的方式调用，参数不是必须的。同时还要注意的一点是：“super(参数列表)”这条语句只能用在子类构造方法体中的第一行。</li>
+<li>当子类方法中的局部变量或者子类的成员变量与父类成员变量同名时，也就是子类局部变量覆盖父类成员变量时，用“super.成员变量名”来引用父类成员变量。当然，如果父类的成员变量没有被覆盖，也可以用“super.成员变量名”来引用父类成员变量，不过这是不必要的。</li>
+<li>当子类的成员方法覆盖了父类的成员方法时，也就是子类和父类有完全相同的方法定义（但方法体可以不同），此时，用“super.方法名(参数列表)”的方式访问父类的方法。</li>
+</ol>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2013/03/18/Java/2013-03-18-java-super-this/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-Java/2013-03-05-java-class-load" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2013/03/05/Java/2013-03-05-java-class-load/">Java基础 之 类的加载与对象初始化</a>
+    </h1>
+  
+
+        
+        <a href="/2013/03/05/Java/2013-03-05-java-class-load/" class="archive-article-date">
+  	<time datetime="2013-03-04T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2013-03-05</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="类的加载"><a href="#类的加载" class="headerlink" title="类的加载"></a>类的加载</h2><h4 id="基本原理"><a href="#基本原理" class="headerlink" title="基本原理"></a>基本原理</h4><p>所有类都由类装载器载入，载入内存中的类对应一个 java.lang.Class 实例。<br>已被加载的类由该类的类加载器实例与该类的全路径名的组合标识。设有 packagename.A Class ，分别被类加载器 CL1 和 CL2 加载，则系统中有两个不同的 java.lang.Class 实例： &lt;CL1, packagename.A&gt; 和 &lt;CL2, packagename.A&gt; 。</p>
+<h4 id="Java类加载器"><a href="#Java类加载器" class="headerlink" title="Java类加载器"></a>Java类加载器</h4><p>存在一个 Bootstrap Loader （以下简称为 BL ），由 C++ 写成，负责在虚拟机启动后一次性加载 Java 基础类库中的所有类。其他的类装载器由 Java 写成，都是 java.lang.ClassLoader 的子类。除 BL 之外的所有类装载器都有一个 parent 属性，指向其父装载器。查阅 java.lang.ClassLoader 的源码，不难发现类装载器的委托装载方式。如果用户没有使用自定义类加载器，那么默认使用系统类加载器SystemClassLoader(SystemClassLoader)</p>
+<p>Java 加载器的委派模型：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">                           ---------------</span><br><span class="line">                          | Bootstrap     |</span><br><span class="line">                          | Class Loader  |  <span class="keyword">null</span></span><br><span class="line">                            ---------------</span><br><span class="line">                                  ↑</span><br><span class="line">                           -----parent----</span><br><span class="line">                          | Extension     |</span><br><span class="line">            ----------→   | Class Loader  |</span><br><span class="line">            |              ---------------</span><br><span class="line">            |                     ↑</span><br><span class="line"> -----parent----           ------parent-----</span><br><span class="line">|    URL        |         |  AppClassLoader|</span><br><span class="line">|   Class Loader|         | Class Loader   |</span><br><span class="line"> ---------------           -----------------</span><br><span class="line">                                  ↑</span><br><span class="line">                            ------parent-----</span><br><span class="line">                          |      System        |</span><br><span class="line">                          | Class Loader     |</span><br><span class="line">                            -----------------</span><br><span class="line">             ----------------------|-------------------------</span><br><span class="line">                ------parent----            -----parent-----</span><br><span class="line">                |   User-def    |          |    User-def    |</span><br><span class="line">                | Class Loader  |          | Class Loader   |</span><br><span class="line">                -----------------           -----------------</span><br></pre></td></tr></table></figure>
+<p>同时，上图还说明了类加载器在Java语言中发挥的很重要的2点作用：</p>
+<h5 id="1-类加载器的委派模型："><a href="#1-类加载器的委派模型：" class="headerlink" title="1. 类加载器的委派模型："></a>1. 类加载器的委派模型：</h5><p>假设AppClassLoader需要加载一个类，它会首先委托其父加载器ExtClassLoader来加载此 类，ExtClassLoader也会递归性的委托其父加载器(而不是Super，不是继承关系)Bootstrap Loader来加载此类，如果Bootstrap Loader在sun.boot.class.path下找到被加载类时即加载，如果无法找到时再依次由子类加载器去加载。查找顺序是：cache→parent→self .委派模型是针对Java安全而 设计的，这也印证了Java语言的设计初衷：面向网络的编程语言。</p>
+<p>但是 我们通过 getParent 方法获取当前加载器的加载器时，如果当前加载器是 ExtClassLoader  通过getParent 会得到null，并不意味着他没有parent，而是这个parent就是由C++编写的bootstrap class loader，他并不是classloader的子类，也就无法使用getParent()方法获得返回了。。Initiating class loader是指那些直接被程序要求加载某类的加载器，而defining class loader就是真正加载了某类的加载器。</p>
+<h5 id="2-命名空间"><a href="#2-命名空间" class="headerlink" title="2. 命名空间"></a>2. 命名空间</h5><p>由同一个类加载器所加载的类只能引用该加载器和其父加载器所加载的其他类，这也是类加载器的命令空间的作用。</p>
+<h5 id="理解-委派加载的原因："><a href="#理解-委派加载的原因：" class="headerlink" title="理解 委派加载的原因："></a>理解 委派加载的原因：</h5><p>为什么要设计的这么复杂呢？其中一个重要原因就是安全性。比如在Applet中，如果编写了一个java.lang.String类并具有破坏性。假如不采用这种委托机制，就会将这个具有破坏性的String加载到了用户机器上，导致破坏用户安全。但采用这种委托机制则不会出现这种情况。因为要加载 java.lang.String类时，系统最终会由Bootstrap进行加载，这个具有破坏性的String永远没有机会加载。</p>
+<p>类的加载的三大步骤：</p>
+<ul>
+<li>装载</li>
+<li>连接</li>
+<li>初始化</li>
+</ul>
+<h6 id="装载"><a href="#装载" class="headerlink" title="装载"></a>装载</h6><p>这个过程就是把一个类型的二进制数据解析为方法区中的内部数据结构，并在堆上建立一个 java.lang.Class 对象的过程。</p>
+<h6 id="连接"><a href="#连接" class="headerlink" title="连接"></a>连接</h6><pre><code>验证：确定类型符合java语言的语义；
+准备：创建Java类中的静态域（静态域存在常量区），并将这些域的值设为默认值。
+解析：在类型的常量池中寻找类，接口，字段和方法的符合引用把这些符号引用替换成直接引用的过程。
+</code></pre><h6 id="初始化"><a href="#初始化" class="headerlink" title="初始化"></a>初始化</h6><p>初始化静态变量、静态代码块。（这里的初始化是指 类的初始化，只初始化静态变量；非静态变量的初始化是属于对象初始化，是在类被使用时通过构造函数进行初始化的。类初始化并不会在类加载到内存中后自动完成，是需要类主动触发的）</p>
+<p>类的初始化操作 是需要触发的,并且只会执行一次，主要使用场景：</p>
+<ol>
+<li>调用了类的main方法</li>
+<li>通过反射构建了类的对象</li>
+<li>调用了类的静态方法</li>
+<li>访问了类的静态属性（如果直接访问父类的静态属性，那么只能导致父类被初始化，子类不会被初始化）</li>
+<li>通过new关键字直接构建对象</li>
+<li>在顶层Java类中执行assert语句</li>
+</ol>
+<h5 id="理解初始化："><a href="#理解初始化：" class="headerlink" title="理解初始化："></a>理解初始化：</h5><p>① 类被加载完成后 只是表明这个类在内存中可以进行调用了。</p>
+<p>② 建立的 java.lang.Class对象作用（参考）；<br>Class 没有公共构造方法。Class 对象是在加载类时由 Java 虚拟机以及通过调用类加载器中的 defineClass 方法自动构造的，因此不能显式地声明一个Class对象。 虚拟机为每种类型管理一个独一无二的Class对象。也就是说，每个类（型）都有一个Class对象。运行程序时，Java虚拟机(JVM)首先检查是否所要加载的类对应的Class对象是否已经加载。如果没有加载，JVM就会根据类名查找.class文件，并将其Class对象载入。基本的 Java 类型（boolean、byte、char、short、int、long、float 和 double）和关键字 void 也都对应一个 Class 对象。 每个数组属于被映射为 Class 对象的一个类，所有具有相同元素类型和维数的数组都共享该 Class 对象。一个堆上的class实例：是连接类实例与方法区数据结构的桥梁，通过class实例，类的实例能够知道类本身的详细构成信息。一般某个类的Class对象被载入内存，它就用来创建这个类的所有对象。</p>
+<p>完成类的加载后，被加载的类在内存中是个什么样子呢 ？</p>
+<h2 id="初始化-1"><a href="#初始化-1" class="headerlink" title="初始化"></a>初始化</h2><p>初始化 分为 类初始化 和 对象初始化（<a href="http://www.hh010.com/developer/html/41-2/2739.htm" target="_blank" rel="noopener">参考</a>）：</p>
+<p><strong>类初始化：</strong></p>
+<p>类初始化是需要触发，在上面已经讲到；<br>类初始化只会初始化类的静态变量、静态代码块。而且是按照先父类 后子类的顺序；类的初始化一定是在对象初始化之前完成(静态成员初始化先于非静态成员初始化)；</p>
+<p><strong>对象初始化：</strong></p>
+<p>(原则：类的非静态变量在编译为class文件之后，都会被移到构造函数中初始化；)<br>new 一个对象A，首先会寻找类A的构造函数，系统默认在构造函数最前面添加了super();除非显示声明；<br>执行super();前会为对象的成员变量在堆中分配内存，并且声明变量。（注意这里只是声明）<br>执行super();查找父类的构造函数，原则与2相同，一直到object对象。<br>然后从父类到子类依此顺序执行构造函数；</p>
+<p>例如：   A  a = new A();</p>
+<p>备注：类的成员变量，不管程序有没有显式的进行初始化，Java虚拟机都会先自动给它初始化为默认值。但是方法里面的局部变量声明之后，Java虚拟机就不会自动给它初始化为默认值，因此局部变量的使用必须先经过显式的初始化（基本数据类型作为局部变量是放在栈中）。</p>
+<h5 id="理解-继承关系："><a href="#理解-继承关系：" class="headerlink" title="理解 继承关系："></a>理解 继承关系：</h5><p>子类会继承父类的所有域和方法。在一个子类被创建的时候，首先会在内存中创建一个父类对象，然后在父类对象外部放上子类独有的属性，两者合起来形成一个子类的对象。所以所谓的继承使子类拥有父类所有的属性和方法其实可以这样理解，子类对象确实拥有父类对象中所有的属性和方法，但是父类对象中的私有属性和方法，子类是无法访问到的，只是拥有，但不能使用。</p>
+<h5 id="理解对象在内存中的资源分配："><a href="#理解对象在内存中的资源分配：" class="headerlink" title="理解对象在内存中的资源分配："></a>理解对象在内存中的资源分配：</h5><p>请参考：<a href="http://www.importnew.com/1305.html" target="_blank" rel="noopener">Java对象内存结构</a></p>
+<h5 id="理解方法重载："><a href="#理解方法重载：" class="headerlink" title="理解方法重载："></a>理解方法重载：</h5><p>初始化子类时，为什么父类中的方法被子类重载后，父类构造函数调用的这个重载方法却是子类中的那个重载方法？</p>
+<p>请参考：  <a href="http://grzrt.iteye.com/blog/1754904" target="_blank" rel="noopener">Java中的继承分析</a> 和 Java 的动态绑定</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Parent p1 = <span class="keyword">new</span> Parent();</span><br><span class="line">Parent c1 = <span class="keyword">new</span> Chield();</span><br></pre></td></tr></table></figure>
+<p>通过 p1、c1 调用的属性成员，都会自动到Parent中找（属性绑定到定义的类型），调用的方法，回到new出来的对象中找（方法绑定到对象）<br>原因是：在Java中，属性绑定到类型，方法绑定到对象！<br>备注： 如果方法是private、static、final的，或者是一个构造器，那么编译器能准确地判断应该调用那个方法，这称为静态绑定，而对其他的方法，要调用那个方法只有根据隐式参数的实际类型来决定，并且在运行时使用动态绑定。</p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2013/03/05/Java/2013-03-05-java-class-load/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-Java/2013-03-04-java-init" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2013/03/04/Java/2013-03-04-java-init/">Java基础 之 类的初始化顺序和陷阱</a>
+    </h1>
+  
+
+        
+        <a href="/2013/03/04/Java/2013-03-04-java-init/" class="archive-article-date">
+  	<time datetime="2013-03-03T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2013-03-04</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>在阅读之前 建议先了解一下  <a href="http://www.cnblogs.com/o-andy-o/archive/2012/04/11/2442109.html" target="_blank" rel="noopener">Java运行原理</a>  和 <a href="http://blog.csdn.net/shimiso/article/details/8595564" target="_blank" rel="noopener">Java内存分配机制</a>；</p>
+<h4 id="JAVA类的初始化顺序"><a href="#JAVA类的初始化顺序" class="headerlink" title="JAVA类的初始化顺序"></a>JAVA类的初始化顺序</h4><p>给你两个类的代码，它们之间是继承的关系，每个类里只有构造器方法和一些变量，构造器里可能还有一段代码对变量值进行了某种运算，另外还有一些将变量值输出到控制台的代码，然后让我们判断输出的结果。这实际上是在考查我们对于继承情况下类的初始化顺序的了解。</p>
+<p>我们大家都知道，对于静态变量、静态初始化块、变量、初始化块、构造器，它们的初始化顺序依次是（静态变量、静态初始化块）&gt;（变量、初始化块）&gt;构造器。我们也可以通过下面的测试代码来验证这一点:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">InitialOrderTest</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 静态变量</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> String staticField = <span class="string">"静态变量"</span>;</span><br><span class="line">    <span class="comment">// 变量</span></span><br><span class="line">    <span class="keyword">public</span> String field = <span class="string">"变量"</span>;   </span><br><span class="line"></span><br><span class="line">    <span class="comment">// 静态初始化块</span></span><br><span class="line">    <span class="keyword">static</span> &#123;</span><br><span class="line">        System.out.println(staticField);</span><br><span class="line">        System.out.println(<span class="string">"静态初始化块"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 初始化块</span></span><br><span class="line">    &#123;</span><br><span class="line">        System.out.println(field);</span><br><span class="line">        System.out.println(<span class="string">"初始化块"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 构造器</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">InitialOrderTest</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"构造器"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">new</span> InitialOrderTest();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">InitialOrderTest</span> </span>&#123; </span><br><span class="line"></span><br><span class="line"><span class="comment">// 静态变量</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> String staticField = <span class="string">"静态变量"</span>;</span><br><span class="line"><span class="comment">// 变量</span></span><br><span class="line"><span class="keyword">public</span> String field = <span class="string">"变量"</span>;</span><br><span class="line"><span class="comment">// 静态初始化块</span></span><br><span class="line"><span class="keyword">static</span> &#123;</span><br><span class="line">System.out.println(staticField);</span><br><span class="line">System.out.println(<span class="string">"静态初始化块"</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 初始化块</span></span><br><span class="line">&#123;</span><br><span class="line">System.out.println(field);</span><br><span class="line">System.out.println(<span class="string">"初始化块"</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 构造器</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">InitialOrderTest</span><span class="params">()</span> </span>&#123;</span><br><span class="line">System.out.println(<span class="string">"构造器"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>运行以上代码，我们会得到如下的输出结果：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">静态变量</span><br><span class="line">静态初始化块</span><br><span class="line">变量</span><br><span class="line">初始化块</span><br><span class="line">构造器</span><br></pre></td></tr></table></figure>
+<p>这与上文中说的完全符合。那么对于继承情况下又会怎样呢？我们仍然以一段测试代码来获取最终结果：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Parent</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 静态变量</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> String p_StaticField = <span class="string">"父类--静态变量"</span>;</span><br><span class="line">    <span class="comment">// 变量</span></span><br><span class="line">    <span class="keyword">public</span> String p_Field = <span class="string">"父类--变量"</span>;</span><br><span class="line">    <span class="comment">// 静态初始化块</span></span><br><span class="line">    <span class="keyword">static</span> &#123;</span><br><span class="line">        System.out.println(p_StaticField);</span><br><span class="line">        System.out.println(<span class="string">"父类--静态初始化块"</span>);</span><br><span class="line">    &#125;   </span><br><span class="line"></span><br><span class="line">    <span class="comment">// 初始化块</span></span><br><span class="line">    &#123;</span><br><span class="line">        System.out.println(p_Field);</span><br><span class="line">        System.out.println(<span class="string">"父类--初始化块"</span>);</span><br><span class="line">    &#125;   </span><br><span class="line"></span><br><span class="line">    <span class="comment">// 构造器</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Parent</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"父类--构造器"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;   </span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SubClass</span> <span class="keyword">extends</span> <span class="title">Parent</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 静态变量</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> String s_StaticField = <span class="string">"子类--静态变量"</span>;</span><br><span class="line">    <span class="comment">// 变量</span></span><br><span class="line">    <span class="keyword">public</span> String s_Field = <span class="string">"子类--变量"</span>;</span><br><span class="line">    <span class="comment">// 静态初始化块</span></span><br><span class="line">    <span class="keyword">static</span> &#123;</span><br><span class="line">        System.out.println(s_StaticField);</span><br><span class="line">        System.out.println(<span class="string">"子类--静态初始化块"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 初始化块</span></span><br><span class="line">    &#123;</span><br><span class="line">        System.out.println(s_Field);</span><br><span class="line">        System.out.println(<span class="string">"子类--初始化块"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 构造器</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">SubClass</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"子类--构造器"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 程序入口</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">new</span> SubClass();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>运行一下上面的代码，结果马上呈现在我们的眼前：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">父类--静态变量</span><br><span class="line">父类--静态初始化块</span><br><span class="line">子类--静态变量</span><br><span class="line">子类--静态初始化块</span><br><span class="line">父类--变量</span><br><span class="line">父类--初始化块</span><br><span class="line">父类--构造器</span><br><span class="line">子类--变量</span><br><span class="line">子类--初始化块</span><br><span class="line">子类--构造器</span><br></pre></td></tr></table></figure>
+<p>现在，结果已经不言自明了。大家可能会注意到一点，那就是，并不是父类完全初始化完毕后才进行子类的初始化，实际上子类的静态变量和静态初始化块的初始化是在父类的变量、初始化块和构造器初始化之前就完成了。</p>
+<p>那么对于静态变量和静态初始化块之间、变量和初始化块之间的先后顺序又是怎样呢？是否静态变量总是先于静态初始化块，变量总是先于初始化块就被初始化了呢？实际上这取决于它们在类中出现的先后顺序。</p>
+<p>静态变量和静态初始化块是依照他们在类中的定义顺序进行初始化的。同样，变量和初始化块也遵循这个规律。</p>
+<h4 id="Java构造时初始化陷阱"><a href="#Java构造时初始化陷阱" class="headerlink" title="Java构造时初始化陷阱"></a>Java构造时初始化陷阱</h4><p>让我们先来看两个类：Base和Derived类。注意其中的whenAmISet成员变量，和方法preProcess()</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Base</span></span>&#123;</span><br><span class="line">    Base() &#123;</span><br><span class="line">        preProcess();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">preProcess</span><span class="params">()</span> </span>&#123;&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Derived</span> <span class="keyword">extends</span> <span class="title">Base</span></span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line">    <span class="keyword">public</span> String whenAmISet = <span class="string">"set when declared"</span>;</span><br><span class="line">    <span class="meta">@Override</span> <span class="function"><span class="keyword">void</span> <span class="title">preProcess</span><span class="params">()</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        whenAmISet = <span class="string">"set in preProcess()"</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如果我们构造一个子类实例，那么，whenAmISet 的值会是什么呢？</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Main</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        Derived d = <span class="keyword">new</span> Derived();</span><br><span class="line">        System.out.println( d.whenAmISet );</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>再续继往下阅读之前，请先给自己一些时间想一下上面的这段程序的输出是什么？是的，这看起来的确相当简单，甚至不需要编译和运行上面的代码，我们也应该知道其答案，那么，你觉得你知道答案吗？你确定你的答案正确吗？</p>
+<p>很多人都会觉得那段程序的输出应该是“set in preProcess()”，这是因为当子类Derived 的构造函数被调用时，其会隐晦地调用其基类Base的构造函数（通过super()函数），于是基类Base的构造函数会调用preProcess() 函数，因为这个类的实例是Derived的，而且在子类Derived中对这个函数使用了override关键字，所以，实际上调用到的是：Derived.preProcess()，而这个方法设置了whenAmISet 成员变量的值为：“set in preProcess()”。</p>
+<p>当然，上面的结论是错误的。如果你编译并运行这个程序，你会发现，程序实际输出的是“set when declared ”。怎么为这样呢？难道是基类Base 的preProcess() 方法被调用啦？也不是！你可以在基类的preProcess中输出点什么看看，你会发现程序运行时，Base.preProcess()并没有被调用到（不然这对于Java所有的应用程序将会是一个极具灾难性的Bug）。</p>
+<p>虽然上面的结论是错误的，但推导过程是合理的，只是不完整，下面是整个运行的流程：</p>
+<ol>
+<li>进入Derived 构造函数。</li>
+<li>Derived 成员变量的内存被分配。</li>
+<li>Base 构造函数被隐含调用。</li>
+<li>Base 构造函数调用preProcess()。</li>
+<li>Derived 的preProcess 设置whenAmISet 值为 “set in preProcess()”。</li>
+<li>Derived 的成员变量初始化被调用。</li>
+<li>执行Derived 构造函数体。</li>
+</ol>
+<p>等一等，这怎么可能？在第6步，Derived 成员的初始化居然在 preProcess() 调用之后？是的，正是这样，我们不能让成员变量的声明和初始化变成一个原子操作，虽然在Java中我们可以把其写在一起，让其看上去像是声明和初始化一体。但这只是假象，<strong>我们的错误就在于我们把Java中的声明和初始化看成了一体。</strong></p>
+<p>下面是对上面各个步骤的逐条解释。</p>
+<ol>
+<li>进入构造函数。</li>
+<li>为成员变量分配内存。</li>
+<li>除非你显式地调用super()，否则Java 会在子类的构造函数最前面偷偷地插入super() 。</li>
+<li>调用父类构造函数。</li>
+<li>调用preProcess，因为被子类override，所以调用的是子类的。</li>
+<li>于是，初始化发生在了preProcess()之后。这是因为，Java需要保证父类的初始化早于子类的成员初始化，否则，在子类中使用父类的成员变量就会出现问题。</li>
+<li>正式执行子类的构造函数（当然这是一个空函数，虽然我们没有声明）。</li>
+</ol>
+<p>其实 这些在理解了  <a href="http://www.cnblogs.com/o-andy-o/archive/2012/04/11/2442109.html" target="_blank" rel="noopener">Java运行原理</a>  和  <a href="http://blog.csdn.net/shimiso/article/details/8595564" target="_blank" rel="noopener">Java内存分配</a>  之后就很容易理解了。</p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2013/03/04/Java/2013-03-04-java-init/">展开全文 >></a>
         </p>
       
 

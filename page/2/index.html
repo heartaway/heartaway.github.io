@@ -152,368 +152,6 @@
           <div id="js-content" class="content-ll">
             
   
-    <article id="post-Mysql/2017-09-02-mysql-datetime-fsp" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/11/09/Mysql/2017-09-02-mysql-datetime-fsp/">Mysql时间精度丢失，导致秒被四舍五入</a>
-    </h1>
-  
-
-        
-        <a href="/2018/11/09/Mysql/2017-09-02-mysql-datetime-fsp/" class="archive-article-date">
-  	<time datetime="2018-11-09T13:48:02.848Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-11-09</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h3 id="问题描述："><a href="#问题描述：" class="headerlink" title="问题描述："></a>问题描述：</h3><p>Mysql中一张表时间类型采用的是dateTime格式，当后端通过Mybatis将new Date() 传递给数据库进行存储是，发现存入时间是<strong>2016-12-23 16:41:55</strong>，但是数据库中插入的时间却是*<em>2016-12-23 16:41:5_6_</em>,导致采用同样的时间进行数据查询，却查不到数据。</p>
-<h3 id="问题排查："><a href="#问题排查：" class="headerlink" title="问题排查："></a>问题排查：</h3><ol>
-<li>进行codeReview，未发现bug；</li>
-<li>本地将Mybatis的DEBUG日志打开，进行单步调试<br><img src="/images/posts/20170902/14824834942593.jpg" alt=""><br><img src="/images/posts/20170902/14824835188662.jpg" alt=""></li>
-<li><p>日志输出如下：<br><img src="/images/posts/20170902/14824828832109.jpg" alt=""></p>
- <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">2016</span>-<span class="number">12</span>-<span class="number">23</span> <span class="number">16</span>:<span class="number">43</span>:<span class="number">26.960</span> [DEBUG]xxx.update [debug:<span class="number">145</span>] ==&gt;  Preparing: update xxx SET gmt_modified = now(), status = ?, collect_time = ? where id = ? </span><br><span class="line"><span class="number">2016</span>-<span class="number">12</span>-<span class="number">23</span> <span class="number">16</span>:<span class="number">43</span>:<span class="number">26.964</span> [DEBUG][debug:<span class="number">145</span>] ==&gt; Parameters: SLEEPING(String), <span class="number">2016</span>-<span class="number">12</span>-<span class="number">23</span> <span class="number">16</span>:<span class="number">41</span>:<span class="number">55.972</span>(Timestamp), <span class="number">9</span>(Long)</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>发现传入mybatis的date参数为携带毫秒数的时间，到服务端之后多了一秒，但是有时候又是相等的，初步怀疑是毫秒数会被四舍五入了，多次执行后，正式了这个观点；这也能解释为什么我们再以同样的Date参数为什么偶尔查不到数据的问题了。</p>
-</li>
-</ol>
-<h3 id="根因定位："><a href="#根因定位：" class="headerlink" title="根因定位："></a>根因定位：</h3><ol>
-<li><p>确认Mysql Server的版本信息：<br><img src="/images/posts/20170902/14826733264139.jpg" alt=""></p>
-</li>
-<li><p>确认Datetime的格式信息：<br><img src="/images/posts/20170902/14826731196884.jpg" alt=""></p>
-</li>
-<li><p>JDBC（JDBC版本5.1.26）中判断是否MysqlServer（Server版本5.6.4）的版本是否支持毫秒：<br>com.mysql.jdbc.PreparedStatement#detectFractionalSecondsSupport:923L<br><img src="/images/posts/20170902/14826735377431.jpg" alt=""></p>
-</li>
-<li><p>JDBC（JDBC版本5.1.26）中设置毫秒数函数：<br>com.mysql.jdbc.PreparedStatement#setTimestampInternal<br>首先会判断是否设置了useLegacyDatetimeCode=false，如果设置了，那么会走新方法newSetTimestampInternal：<br><img src="/images/posts/20170902/14826767849619.jpg" alt=""><br>可以看到，新方法中会不管mysql服务端的版本信息是什么，默认都会把毫秒数携带上发送给服务端，让服务端来判断毫秒数怎么处理。当我们代码中把这部分携带了毫秒的时间发送给服务端时，由于服务端版本为5.6.16，所以不支持毫秒数，所以就被四舍五入进行存储到秒了。</p>
-<p> 在看看如果设置了useLegacyDatetimeCode=true的逻辑：<br><img src="/images/posts/20170902/14826767169568.jpg" alt=""><br>那useLegacyDatetimeCode到底是什么？</p>
-<blockquote>
-<p>Note that to get this scenario to work with MySQL (since it doesn’t support per-value timezones), you need to configure your server (or session) to be in UTC, and tell the driver not to use the legacy date/time code by setting useLegacyDatetimeCode to “false”. This will cause the driver to always convert to/from the server and client timezone consistently.</p>
-</blockquote>
-</li>
-<li><p>精度问题：<br>Mysql中 DATE, DATETIME, and TIMESTAMP 三种类型的区别，可以参考：<a href="http://dev.mysql.com/doc/refman/5.6/en/datetime.html。" target="_blank" rel="noopener">http://dev.mysql.com/doc/refman/5.6/en/datetime.html。</a></p>
-<p> 需要纠正一个错误的观点，那就是有同学认为DATETIME比TIMESTAMP精度低，这个是错误的，他们两个能达到的精度是一致的，只不过，他们可表示的时间范围不同而已；<br>测试Mysql5.7.14版本下，三种时间类型的数据插入：<br><img src="/images/posts/20170902/14826747022343.jpg" alt=""><br>对于一个立志存活102年的企业来说，选择DATETIME比TIMSTAMP是一个更明智的选择，可以表示的范围更大，而且不受系统时区的影响；</p>
-</li>
-<li>总结：<br>至此，我们知道了三种时间类型在不同Mysql版本不同的所展示的不同的特点，以及不同Mysql版本对毫秒的支持情况；目前我们服务端由于采用的mysql版本是5.6.16(低于5.6.4)，所以还不支持毫秒数的存储，当客户端提交过来的小数部分超长时（客户端默认配置了useLegacyDatetimeCode=false），server会默认做四舍五入，不会出现任何的警告或异常。<br>那么在这种情况下，问题如何解决呢？<br>①客户端在进行时间存储的时候，主动通过一次SimpleDateFormat函数format和parse将毫秒数过滤掉，相当于重置为0；<br>②升级Mysql Server版本到5.6.4及以上；</li>
-</ol>
-<h3 id="扩展：Java中的Date类型："><a href="#扩展：Java中的Date类型：" class="headerlink" title="扩展：Java中的Date类型："></a>扩展：Java中的Date类型：</h3><p>java.util.Date 与 java.sql.Date 的关系？<br>java.util.Date 就是在除了SQL语句的情况下面使用；<br>java.sql.Date 继承自 java.util.Date<br>java.sql.Date 是针对SQL语句使用的，它只包含日期而没有时间部分；</p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Mysql//" class="article-tag-list-link color1">Mysql</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2018/11/09/Mysql/2017-09-02-mysql-datetime-fsp/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-Mysql/2016-07-16-mysql-lock-wait" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/11/09/Mysql/2016-07-16-mysql-lock-wait/">Lock wait timeout exceeded; try restarting transaction</a>
-    </h1>
-  
-
-        
-        <a href="/2018/11/09/Mysql/2016-07-16-mysql-lock-wait/" class="archive-article-date">
-  	<time datetime="2018-11-09T13:48:02.847Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-11-09</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/c853d26a0835a5f6499783c87fca2294.png" alt=""><br><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/24fb3edb62f132f30451f468d9cf77f8.png" alt=""></p>
-<h3 id="排查过程："><a href="#排查过程：" class="headerlink" title="排查过程："></a>排查过程：</h3><p>查看数据库 INNODB_LOCKS，未发现有死锁的记录。<br>查看 SHOW PROCESSLIST;  也未见异常进程；<br>通过Mysql的控制台，查询慢日志，也未找到有关此表的Mysql慢日志信息。<br>查询Mysql默认的所等待超时时间：<br>show variables like ‘innodb_lock_wait_timeout’;<br>Variable_name                          Value<br>innodb_lock_wait_timeout         50<br>那Spring事务默认的事务超时时间是-1，表示事务超时将依赖于数据库的事务超时时间，当前为50秒，也就是存在事务等待锁超过50秒还未拿到锁导致事务超时了。</p>
-<h3 id="业务重现："><a href="#业务重现：" class="headerlink" title="业务重现："></a>业务重现：</h3><p>后来我到业务控制台上进行业务重现（批量商品打标），在查看 INNODB_LOCKS：<br>product-put-tag-tx-lock<br>发现后台针对同一条数据存在两个事务，推测是第一个事务当前还在执行（可能比较慢），第二个是个事务又提交上来了（操作重复），所以对同一条数据尝试加X锁，发现已经有锁了，所以第二个事务会处于锁等待，由于我们Spring事务未配置超时时间，所以当前的事务超时时间为50秒，等待50秒之后就会出现超时，此时Mysql会抛出“Lock wait timeout exceeded; try restarting transaction”异常；除此之外，我们还需要考虑接口调用超时时间给业务带来的影响。</p>
-<h3 id="解决方案："><a href="#解决方案：" class="headerlink" title="解决方案："></a>解决方案：</h3><p>考虑到批量打标可以允许部分失败的场景，所以取出事务，捕获异常并进入异常队列；<br>由于单个打标非常耗时，批量更会增加执行时间，所以修改同步操作为异步操作；<br>把预先批量处理的业务拆分到单个业务处理逻辑中，减少预处理成功后续失败的场景；<br>由于打标可能出现网络超时，所以添加自动重试机制，减少错误概率；</p>
-<h3 id="批处理优化建议："><a href="#批处理优化建议：" class="headerlink" title="批处理优化建议："></a>批处理优化建议：</h3><p>减少批处理的最小化单元，尽量减小锁的范围；<br>修改同步执行时间为异步执行，并且捕获异常；<br>一些异常场景不影响事务整体提交，允许部分场景下的异常；<br>设置合理的超时时间；<br>设置合理的执行数量限制；</p>
-<h3 id="其它思考："><a href="#其它思考：" class="headerlink" title="其它思考："></a>其它思考：</h3><h4 id="假设一："><a href="#假设一：" class="headerlink" title="假设一："></a>假设一：</h4><p>我们的打标任务被一个要求拥有事务保证的接口调用的时候，怎么保证整体的事务性？</p>
-<p>答：这个属于分布式事务的范畴，可以参考分布式事务环节。</p>
-<h4 id="假设二："><a href="#假设二：" class="headerlink" title="假设二："></a>假设二：</h4><p>我们的批量操作为内部接口，需要保证内部的事务性，比如我们通过购物车进行下单，为了提高系统的性能，需要一次对多个SKU进行扣库存逻辑，如果存在一个SKU的库存不够扣时，就需要整体回滚，在高并发场景下，扣库存就成为了耗时操作，这种场景下我们怎么处理呢 ？</p>
-<p>答：在高并发场景下，如果我们只是采用原生Mysql的事务操作来做批量库存更新的话，会导致大量请求处于锁等待场景，为了加快处理，我们的做法是将库存数据放到redis中，把数据库操作转化为redis操作，如果使用单机版的redis，虽然redis提供事务功能，但是事务并不具备完整性，因为不支持回滚操作，其次一般公司随着业务的发展，单机不能满足性能要求，会搭建Redis-Cluster集群，Redis-Cluster不支持事务操作，multi-key操作也必须在同一个节点中才能使用，虽然我们库存操作的是Redis读操作，但是写的时候还是用的Mysql的悲观锁，也未能解决这个写入的性能问题。</p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Mysql//" class="article-tag-list-link color1">Mysql</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2018/11/09/Mysql/2016-07-16-mysql-lock-wait/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-Mysql/2016-07-01-mysql-lock" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/11/09/Mysql/2016-07-01-mysql-lock/">Mysql  中悲观锁概念和使用</a>
-    </h1>
-  
-
-        
-        <a href="/2018/11/09/Mysql/2016-07-01-mysql-lock/" class="archive-article-date">
-  	<time datetime="2018-11-09T13:48:02.846Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-11-09</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h3 id="悲观锁介绍（百科）："><a href="#悲观锁介绍（百科）：" class="headerlink" title="悲观锁介绍（百科）："></a>悲观锁介绍（百科）：</h3><p>悲观锁，正如其名，它指的是对数据被外界（包括本系统当前的其他事务，以及来自外部系统的事务处理）修改持保守态度，因此，在整个数据处理过程中，将数据处于锁定状态。悲观锁的实现，往往依靠数据库提供的锁机制（也只有数据库层提供的锁机制才能真正保证数据访问的排他性，否则，即使在本系统中实现了加锁机制，也无法保证外部系统不会修改数据）。</p>
-<p>在关系数据库管理系统里，悲观并发控制（又名“悲观锁”，Pessimistic Concurrency Control，缩写“PCC”）是一种并发控制的方法。它可以阻止一个事务以影响其他用户的方式来修改数据。如果一个事务执行的操作都某行数据应用了锁，那只有当这个事务把锁释放，其他事务才能够执行与该锁冲突的操作。<br>悲观并发控制主要用于数据争用激烈的环境，以及发生并发冲突时使用锁保护数据的成本要低于回滚事务的成本的环境中。</p>
-<h3 id="Mysql-InnoDB-排他锁实现悲观锁"><a href="#Mysql-InnoDB-排他锁实现悲观锁" class="headerlink" title="Mysql InnoDB 排他锁实现悲观锁"></a>Mysql InnoDB 排他锁实现悲观锁</h3><p>用法：select…for update;</p>
-<p>与普通查询不一样的是，我们使用了select…for update的方式，这样就通过数据库实现了悲观锁。此时在表X中，id为1的 那条数据就被我们锁定了，其它的事务必须等本次事务提交之后才能执行。这样我们可以保证当前的数据不会被其它事务修改。</p>
-<p>行级锁 （Row Lock）或 表级锁（Table Lock）：<br>使用select…for update会把数据给锁住，不过我们需要注意一些锁的级别，MySQL InnoDB默认Row-Level Lock，所以只有「明确」地指定主键，MySQL 才会执行Row lock (只锁住被选取的数据) ，否则MySQL 将会执行Table Lock (将整个数据表单给锁住)；<br>当然Mysql也对for update做了一些优化，并不是没有指定主键，一定会触发表级锁；比如使用索引也会影响数据库的锁定级别。行级锁都是基于索引的，如果一条SQL语句用不到索引是不会使用行级锁的，会使用表级锁把整张表锁住，注意这里只是影响。具体可以参考：mysql事务和锁InnoDB</p>
-<h3 id="Mysql-InnoDB悲观锁的使用："><a href="#Mysql-InnoDB悲观锁的使用：" class="headerlink" title="Mysql InnoDB悲观锁的使用："></a>Mysql InnoDB悲观锁的使用：</h3><p>要使用悲观锁，我们必须关闭mysql数据库的自动提交属性，因为MySQL默认使用autocommit模式，也就是说，当你执行一个更新操作后，MySQL会立刻将结果进行提交。<br>set autocommit=0;</p>
-<p>我们的电商设计中是下单扣库存，所以用户下单的时候，会调用商品系统的库存扣减服务，此时商品系统是根据库存行记录进行加悲观锁做库存扣减的，虽然这种方式比较安全，可以一定程度上减少超卖的风险，但是在下单并发非常高的时候，Mysql的悲观锁就会显得效率很低。<br>应对这种场景有几种解决方案：<br>①阿里修改了Mysql底层的源码，提高了悲观锁的效率；<br>②使用Redis进行库存计算，DB作为最终一致性的数据存储；<br>③请求端对库存扣减进行合并统一处理；</p>
-<h3 id="其它参考："><a href="#其它参考：" class="headerlink" title="其它参考："></a>其它参考：</h3><p><a href="http://www.cnblogs.com/zhaoyl/p/4121010.html" target="_blank" rel="noopener">http://www.cnblogs.com/zhaoyl/p/4121010.html</a><br><a href="http://hedengcheng.com/?p=771" target="_blank" rel="noopener">http://hedengcheng.com/?p=771</a></p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Mysql//" class="article-tag-list-link color1">Mysql</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2018/11/09/Mysql/2016-07-01-mysql-lock/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-Java/2018-03-06-spring-quartz-trigger" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/11/09/Java/2018-03-06-spring-quartz-trigger/">spring quartz 指定trigger的执行机器</a>
-    </h1>
-  
-
-        
-        <a href="/2018/11/09/Java/2018-03-06-spring-quartz-trigger/" class="archive-article-date">
-  	<time datetime="2018-11-09T13:48:02.846Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-11-09</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>我们在使用spring-quartz的时候，常常会遇到一个场景，那就是任务的调度会随着争取锁的先后顺序而出现不固定机器执行的场景，这在正常业务逻辑中具备了很好的容灾能力，但是在我们排查问题时，却带来了困绕，如果出现问题，我们期望任务调度固定在一台机器上进行执行，方便我们对问题的定位和排查。</p>
-<p>这里就探讨如何扩展spring-quartz来实现任务的固定机器执行。</p>
-<h3 id="整体思路"><a href="#整体思路" class="headerlink" title="整体思路"></a>整体思路</h3><p>要指定机器运行trigger，那首先我们必须清楚spring-quartz cluster模式下，任务的触发时如何进行分布式执行的。<br>spring-quartz cluster 是借助数据锁来实现并发控制的，需要注意的是分布式环境下需要保证各机器系统时间一致性；</p>
-<p>核心处理线程QuartzSchedulerThread决定了扫描那些JOB，以及触发执行和生命周期的维护。<br>QuartzSchedulerThread中run方法：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//在trigger表中扫描指定SCHED_NAME、状态为WAITING，下次触发时间在30秒内的触发器</span></span><br><span class="line">triggers = qsRsrcs.getJobStore().acquireNextTriggers(</span><br><span class="line">                                now + idleWaitTime, Math.min(availThreadCount, qsRsrcs.getMaxBatchSize()), qsRsrcs.getBatchTimeWindow());</span><br><span class="line">....                  </span><br><span class="line"><span class="comment">//触发器执行</span></span><br><span class="line">List&lt;TriggerFiredResult&gt; res = qsRsrcs.getJobStore().triggersFired(triggers);                                                          </span><br><span class="line">...</span><br><span class="line"><span class="comment">//释放触发器</span></span><br><span class="line">qsRsrcs.getJobStore().releaseAcquiredTrigger(triggers.get(i));</span><br><span class="line">...</span><br><span class="line"><span class="comment">//完成触发器</span></span><br><span class="line">qsRsrcs.getJobStore().triggeredJobComplete(triggers.get(i), bndle.getJobDetail(), CompletedExecutionInstruction.SET_ALL_JOB_TRIGGERS_ERROR);</span><br></pre></td></tr></table></figure>
-<p>我们就可以在acquireNextTriggers中做扩展，获取全部或者指定了实例ID的trigger。</p>
-<p>延伸思考：acquireNextTriggers获取到trigger列表后，假设机器宕机，这些trigger如何路由到其他机器中正常运行？</p>
-<h3 id="扩展实例ID的生成策略"><a href="#扩展实例ID的生成策略" class="headerlink" title="扩展实例ID的生成策略"></a>扩展实例ID的生成策略</h3><p>spring-quartz一般配置的org.quartz.scheduler.instanceId：AUTO，采用的是SimpleInstanceIdGenerator ID生成策略。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SimpleInstanceIdGenerator</span> <span class="keyword">implements</span> <span class="title">InstanceIdGenerator</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">generateInstanceId</span><span class="params">()</span> <span class="keyword">throws</span> SchedulerException </span>&#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> InetAddress.getLocalHost().getHostName() + System.currentTimeMillis();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> SchedulerException(<span class="string">"Couldn't get host name!"</span>, e);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>SimpleInstanceIdGenerator 采用机器主机名称与当前时间戳作为instanceId,我们期望在开发环境使用hostName，在生产环境(Linux)采用IP作为实例ID。</p>
-<p>实现InstanceIdGenerator接口，实现自己的ID生成策略，QuartzSchedulerInstanceIdGenerator的实现逻辑为：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">QuartzSchedulerInstanceIdGenerator</span> <span class="keyword">implements</span> <span class="title">InstanceIdGenerator</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Logger log = LoggerFactory.getLogger(QuartzSchedulerInstanceIdGenerator.class);</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String OS_NAME = <span class="string">"os.name"</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String WINDOWS = <span class="string">"Windows"</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String MAC = <span class="string">"Mac OS"</span>;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">generateInstanceId</span><span class="params">()</span> <span class="keyword">throws</span> SchedulerException </span>&#123;</span><br><span class="line">        String id;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (isLocalDev()) &#123;</span><br><span class="line">                id = getHostName();</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                id = IpUtil.getIp();</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (StringUtils.isBlank(id)) &#123;</span><br><span class="line">                id = InetAddress.getLocalHost().getHostName() + System.currentTimeMillis();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> SchedulerException(<span class="string">"Couldn't generate instance id!"</span>, e);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> id;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> String <span class="title">getHostName</span><span class="params">()</span> <span class="keyword">throws</span> SchedulerException </span>&#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> InetAddress.getLocalHost().getHostName();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> SchedulerException(<span class="string">"Couldn't get host name!"</span>, e);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">isLocalDev</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (StringUtils.indexOfIgnoreCase(System.getProperty(OS_NAME), WINDOWS) &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (StringUtils.indexOfIgnoreCase(System.getProperty(OS_NAME), MAC) &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>在quartz.properties中配置：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">org.quartz.scheduler.instanceIdGenerator.class=com.xx.ext.QuartzSchedulerInstanceIdGenerator</span><br></pre></td></tr></table></figure>
-<h3 id="扩展StdJDBCDelegate"><a href="#扩展StdJDBCDelegate" class="headerlink" title="扩展StdJDBCDelegate"></a>扩展StdJDBCDelegate</h3><p>SchedulerFactoryBean 工厂Bean负责加载配置信息，初始化SchedulerFactory和Scheduler实例，jobStore负责job、trigger等的持久化工作，针对不同的数据库类型，可以配置不同的DriverDelegate。Spring中默认使用LocalDataSourceJobStore作为JobStore的处理类。</p>
-<p>SchedulerFactory中initSchedulerFactory方法:</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">     <span class="keyword">if</span> (<span class="keyword">this</span>.configLocation != <span class="keyword">null</span>) &#123;</span><br><span class="line">	<span class="keyword">if</span> (logger.isInfoEnabled()) &#123;</span><br><span class="line">		logger.info(<span class="string">"Loading Quartz config from ["</span> + <span class="keyword">this</span>.configLocation + <span class="string">"]"</span>);</span><br><span class="line">	&#125;</span><br><span class="line">	PropertiesLoaderUtils.fillProperties(mergedProps, <span class="keyword">this</span>.configLocation);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">CollectionUtils.mergePropertiesIntoMap(<span class="keyword">this</span>.quartzProperties, mergedProps);</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (<span class="keyword">this</span>.dataSource != <span class="keyword">null</span>) &#123;</span><br><span class="line">	mergedProps.put(StdSchedulerFactory.PROP_JOB_STORE_CLASS, LocalDataSourceJobStore.class.getName());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>可以看到SchedulerFactoryBean中设置PROP_JOB_STORE_CLASS属性是在合并用户设置的配置文件之后，也就是PROP_JOB_STORE_CLASS的实现类Spring强制指定为LocalDataSourceJobStore而无法更改，即便是我们在quartz.properties中配置了org.quartz.jobStore.class属性，也会被LocalDataSourceJobStore覆盖掉。</p>
-<p>LocalDataSourceJobStore继承自JobStoreSupport，JobStoreSupport默认配置使用StdJDBCDelegate作为与数据库交互的代理处理类；我们可以通过扩展StdJDBCDelegate类，来实现底层数据库交互的扩展。通过配置org.quartz.jobStore.driverDelegateClass属性，指定driverDelegate为我们扩展后的Delegate。</p>
-<p>在quartz.properties中配置：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">org.quartz.jobStore.driverDelegateClass=com.xx.ext.StdJDBCDelegateExt</span><br></pre></td></tr></table></figure>
-<p>针对${table_prefix}_quartz_triggers表新增字段INSTANCE_NAME，此字段为InstanceIdGenerator生成的实例ID，此字段会透传到StdJDBCDelegate中的属性instanceId中，因此我们可以扩展StdJDBCDelegate，通过instanceId字段来指定获取的trigger列表。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">StdJDBCDelegateExt</span> <span class="keyword">extends</span> <span class="title">StdJDBCDelegate</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    String INSTANCE_NAME_VALUE = <span class="string">"&#123;2&#125;"</span>;</span><br><span class="line"></span><br><span class="line">    String SELECT_NEXT_TRIGGER_TO_ACQUIRE_EXT = <span class="string">"SELECT "</span></span><br><span class="line">        + COL_TRIGGER_NAME + <span class="string">", "</span> + COL_TRIGGER_GROUP + <span class="string">", "</span></span><br><span class="line">        + COL_NEXT_FIRE_TIME + <span class="string">", "</span> + COL_PRIORITY + <span class="string">" FROM "</span></span><br><span class="line">        + TABLE_PREFIX_SUBST + TABLE_TRIGGERS + <span class="string">" WHERE "</span></span><br><span class="line">        + COL_SCHEDULER_NAME + <span class="string">" = "</span> + SCHED_NAME_SUBST</span><br><span class="line">        + <span class="string">" AND "</span> + COL_TRIGGER_STATE + <span class="string">" = ? AND "</span> + COL_NEXT_FIRE_TIME + <span class="string">" &lt;= ? "</span></span><br><span class="line">        + <span class="string">" AND ("</span> + COL_INSTANCE_NAME + <span class="string">" IS NULL OR "</span> + COL_INSTANCE_NAME + <span class="string">" = "</span> + INSTANCE_NAME_VALUE + <span class="string">")"</span></span><br><span class="line">        + <span class="string">"AND ("</span> + COL_MISFIRE_INSTRUCTION + <span class="string">" = -1 OR ("</span> + COL_MISFIRE_INSTRUCTION + <span class="string">" != -1 AND "</span></span><br><span class="line">        + COL_NEXT_FIRE_TIME + <span class="string">" &gt;= ?)) "</span></span><br><span class="line">        + <span class="string">"ORDER BY "</span> + COL_NEXT_FIRE_TIME + <span class="string">" ASC, "</span> + COL_PRIORITY + <span class="string">" DESC"</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 允许设置trigger 指定一台机器进行任务调度执行；</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> conn</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> noLaterThan</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> noEarlierThan</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> maxCount</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">     * <span class="doctag">@throws</span> SQLException</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> List&lt;TriggerKey&gt; <span class="title">selectTriggerToAcquire</span><span class="params">(Connection conn, <span class="keyword">long</span> noLaterThan, <span class="keyword">long</span> noEarlierThan, <span class="keyword">int</span> maxCount)</span></span></span><br><span class="line"><span class="function">        <span class="keyword">throws</span> SQLException </span>&#123;</span><br><span class="line">        PreparedStatement ps = <span class="keyword">null</span>;</span><br><span class="line">        ResultSet rs = <span class="keyword">null</span>;</span><br><span class="line">        List&lt;TriggerKey&gt; nextTriggers = <span class="keyword">new</span> LinkedList&lt;TriggerKey&gt;();</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            ps = conn.prepareStatement(rtp(SELECT_NEXT_TRIGGER_TO_ACQUIRE_EXT, instanceId));</span><br><span class="line"></span><br><span class="line">            <span class="comment">// Set max rows to retrieve</span></span><br><span class="line">            <span class="keyword">if</span> (maxCount &lt; <span class="number">1</span>) &#123;</span><br><span class="line">                maxCount = <span class="number">1</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            ps.setMaxRows(maxCount);</span><br><span class="line"></span><br><span class="line">            <span class="comment">// Try to give jdbc driver a hint to hopefully not pull over more than the few rows we actually need.</span></span><br><span class="line">            <span class="comment">// Note: in some jdbc drivers, such as MySQL, you must set maxRows before fetchSize, or you get exception!</span></span><br><span class="line">            ps.setFetchSize(maxCount);</span><br><span class="line"></span><br><span class="line">            ps.setString(<span class="number">1</span>, STATE_WAITING);</span><br><span class="line">            ps.setBigDecimal(<span class="number">2</span>, <span class="keyword">new</span> BigDecimal(String.valueOf(noLaterThan)));</span><br><span class="line">            ps.setBigDecimal(<span class="number">3</span>, <span class="keyword">new</span> BigDecimal(String.valueOf(noEarlierThan)));</span><br><span class="line">            rs = ps.executeQuery();</span><br><span class="line"></span><br><span class="line">            <span class="keyword">while</span> (rs.next() &amp;&amp; nextTriggers.size() &lt;= maxCount) &#123;</span><br><span class="line">                nextTriggers.add(triggerKey(</span><br><span class="line">                    rs.getString(COL_TRIGGER_NAME),</span><br><span class="line">                    rs.getString(COL_TRIGGER_GROUP)));</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">return</span> nextTriggers;</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            closeResultSet(rs);</span><br><span class="line">            closeStatement(ps);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">final</span> String <span class="title">rtp</span><span class="params">(String query, String instanceName)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> MessageFormat.format(query,</span><br><span class="line">            <span class="keyword">new</span> Object[] &#123;tablePrefix, getSchedulerNameLiteral(), <span class="string">"'"</span> + instanceName + <span class="string">"'"</span>&#125;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>至此，完成了指定trigger在特定instanceId上运行，但是有一个问题，假如我们期望trigger可以在多台instanceId上随机执行的话，该如何实现呢？</p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2018/11/09/Java/2018-03-06-spring-quartz-trigger/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
     <article id="post-Java/2018-01-19-spring-properties" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
   <div class="article-inner">
     
@@ -521,13 +159,13 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2018/11/09/Java/2018-01-19-spring-properties/">Spring中property-placeholder的使用与解析</a>
+      <a class="article-title" href="/2018/01/19/Java/2018-01-19-spring-properties/">Spring中property-placeholder的使用与解析</a>
     </h1>
   
 
         
-        <a href="/2018/11/09/Java/2018-01-19-spring-properties/" class="archive-article-date">
-  	<time datetime="2018-11-09T13:48:02.845Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-11-09</time>
+        <a href="/2018/01/19/Java/2018-01-19-spring-properties/" class="archive-article-date">
+  	<time datetime="2018-01-18T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-01-19</time>
 </a>
         
       </header>
@@ -601,7 +239,7 @@
 
       
         <p class="article-more-link">
-          <a class="article-more-a" href="/2018/11/09/Java/2018-01-19-spring-properties/">展开全文 >></a>
+          <a class="article-more-a" href="/2018/01/19/Java/2018-01-19-spring-properties/">展开全文 >></a>
         </p>
       
 
@@ -631,45 +269,78 @@
 
 
   
-    <article id="post-Java/2017-09-21-phantomjs-use" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
+    <article id="post-Program/2018-01-04-permission-system-degisn" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
   <div class="article-inner">
     
       <header class="article-header">
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2018/11/09/Java/2017-09-21-phantomjs-use/">Capture Html Content After Render</a>
+      <a class="article-title" href="/2018/01/04/Program/2018-01-04-permission-system-degisn/">系统权限控制体系</a>
     </h1>
   
 
         
-        <a href="/2018/11/09/Java/2017-09-21-phantomjs-use/" class="archive-article-date">
-  	<time datetime="2018-11-09T13:48:02.844Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-11-09</time>
+        <a href="/2018/01/04/Program/2018-01-04-permission-system-degisn/" class="archive-article-date">
+  	<time datetime="2018-01-03T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-01-04</time>
 </a>
         
       </header>
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>在前端技术越来越注重用户体验的潮流下，异步数据渲染组件成为主流，但是异步渲染给爬虫和相关需要使用页面异步渲染后Dom结构的需求来说，变得很麻烦。要想获取渲染后的页面内容，常见的方法有：</p>
-<ol>
-<li>使用类似于PhantomJS的Headless浏览器，模拟页面渲染，获取页面HTML；</li>
-<li>分析Ajax请求，获取请求后的数据。</li>
-</ol>
-<p>对于千变万化的页面结构来说，第一种方法更具备通用性，首选需要安装PhantomJS，然后编写js脚本，最后就是运行脚本获取结果啦。</p>
-<p>比如我编写了一个loadPage.js,用于支持页面截图或者页面渲染后的HTML结构获取：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> args = require(<span class="string">'system'</span>).args;</span><br><span class="line"><span class="keyword">var</span> page = require(<span class="string">'webpage'</span>).create();</span><br><span class="line"><span class="keyword">var</span> fs = require(<span class="string">'fs'</span>);</span><br><span class="line"><span class="keyword">var</span> url;</span><br><span class="line"><span class="keyword">var</span> fileName = <span class="string">""</span>;</span><br><span class="line"><span class="keyword">var</span> cookieJson = <span class="string">""</span>;</span><br><span class="line"><span class="keyword">var</span> type = <span class="string">"html"</span>;</span><br><span class="line"><span class="keyword">var</span> viewWidth = <span class="number">1024</span>;</span><br><span class="line"><span class="keyword">var</span> viewHeight = <span class="number">768</span>;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">args.forEach(function(arg, i) &#123;</span><br><span class="line">    <span class="keyword">if</span>(i === <span class="number">1</span>)&#123;</span><br><span class="line">      url = arg;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>(i === <span class="number">2</span>)&#123;</span><br><span class="line">      type = arg;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">     <span class="keyword">if</span>(i === <span class="number">3</span>)&#123;</span><br><span class="line">      fileName = arg;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>(i === <span class="number">4</span>)&#123;</span><br><span class="line">      cookieJson = arg;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>(i === <span class="number">5</span>)&#123;</span><br><span class="line">      viewWidth = arg;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>(i === <span class="number">6</span>)&#123;</span><br><span class="line">      viewHeight = arg;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">page.viewportSize = &#123; width: viewWidth, height:viewHeight &#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span>(cookieJson != <span class="keyword">null</span> &amp;&amp; cookieJson != <span class="string">""</span>)&#123;</span><br><span class="line">    <span class="keyword">var</span> cookieArray =  JSON.parse(cookieJson);</span><br><span class="line">      <span class="keyword">for</span> (<span class="keyword">var</span> i = <span class="number">0</span>; i &lt; cookieArray.length; i++) &#123;</span><br><span class="line">          <span class="keyword">var</span> cookieObj = cookieArray[i];</span><br><span class="line">          <span class="keyword">var</span> cookie = &#123;</span><br><span class="line">            <span class="string">'name'</span>     : cookieObj.name,</span><br><span class="line">            <span class="string">'value'</span>    : cookieObj.value,</span><br><span class="line">            <span class="string">'path'</span>     : cookieObj.path,</span><br><span class="line">            <span class="string">'domain'</span>   : cookieObj.domain,</span><br><span class="line">            <span class="string">'expires'</span>  : cookieObj.expires</span><br><span class="line">          &#125;;</span><br><span class="line">        phantom.addCookie(cookie);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">page.onError = function(msg, trace) &#123;</span><br><span class="line">    console.log(<span class="string">"[Warning]This is page.onError"</span>);</span><br><span class="line">    <span class="keyword">var</span> msgStack = [<span class="string">'ERROR: '</span> + msg];</span><br><span class="line">    <span class="keyword">if</span> (trace &amp;&amp; trace.length) &#123;</span><br><span class="line">        msgStack.push(<span class="string">'TRACE:'</span>);</span><br><span class="line">        trace.forEach(function(t) &#123;</span><br><span class="line">          msgStack.push(<span class="string">' -&gt; '</span> + t.file + <span class="string">': '</span> + t.line + (t.function ? <span class="string">' (in function "'</span> + t.function +<span class="string">'")'</span> : <span class="string">''</span>));</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// console.error(msgStack.join('\n'));</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">phantom.onError = function(msg, trace) &#123;</span><br><span class="line">    console.log(<span class="string">"[Warning]This is phantom.onError"</span>);</span><br><span class="line">    <span class="keyword">var</span> msgStack = [<span class="string">'PHANTOM ERROR: '</span> + msg];</span><br><span class="line">    <span class="keyword">if</span> (trace &amp;&amp; trace.length) &#123;</span><br><span class="line">      msgStack.push(<span class="string">'TRACE:'</span>);</span><br><span class="line">      trace.forEach(function(t) &#123;</span><br><span class="line">        msgStack.push(<span class="string">' -&gt; '</span> + (t.file || t.sourceURL) + <span class="string">': '</span> + t.line + (t.function ? <span class="string">' (in function '</span> + t.function +<span class="string">')'</span> : <span class="string">''</span>));</span><br><span class="line">      &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">      console.error(msgStack.join(<span class="string">'\n'</span>));</span><br><span class="line">      phantom.exit(<span class="number">1</span>);</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">page.onLoadFinished = function() &#123;</span><br><span class="line">   setTimeout(function()&#123;</span><br><span class="line">      <span class="keyword">if</span>(type == <span class="string">"image"</span>)&#123;</span><br><span class="line">        page.render(fileName,&#123;format: <span class="string">'jpg'</span>, quality: <span class="string">'100'</span>&#125;);</span><br><span class="line">        console.log(<span class="string">"render page finished: "</span> + url);</span><br><span class="line">      &#125;</span><br><span class="line">       </span><br><span class="line">      <span class="keyword">if</span>(type == <span class="string">"html"</span>)&#123;</span><br><span class="line">         fs.write(fileName, page.content, <span class="string">'w'</span>);</span><br><span class="line">         console.log(<span class="string">"page html gen success: "</span> + url);</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      phantom.exit();         </span><br><span class="line">   &#125;,<span class="number">5000</span>);</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">page.open(url, function (status) &#123;</span><br><span class="line">    <span class="keyword">if</span> (status === <span class="string">"success"</span>) &#123;</span><br><span class="line">        console.log(<span class="string">"load status: "</span> + status);</span><br><span class="line">    &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">        phantom.exit();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
-<p>服务端通过Process类调用Linux中的shell脚本，运行截图或者页面渲染服务，然后把获取到的结果存储到文件存储系统中，返回文件存储的地址URL给业务方，业务方通过URL访问原始数据，减少网络数据传输。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">String type = <span class="string">"html"</span>;</span><br><span class="line">String[] params =</span><br><span class="line">                    <span class="keyword">new</span> String[] &#123;DiamondUtil.getPhantomJsPath(), DiamondUtil.getCaptureJsPath(), url,type , htmlName,</span><br><span class="line">                        cookieJson&#125;;</span><br><span class="line">                ShellUtil.executeShell(params, <span class="string">" capture url "</span> + url);</span><br><span class="line">                File htmlFile = <span class="keyword">new</span> File(defaultFilePath(htmlName));</span><br><span class="line">                <span class="keyword">if</span> (checkFileEixst(htmlFile)) &#123;</span><br><span class="line">                    String htmlOssUrl = fileService.updateObjectToOss(htmlName, htmlFile);</span><br><span class="line">                &#125;</span><br></pre></td></tr></table></figure>
-<p>ShellUtil中的运行代码：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">executeShell</span><span class="params">(String[] params, String message)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        Process process = <span class="keyword">null</span>;</span><br><span class="line">        BufferedReader stdBufferedReader = <span class="keyword">null</span>;</span><br><span class="line">        BufferedReader errorBufferedReader = <span class="keyword">null</span>;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            ProcessBuilder pb = <span class="keyword">new</span> ProcessBuilder(params);</span><br><span class="line">            pb.directory(<span class="keyword">new</span> File(DiamondUtil.getCaptureImagePath()));</span><br><span class="line">            pb.redirectErrorStream(<span class="keyword">true</span>);</span><br><span class="line">            process = pb.start();</span><br><span class="line">            stdBufferedReader = <span class="keyword">new</span> BufferedReader(<span class="keyword">new</span> InputStreamReader(process.getInputStream()));</span><br><span class="line">            errorBufferedReader = <span class="keyword">new</span> BufferedReader(<span class="keyword">new</span> InputStreamReader(process.getErrorStream()));</span><br><span class="line">            String line;</span><br><span class="line">            <span class="keyword">while</span> ((line = stdBufferedReader.readLine()) != <span class="keyword">null</span>) &#123;</span><br><span class="line">                logger.info(message + <span class="string">":"</span> + line);</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">while</span> ((line = errorBufferedReader.readLine()) != <span class="keyword">null</span>) &#123;</span><br><span class="line">                logger.error(message + <span class="string">":"</span> + line);</span><br><span class="line">            &#125;</span><br><span class="line">            process.waitFor();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            logger.error(message, e);</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (stdBufferedReader != <span class="keyword">null</span>) &#123;</span><br><span class="line">                stdBufferedReader.close();</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (errorBufferedReader != <span class="keyword">null</span>) &#123;</span><br><span class="line">                stdBufferedReader.close();</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (process != <span class="keyword">null</span>) &#123;</span><br><span class="line">                process.destroy();</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
-<p>在截图服务中，首次出现了中文乱码，网上有同学说安装bitmap-fonts，但是并不好使，建议删除：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo yum remove bitmap-fonts bitmap-fonts-cjk</span><br></pre></td></tr></table></figure>
-<p>网页查看我们使用的字体内容：</p>
-<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">...&#123;  ...  font-family: Helvetica, arial, "microsoft yahei", Monaco, sans-serif;  ...&#125;</span><br></pre></td></tr></table></figure>
-<p>可以看到有 多种字体，最后的 sans-serif 默认对应是黑体，需要把这5种字体装到截图的 Linux 服务器，分别从osx和windows上copy出来，注意一下，osx 中的字体是 .ttc 和 .dfont 格式的，我们 可以借助 <a href="http://transfonter.org/ttc-unpack来转换为" target="_blank" rel="noopener">http://transfonter.org/ttc-unpack来转换为</a> Linux 支持的 .ttf 的格式。</p>
-<p>把这些文件拷到 Linux 服务器上，然后调用 fc-cache 更新一下</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo mkdir /usr/share/fonts/customsudo cp *.ttf  /usr/share/fonts/customfc-cache -fv</span><br></pre></td></tr></table></figure>
+        <p>在 Web 应用开发中，安全一直是非常重要的一个方面。安全虽然属于应用的非功能性需求，但是应该在应用开发的初期就考虑进来。比如我们开放的功能页面需要登录授权之后才能访问，一些功能需要具备特定权限的人才能操作；再比如我们开放了数据API接口，如果不做访问控制，那么任何人都可以调用，当被不法分子操作时将给我们带来巨大的麻烦。那么在Java 整个体系中访问控制是否有一套理论技术支撑呢，我们是否可以做一个通用性的访问控制系统来完成分布式系统架构下的复杂的权限控制？接下来会一一介绍。</p>
+<h3 id="访问控制的本质："><a href="#访问控制的本质：" class="headerlink" title="访问控制的本质："></a>访问控制的本质：</h3><p>系统权限控制 本质上是访问控制（Access Control），那访问控制的本质又是什么呢？其实就是合法的访问受保护的资源，通俗的解释就是“【谁】是否有可以对某个【资源】进行某种【操作】”；可以看出访问控制的三个基本要素：主体（请求实体）、客体（资源实体）、控制策略（属性集合）；</p>
+<h3 id="访问控制需要完成的两个任务："><a href="#访问控制需要完成的两个任务：" class="headerlink" title="访问控制需要完成的两个任务："></a>访问控制需要完成的两个任务：</h3><p>识别和确认访问系统的用户；<br>决定该用户可以对某一系统资源进行何种类型的访问；</p>
+<h3 id="访问控制理论模型："><a href="#访问控制理论模型：" class="headerlink" title="访问控制理论模型："></a>访问控制理论模型：</h3><ul>
+<li>DAC&amp;MAC模型<ul>
+<li>DAC：自主访问控制；</li>
+<li>MAC：强制访问控制，一般用于多级安全军事系统；</li>
+</ul>
+</li>
+<li>IBAC模型：<ul>
+<li>基于身份的访问控制模型</li>
+<li>举例：登录验证</li>
+<li>比如Java中使用cookie、session存储回话标识；</li>
+</ul>
+</li>
+<li>RBAC模型：<ul>
+<li>基于角色的访问控制（Role-Based Access Control）</li>
+<li>用户、角色、权限</li>
+<li>RBAC是ABAC的一种单属性特例；</li>
+<li>1992年David F.Ferraiolo &amp; D.Richard Kuhn在第十五届国家计算机安全会议上提出；</li>
+<li>论文：<a href="https://csrc.nist.gov/projects/role-based-access-control" target="_blank" rel="noopener">https://csrc.nist.gov/projects/role-based-access-control</a></li>
+<li>举例：丰趣-小二后台的认证授权模型设计；</li>
+<li>Spring Security、Apache Shiro、Ali ACL</li>
+</ul>
+</li>
+<li>ABAC模型：<ul>
+<li>基于属性的访问控制模型 (Attribute Based Access Control)</li>
+<li>举例：阿里云、AWS；</li>
+<li>论文：<ul>
+<li><a href="https://csrc.nist.gov/projects/attribute-based-access-control" target="_blank" rel="noopener">https://csrc.nist.gov/projects/attribute-based-access-control</a></li>
+<li><a href="https://link.springer.com/chapter/10.1007/978-3-319-25645-0_14" target="_blank" rel="noopener">https://link.springer.com/chapter/10.1007/978-3-319-25645-0_14</a></li>
+<li><a href="http://profsandhu.com/dissert/xin_slides.pdf" target="_blank" rel="noopener">http://profsandhu.com/dissert/xin_slides.pdf</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>示意图：<br><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/068d3b155b6538ee6f4651d7febe19cd.png" alt=""><br>基于RBAC权限模型的常见数据库模型设计：<br><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/af745d65be9e6922518ff6402e805464.png" alt=""><br>设计的核心主题: 用户、权限、角色、用户角色、角色权限、用户组、用户组角色、操作审计<br>阿里巴巴登录鉴权与审计的三驾马车：BUC、ACL、OpLog；</p>
+<h3 id="Java常用访问控制框架："><a href="#Java常用访问控制框架：" class="headerlink" title="Java常用访问控制框架："></a>Java常用访问控制框架：</h3><ul>
+<li>JAAS框架：<ul>
+<li>Authentication（鉴别），    Authorization（授权），Accounting（计费）；</li>
+<li>Java认证和授权服务（Java Authentication and Authorization Service，简称JAAS）</li>
+<li>支持的框架：LDAP</li>
+<li>特点：面世时间早，使用受限，不建议使用；</li>
+</ul>
+</li>
+<li>Spring Security框架</li>
+<li>Apache Shiro框架</li>
+</ul>
+<h3 id="权限系统的演变历史："><a href="#权限系统的演变历史：" class="headerlink" title="权限系统的演变历史："></a>权限系统的演变历史：</h3><h4 id="1：-标准的JAAS-时代；"><a href="#1：-标准的JAAS-时代；" class="headerlink" title="1： 标准的JAAS 时代；"></a>1： 标准的JAAS 时代；</h4><p>J2ee时代，Java提出了标准的鉴权服务，即jaas；通过简单的容器配置和文件配置，通过一个LDAP（可以用数据库，只是效率不高），就可以提供一个极为高效便捷的权限管控服务。这个模式不仅支持页面管控，还支持ejb服务接口管控。其鉴权因为ldap的数倍于数据库的查询效率而无需任何缓存，速度很快。但是伴随着分布式服务化进程，应用的数量无限度增长，这种散落在各个容器的配置给容灾和修改，都带来了极大的挑战，ldap的可读化差，修改和编辑极为不便，当需求一旦个性化超过了树能够表达的模型便很难在适应。并且当ldap的数据爆炸式增长，且呈现28规律时（数据冷热不均），或者如果需要频繁的写ldap，查询效率会陡然下降。虽然这种方式目前并不流行的，但是由于历史原因，还存留着使用这种方式的管控方式，所以我们在Spring Security或者阿里的ACL中都还能看到对JAAS的支持。</p>
+<h4 id="2：-单点登录-SSO-接口鉴权时代；"><a href="#2：-单点登录-SSO-接口鉴权时代；" class="headerlink" title="2： 单点登录(SSO)+接口鉴权时代；"></a>2： 单点登录(SSO)+接口鉴权时代；</h4><p>把分散在各个系统的登录认证服务统一到一个系统中来，统一管控登录授权业务，用户只要在一个系统中登录了，在其它系统中就没必要再次登录了，这就是SSO。简单的实现是登录授权系统部署在一台机器上，不涉登录系统的多机部署，此架构具有单点风险；任何具备高可用思维的架构师都不会允许此风险存在，原因有二：1. 统一登录中心后，SSO成为极为核心的应用，如果SSO系统挂了，那么需要登录的任何服务器都无法正常提供服务；2. 单台机器不具备抵抗登录风暴的能力； 所以SSO系统必须成为集群部署模式。其次，在访问控制模型上，也必须放弃JAAS方式，转而使用RBAC模型；</p>
+<h4 id="3：-统一登录（分布式Session）-接口鉴权时代；"><a href="#3：-统一登录（分布式Session）-接口鉴权时代；" class="headerlink" title="3： 统一登录（分布式Session） + 接口鉴权时代；"></a>3： 统一登录（分布式Session） + 接口鉴权时代；</h4><p>SSO系统集群部署后，面临的首要问题就是Session的共享问题，比如用户在sso-1 机器上登录了，下次访问sso-2机器时，也必须是登录态的。分布式Session使用较多的方案为：Session集中管理；比如阿里巴巴基于Tair 缓存体系的共享session体系tbsession。如果采用了session + cookie的方案，并且服务端集群是多域名共享登录的话，那么还需要提供cookie跨域同步的能力（解决cookie不能跨域的问题）。</p>
 
       
 
@@ -684,7 +355,7 @@
 		<ul class="article-tag-list">
 			 
         		<li class="article-tag-list-item">
-        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
+        			<a href="/categories/Program//" class="article-tag-list-link color3">Program</a>
         		</li>
       		
 		</ul>
@@ -693,7 +364,902 @@
 
       
         <p class="article-more-link">
-          <a class="article-more-a" href="/2018/11/09/Java/2017-09-21-phantomjs-use/">展开全文 >></a>
+          <a class="article-more-a" href="/2018/01/04/Program/2018-01-04-permission-system-degisn/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-Program/2018-01-04-taobao-sso" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/01/04/Program/2018-01-04-taobao-sso/">Taobao SSO 跨域登录过程解析</a>
+    </h1>
+  
+
+        
+        <a href="/2018/01/04/Program/2018-01-04-taobao-sso/" class="archive-article-date">
+  	<time datetime="2018-01-03T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-01-04</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>今年的双十一和双十二已经告一段落，你是否买到了你想要的宝贝呢？我们知道双十一是天猫的主场，双十二是淘宝的主场，你有没有注意到你在登录了淘宝后，访问天猫或者飞猪，你还是处于登录态的，但是我们知道cookie是不能跨域的，那么阿里是如何做到了多域名下的登录态同步呢？接下来我们通过抓包进行请求解析来了解这个过程。</p>
+<h2 id="基础知识："><a href="#基础知识：" class="headerlink" title="基础知识："></a>基础知识：</h2><ol>
+<li>如果忘了Cookie和Session的区别，那么建议你先回顾一下，可以参考：<a href="https://github.com/astaxie/build-web-application-with-golang/blob/master/zh/06.1.md" target="_blank" rel="noopener">https://github.com/astaxie/build-web-application-with-golang/blob/master/zh/06.1.md</a></li>
+<li>如果不知道为什么需要鉴权，为什么需要SSO，为什么需要跨域登录，建议你先阅读上一篇文章“系统权限控制”。</li>
+</ol>
+<h2 id="测试过程："><a href="#测试过程：" class="headerlink" title="测试过程："></a>测试过程：</h2><ol>
+<li>访问<a href="http://www.taobao.com" target="_blank" rel="noopener">www.taobao.com</a> 请求登录，跳转到 login.taobao.com<ul>
+<li>输入用户名和密码后，登录成功，302 回调到<a href="http://www.taobao.com页面" target="_blank" rel="noopener">www.taobao.com页面</a></li>
+<li>Post 表单到 login.taobao.com , response 为 set-cookie，并通过redirectURL 跳会<a href="http://www.taobao.com首页；" target="_blank" rel="noopener">www.taobao.com首页；</a></li>
+</ul>
+</li>
+<li>访问 <a href="http://www.tmall.com" target="_blank" rel="noopener">www.tmall.com</a><ul>
+<li><a href="http://www.tmall.com页面响应中发起新的请求" target="_blank" rel="noopener">www.tmall.com页面响应中发起新的请求</a> tmcc.tmall.com/pass.com</li>
+</ul>
+</li>
+<li>请求页面 <a href="https://tmcc.tmall.com/pass.htm" target="_blank" rel="noopener">https://tmcc.tmall.com/pass.htm</a><ul>
+<li>响应为 302 跳转到： <a href="https://login.taobao.com/jump?target=https://tmcc.tmall.com/pass.htm?tbpm=1" target="_blank" rel="noopener">https://login.taobao.com/jump?target=https://tmcc.tmall.com/pass.htm?tbpm=1</a></li>
+<li>tbpm=1表示：进行tbsession的跨域同步；</li>
+</ul>
+</li>
+<li>请求页面 <a href="https://login.taobao.com/jump?target=https://tmcc.tmall.com/pass.htm?tbpm=1" target="_blank" rel="noopener">https://login.taobao.com/jump?target=https://tmcc.tmall.com/pass.htm?tbpm=1</a><ul>
+<li>在请求login.taobao.com/jump时，会携带上taobao.com域下的cookie信息</li>
+<li>响应为302跳转到：<a href="https://pass.tmall.com/add?_tb_token_=eef03e35fbe&amp;u......&amp;target=https%3A%2F%2Ftmcc.tmall.com%2Fpass.htm%3Ftbpm%3D1" target="_blank" rel="noopener">https://pass.tmall.com/add?_tb_token_=eef03e35fbe&amp;u......&amp;target=https%3A%2F%2Ftmcc.tmall.com%2Fpass.htm%3Ftbpm%3D1</a></li>
+<li>服务器端把taobao域下的cookie信息拼接到了302跳转的url 的 query string上。</li>
+</ul>
+</li>
+<li>请求页面 <a href="https://pass.tmall.com/add?_tb_token_=eef03e35fbe&amp;u......&amp;target=https%3A%2F%2Ftmcc.tmall.com%2Fpass.htm%3Ftbpm%3D1" target="_blank" rel="noopener">https://pass.tmall.com/add?_tb_token_=eef03e35fbe&amp;u......&amp;target=https%3A%2F%2Ftmcc.tmall.com%2Fpass.htm%3Ftbpm%3D1</a><ul>
+<li>携带cookie 信息的query string 参数请求 tmall.com域名下的信息，请求添加cookie。</li>
+<li>响应中把请求中的cookie信息set 到 浏览器cookie中，以此完成tmall.com域名下的cookie同步；</li>
+<li>响应状态未302 重定向到 <a href="https://tmcc.tmall.com/pass.htm?tbpm=1" target="_blank" rel="noopener">https://tmcc.tmall.com/pass.htm?tbpm=1</a></li>
+</ul>
+</li>
+<li>请求页面<a href="https://tmcc.tmall.com/pass.htm?tbpm=1" target="_blank" rel="noopener">https://tmcc.tmall.com/pass.htm?tbpm=1</a> 302 跳转到 <a href="https://tmcc.tmall.com/pass.htm" target="_blank" rel="noopener">https://tmcc.tmall.com/pass.htm</a></li>
+</ol>
+<p>抓包信息：<br><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/87d35687c06bdf7d01ea78c3aa1f8c7f.png" alt=""><br>图中隐藏了非关键请求，比如页面的静态资源等；</p>
+<p>同样：</p>
+<ol>
+<li>访问 <a href="http://www.alitrip.com，会同步请求https://ffa.alitrip.com/userInfo.htm的请求" target="_blank" rel="noopener">www.alitrip.com，会同步请求https://ffa.alitrip.com/userInfo.htm的请求</a></li>
+<li>请求页面<a href="https://ffa.alitrip.com/userInfo.htm" target="_blank" rel="noopener">https://ffa.alitrip.com/userInfo.htm</a><ul>
+<li>响应为 302 跳转到：<a href="https://login.taobao.com/jump?target=https%3A%2F%2Fffa.alitrip.com%2FuserInfo.htm" target="_blank" rel="noopener">https://login.taobao.com/jump?target=https%3A%2F%2Fffa.alitrip.com%2FuserInfo.htm</a></li>
+</ul>
+</li>
+<li>请求页面<a href="https://login.taobao.com/jump?target=https%3A%2F%2Fffa.alitrip.com%2FuserIn" target="_blank" rel="noopener">https://login.taobao.com/jump?target=https%3A%2F%2Fffa.alitrip.com%2FuserIn</a><ul>
+<li>在请求login.taobao.com/jump时，会携带上taobao.com域下的cookie信息</li>
+<li>响应为302跳转到：<a href="https://pass.alitrip.com/add?_tb_token_=eef03e35fbe&amp;uss=UtBTusG4…" target="_blank" rel="noopener">https://pass.alitrip.com/add?_tb_token_=eef03e35fbe&amp;uss=UtBTusG4…</a></li>
+<li>服务器端把taobao域下的cookie信息拼接到了302跳转的url 的 query string上。</li>
+</ul>
+</li>
+<li>请求页面<a href="https://pass.alitrip.com/add?_tb_token_=eef03e35fbe&amp;uss=UtBTusG4" target="_blank" rel="noopener">https://pass.alitrip.com/add?_tb_token_=eef03e35fbe&amp;uss=UtBTusG4</a><ul>
+<li>携带cookie 信息的query string 参数请求 alitrip.com 域名下的信息，请求添加cookie</li>
+<li>响应中把请求中的cookie信息set 到 浏览器cookie中，以此完成tmall.com域名下的cookie同步;</li>
+</ul>
+</li>
+</ol>
+<p>示意图：<br><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/ad93fbcaff26e6b4bc3ca3af620468e9.png" alt=""></p>
+<ol>
+<li>访问原始url： tmcc.tmall.com</li>
+<li>重定向，访问login.taobao.com/jump</li>
+<li>重定向，访问pass.tmall.com</li>
+<li>重定向，访问原始url（带有同步标识tbpm）</li>
+<li>重定向，访问原始url（去掉同步标识tbpm）</li>
+</ol>
+<p>如果我们taobao.com域下没有登录cookie，通过在login.tmall.com页面进行登录，那么cookie的传递是怎么样的呢？<br>通过测试，发现在请求login.tmall.com的时候会同步请求login.taobao.com然后cookie依然是通过taobao域同步到tmall域名，也就是cookie的同步是单向；</p>
+<p>当然，这个过程是正向流程，那退出登录的逆向流程是怎么样的呢？会同步请求login.taobao.com/clear, 通过set-cookie 清楚session cookie（会话cookie），然后进行 302 跳转到 <a href="https://pass.tmall.com/clear" target="_blank" rel="noopener">https://pass.tmall.com/clear</a> 进行cookie清理，然后 302 跳转到 <a href="https://pass.etao.com/clear" target="_blank" rel="noopener">https://pass.etao.com/clear</a> 进行cookie清理，然后 302 跳转到<a href="https://pass.etao.com/clear" target="_blank" rel="noopener">https://pass.etao.com/clear</a> 进行 cookie清理，如此重复知道所有域名cookie进行清理完毕。<br><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/eafb7fc66c6139c50a6a8bbb5bd89e58.png" alt=""><br>通过测试发现淘系的系统所有的退出登录都是走login.taobao.com/member/logout.jhtml , 然后通过一些列302 跳转pass系统进行登录态的清理。 登录态在到阿里云、支付宝是不通的,因为阿里云和支付宝的账号体系不一样。</p>
+<h2 id="禁用Cookie："><a href="#禁用Cookie：" class="headerlink" title="禁用Cookie："></a>禁用Cookie：</h2><p>可以看出整个跨域登录依赖的是cookie信息的传递与跨域设置，如果出于安全考虑，我们禁用了cookie，是否还能正常工作呢？经过测试，发现禁用cookie后，跨域自动登录不能正常执行了，跨域请求后对于受限的访问请求还是会自动跳登录。由于设计上没有考虑cookie禁用的情况，淘宝的登录页面竟然无法进入，一直循环跳转登录页面。</p>
+<h2 id="分布式Session-的常见解决方案："><a href="#分布式Session-的常见解决方案：" class="headerlink" title="分布式Session 的常见解决方案："></a>分布式Session 的常见解决方案：</h2><ol>
+<li>通过cookie进行共享；</li>
+<li>借助第三方进行存储，比如缓存；</li>
+<li>不容服务器之间进行session同步；</li>
+</ol>
+<p>这里面涉及到阿里两个重要级产品：tbsession、passcookie。</p>
+<ol>
+<li>tbsession：用来解决多应用间session共享存储与同步问题；tbsession采用的是 方法1 + 方法2的结合；</li>
+<li>passcookie：用来解决不同域名之间cookie同步的问题，以及决定同步那些cookie；</li>
+</ol>
+<h2 id="思考："><a href="#思考：" class="headerlink" title="思考："></a>思考：</h2><p>问：为什么有了cookie 还需要 session？</p>
+<p>答：cookie存储本身具备一些优势，比如信息存储在客户端，分散了资源消耗，cookie可以在客户端进行持久化存储（cookie在客户端分为：Permanent Cookies，Session Cookie）。    主要是只使用cookie作为资源访问的鉴权记录具备不安全性，容易引起CSRF（跨站请求伪造），比如攻击者劫持登录后的cookie信息进行页面操作，此时服务器以为还是用户自身在登录态下的本人操作。当然，只是简单的使用session也并不能彻底解决CSRF，使用session只是把用户的登录态信息保存在服务器端，客户端cookie往往会记录一个JSessionId 用来标识当前会话ID，jsessionid在网络中传输还是存在被劫持的可能性（参考下面的session劫持），所以需要配合响应的解决手段防止CSRF的发生。其次，cookie的使用在大小和条数上限制，大于需要存储大量用户态信息的场景下已经不够用了，此时需要借助session在服务端的存储设备来实现。<br><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/877347f9c7fc1318a494640818519c2a.png" alt=""></p>
+<p>问：登录后会会话中的每一次访问受限资源都需要访问验证？</p>
+<p>答：是的，因为每一次请求都无法确认你的身份，所以为了降低复杂认证授权的过程，通过sessionId 来标识某一会话；如果我们的Cookie信息泄露，那么不法分子就可以使用我们包含登录态的Cookie进行访问我们的受限资源（比如拷贝登录后的cookie信息通过postman请求需要登录后才能查看的信息），即便是我们丢增删改的请求采用了crsf_token ,不法分子还是可以看到我们的信息，信息已经造成了泄露。所以对于持久化Cookie，尽量设置为httpOnly，不允许通过JS脚本读取Cookie信息。还有就是使用https协议代替http协议（从tcp到ssl），这样不法分子劫持了请求信息，也无法破解请求信息的内容。</p>
+<p>问：是否采用了https就不需要防范CSRF了？</p>
+<p>答：不是的，我们采用https，是在数据传输层对请求进行进行加密后发送，但是如果CSRF是在浏览器的本地读取我们的Cookie信息（存储在我们浏览器中本地的Cookie信息确实明文的），还是可以读取到我们明文的Cookie信息。采用https只是防止了请求在传输中拦截后窃取我们的Cookie进行攻击而已。</p>
+<h2 id="Session-劫持与防范："><a href="#Session-劫持与防范：" class="headerlink" title="Session 劫持与防范："></a>Session 劫持与防范：</h2><p>这篇文章详细阐述了服务器端不做任何处理下的sessionId劫持的案例。<br><a href="https://github.com/astaxie/build-web-application-with-golang/blob/master/zh/06.4.md" target="_blank" rel="noopener">https://github.com/astaxie/build-web-application-with-golang/blob/master/zh/06.4.md</a></p>
+<p>session 劫持的防范措施：</p>
+<ol>
+<li>使用POST 请求 + Referer验证；<ul>
+<li>此方式简单容易实现；</li>
+<li>弊端：1.所有请求都是用POST方式不符合规范，比如RestFul。2.很多场景下请求是无法携带referer的；</li>
+</ul>
+</li>
+<li>使用csrf_token：在涉及增删改的请求中，带上一个和服务器端同步的随机数(token)，然后在服务器端做校验。由于这个token是变化的，同时具有私密性，只会内嵌到当前用户的页面中，因此可以起到防止CSRF的作用，比如淘宝域下cookie中的_tb_token_参数。</li>
+</ol>
+<p>csrftoken的整个生命周期一般是这样的：</p>
+<ul>
+<li>后端针对每一个用户生成唯一的csrftoken后    </li>
+<li>将csrftoken存储在服务器端，且和当前用户一一绑定</li>
+<li>当用户访问页面时，将csrftoken埋入前端页面</li>
+<li>用户提交请求时，需要在请求中附带上csrftoken</li>
+<li>后端对接收到的csrftoken进行校验，判断请求是否合法</li>
+<li>根据请求，后端判断是非需要更新csrftoken</li>
+</ul>
+<p>使用csrf_token 方案目前来说是最有效的安全措施，但是方案实施起来也相对复杂很多，需要考虑csrf_token的存储、更新、埋点以及校验等逻辑。</p>
+<h2 id="本质思考："><a href="#本质思考：" class="headerlink" title="本质思考："></a>本质思考：</h2><p>SSO 跨域统一登录的本质就是【登录态信息的跨域共享，为了实现共享采用了复制的方式】，这跟我们现实世界中为了达到知识共享，需要把知识转化为书籍，然后通过书籍印刷进行分发。</p>
+<h2 id="抓包工具介绍："><a href="#抓包工具介绍：" class="headerlink" title="抓包工具介绍："></a>抓包工具介绍：</h2><ol>
+<li>工具采用 mac 下的 Charles；</li>
+<li>https由于安全限制无法抓取到具体的内容，所以需要通过一些列的设置才能抓到请求数据；</li>
+<li>Charles -&gt; Help -&gt; SSL Proxying -&gt; Install Charles Root Certificate</li>
+<li>Proxy -&gt; SSL Proxying Setting -&gt; SSL Proxying 添加正则域名</li>
+</ol>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Program//" class="article-tag-list-link color3">Program</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2018/01/04/Program/2018-01-04-taobao-sso/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-Think/2017-12-29-2017-my-success-and-fail" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/12/29/Think/2017-12-29-2017-my-success-and-fail/">二零一七，我的失败与伟大</a>
+    </h1>
+  
+
+        
+        <a href="/2017/12/29/Think/2017-12-29-2017-my-success-and-fail/" class="archive-article-date">
+  	<time datetime="2017-12-28T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2017-12-29</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>2017年飘然离去，留下的唯有回忆。这一年总有一些刻骨铭心，总有一些难以忘怀，依依不舍。或遗落在某一渡口，或消失在某段站台，或模糊在某页书籍。岁月洗礼而后，一一封存，装帧成册，遗忘的森林，层出不穷的景致，黯淡了记忆的门窗。当又一次轻扣，忽而想起那年夏天的故事，亦或冬天里的恋歌，轻捻时光，掀开了往事，撑开了回忆的帆。这一年有过痛苦、焦虑、烦躁，也有过欢乐，自信和拼搏。</p>
+<p>如果说让我用一句话总结一下2017年，我想这句话会比较合适：</p>
+<blockquote>
+<p>认知上升了一个台阶，但仍未能克服行为上的懒惰；工作生活，持续反思与学习，但仍沉溺于专业深度的自卑之中。</p>
+</blockquote>
+<p>如果非要让我从过去一年中对自己的失败和伟大之处做一些“套路”上的总结的话，以下这几天应该被展现出来，愿它们像伴随我成长之路上的路灯，时时照亮我前行的路。</p>
+<h2 id="1-认知升级，追本溯源"><a href="#1-认知升级，追本溯源" class="headerlink" title="1. 认知升级，追本溯源"></a>1. 认知升级，追本溯源</h2><p>这一年自己思想的改变应该算是最大的收获了。以前对待事情总是浮在表面，现在会主动去思考事情背后的关系与本质，到底是什么导致了当前的状态，每个人说的话其背后的逻辑是什么；比如当开会、讨论、看演讲时，都会跳出当前讨论的事情，去想他们为什么会这么说，理论基础是什么，期望达到一个什么目标。</p>
+<p>近期通过研究高效学习的理论知识，逐步掌握学习知识的方法套路。学习的理论自己在高中和大学阶段坚持的不错，但是工作以来，坚持的并不算好，很多时候，一天过去了，回顾时，是浑浑噩噩的，对自己的人生似乎帮助并不大，感慨自己的浪费生命。记得之前看到过一句话，我们现在做的觉得有挑战的事情，之前已经有很多人应该都做过了，我们只需要看看他们踩过的吭和趟出的路就好的。这点无论是放在编程还是人生上来说，都适用。很多时候，我们不需要重复造轮子，有轮子直接购买使用就好，为自己的工作生活快速提效，这是一个一切为“<strong>效率</strong>”为核心的时代。</p>
+<p>什么是认知升级，就是看到了之前自己看不到的地方，看问题的角度比之前上升了一个角度。如果把认知划分为本能层、情绪层、立场层、利益层、社会心理层、系统认知层和智慧认知层的话，我目前只能算是从本能层走到了情绪层，未来的路还有很多要走。</p>
+<p><img src="/images/posts/20171229/2017-12-12-renzhi-lay.jpeg" alt=""><br>​                            （图片来自“雾满拦江”）</p>
+<p>什么是认知，什么是格局，我觉得有一个例子很不错，值得自己记在心里：</p>
+<p>《吕氏套秋》里记载着一则楚王失弓的故事，讲的是楚王去云梦泽打猎，不小心把自己心爱的弓丢了，侍从们要循原路寻找，楚王说，算了吧，不必去找了，楚人失之，楚人得之，到不了别处的。侍从们都很佩服楚王的豁达与胸怀。孔子听闻此事后说，这句话如果去掉“楚”字就好了，不妨说“人失之，人得之。”老子听说了孔子的评论后，也发表了自己的看法。他说再去掉“人”字会更好。那样就是“失之，得之”，这样才符合天道。</p>
+<h2 id="2-把握自己的命运，不要把自己的未来寄托在别人手上"><a href="#2-把握自己的命运，不要把自己的未来寄托在别人手上" class="headerlink" title="2. 把握自己的命运，不要把自己的未来寄托在别人手上"></a>2. 把握自己的命运，不要把自己的未来寄托在别人手上</h2><p><img src="/images/posts/20171229/2017-12-12-stock.jpeg" alt=""></p>
+<p>相信炒股的朋友都收到过推销内幕股的电话或者微信，他们通过前一天收盘后的预期与第二天开盘后的涨幅逐步获取你的信任，之后采用盈利分成或者入会费的方式，跟你合作，告诉你什么时间点买哪只股票，什么价位卖出。开始的时候，我确实在短时间内赚了好几千快，感觉他们太牛了，感觉这种赚钱方式比工作快多了，无法克制住自己的<strong>贪婪</strong>，投入大量的资金进去，此时一次正常的下跌也让我们损失惨重，炒作垃圾股，根本就没有持仓的信心。跳出来好好想一想，如果钱真的这么好赚，他们为什么还要花这么大的心思跟你分成呢？他们过分强调了平分你的收益而把风险完全抛给了你。其次，走位一个多年的老股票，完全听信一个不知专业深浅的人指导，这跟板上鱼肉有何区别呢？即使是赚了钱，你也获取不到技能的提升，对于你后续的投资思路不会有半毛钱帮助，有的只有那点钱了。</p>
+<p>正确的投资股市方式是建立其自己投资模式，比如改“投机”为“投资”，注重收益与风险的管理，做优质企业的中长线价值投资等。</p>
+<p>其次，这点在个人职业生涯中同样适用，我们伴随着团队成长的同时，也要明确知道自己在职业这个坐标体系中自己的位置，明确自己的目标坐标，通过资源争取或者个人努力，逐渐向目标靠拢，而不是等待着老板或者同事赶着你走。如果事事都是你的老板说了算，你自己没有主见的话，这跟被牵着鼻子走的牛没什么两样，在团队中，你也只能成为“老黄牛”了，当你老了，结果会是“卸磨杀驴”（2017年华为清退老员工事件）。反观自己，以前很少与老板探讨自己想要什么，不要做什么，现在有一定的自信说出自己的诉求，然后主动把握机会磨练自己的独特优势，这一点是一个进步。</p>
+<h2 id="3-矫正心理饥饿的金钱观"><a href="#3-矫正心理饥饿的金钱观" class="headerlink" title="3. 矫正心理饥饿的金钱观"></a>3. 矫正心理饥饿的金钱观</h2><p><img src="/images/posts/20171229/2017-12-12-yunnan-lgh.jpeg" alt=""></p>
+<p>由于自己出生在一个比较贫困的家庭，自幼对金钱就分外珍惜，什么钱都不舍得花，甚至认为除了基本保证生活的开支外，一切的花销都是多余的。很多人看到这点肯定会评价说是“抠门”，我们不能拿着自己优越的生活去评论不曾经历的贫穷生活，因为你想象不到，贫穷深入骨髓后是一种什么状态。每当在相亲节目中看到那些抠门的男方的时候，我都很难能理解，然而面对确实大家一边倒式的批判。改革开放40年来，人们的生活质量有了非常的提升，但是很多的养成的节省系统并不是说改掉就能改掉的，就像我父母，他们年幼时经历了大饥荒，知道现在全家年收入超过已经达到小康水平，但还每日担忧未来可能没有饭吃，非要在自家的储藏室中储藏上几袋大米，心理才有安全感，其实这个陈为“心理饥饿”。由于害怕失去钱，害怕自己变得一无所有，所以自己万事都尽量已保守节省的方式在生活，殊不知，在现代经济中，反而认为最安全的方式往往却是最危险的方式，比如父母为了少还一些利息，买房时尽量不让贷款，几乎全款买房，殊不知，合理负债才是家庭财务经营的正确指导。</p>
+<p>这个世界正在以超乎我们想象的速度变化，如果我们还保守着过去看似正确的理念生活，那么我们会与优质生活质量相差越来越远。钱是用来花的，不是用来存储的，学会花钱也是一门艺术。合理的消费，不仅有助于提高自身生活质量，还能提高国家的经济效应。现在的我不在为一周多买一次水果而大呼小叫，不再为每餐两人三菜而觉得浪费，为了让自己生活有点品质，还是不是给家里买一些鲜花来装饰装饰，美好的生活反过来会对我们的工作行程正反馈，心情好了，工作效率也会高不少。</p>
+<p>自从买了车之后，生活确实变得不一样了，说走就走的旅行变得不再那么困难，自驾游去千岛湖，飞行去昆明、丽江、大理和香格里拉，感受祖国的大美河山和不同的乡土文化，读千卷书，行万里路。世界这么大大，我们应该时长走出去看看，走出工作家庭两点一线之间的线性单调区间。</p>
+<h2 id="4-为专业付费，免费的往往是最贵的"><a href="#4-为专业付费，免费的往往是最贵的" class="headerlink" title="4. 为专业付费，免费的往往是最贵的"></a>4. 为专业付费，免费的往往是最贵的</h2><p>互联网在过去5年，倡导的一直是“免费”的文化，让产品免费，让更多用户受益。我们在使用各种软件或者观看各种收费视频的时候，首先先到的是找一找有没有破解版或者不需要收费的服务，为了获得免费的东西，有时候我们花费了大量的时间和精力，事后想一想，如果把时间换算成钱的话，我们是亏了的。往往<strong>看似免费的东西是最贵的</strong>，这个世界上没有免费的午餐，<strong>一切事情都是有成本的</strong>，只是有些事情的成本是隐形的，不容易被我们察觉罢了。免费的东西，人人都能力，其质量就很差，我们长期阅读低质的信息，会阻碍我们思维升级。反而那些付费的内容，正因为我们的付费，才促就了内容生产者以更加严谨的态度来对待产品，这是一个良性循环。我们值得为优质内容付费，科学高效的方法论告诉我们，跟随业界一流的牛人学习，才是高效的学习策略之一。</p>
+<h2 id="5-你的圈子决定了你的价值"><a href="#5-你的圈子决定了你的价值" class="headerlink" title="5. 你的圈子决定了你的价值"></a>5. 你的圈子决定了你的价值</h2><p>查尔斯琼斯说：通过一个人的朋友圈和他看的书就可以看到5年以后的他，也就是说呢，一个人是他周围5个人的综合体。从而形成了“五次元密友理论”。环境的力量，我们不得不信服。古代有孟母三迁，现代人为了一套学区房挤破脑袋。跟优秀的人在一起，我们会被优秀的气场所影响，观念、行为也逐步会发生改变。</p>
+<p>所以很多成功学或者心灵鸡汤类的文章常常建议我们每年主动与比我们自身段位高的人的人交往与交流，虽然在我们与他们交往中会有一定的不适感，但我们需要认识到这是正常的生理反应，是突破舒适区的副作用，我们终究会逐渐习惯，这种不适感会随着我们段位的提升而逐渐消失。</p>
+<p>反观身边那些职场中晋升非常快的人，在他们成长的路上，几乎都有一个伙伴，和他们一起成长，帮助他们坚持正确的决定，从而避开错误。一个好的有责任心的伙伴是这样的，无条件的爱你，他本身就渴望成功，成熟，会征求你的建议，在你需要帮助的时候能帮助你，能够陪伴鼓励你！你是不能一个人在成长的道路上走下去的，除非你不想达到顶峰。在看看自己当前身处的环境，是否有这样一个伙伴一同成长，如果没有，我们改如何破局？</p>
+<h2 id="6-感悟人性"><a href="#6-感悟人性" class="headerlink" title="6. 感悟人性"></a>6. 感悟人性</h2><p>狗为什么会对陌生人狂吠，人为什么会对伤害自身利益的言论会极力反驳进而情绪失控？面对巨大利益的时候，我们为什么会贪婪？这些都跟本性有关，了解人性，对我们日常生活非常有帮助，无论是我们做投资还是与人相处。就好像，以前老婆跟我抱怨工作上的不顺利，每次在她还没有说完前，我就不耐烦的打断，一口要求都是你自己的错误，在无法改变别人的前提下，你为什么不改变自己呢，然后噼里啪啦的堆砌出一大推自认为很有哲理性的说教语句，换来的结果总是无话可说。当我知晓了这背后的人性需求后，从说教着改为倾听者、陪伴者，效果一下子就不一样了。人性，是需要持续学习和感悟的东西，未来我会花时间系统性的去了解人性的心理学体系。</p>
+<h2 id="7-成为一名佛系青年"><a href="#7-成为一名佛系青年" class="headerlink" title="7. 成为一名佛系青年"></a>7. 成为一名佛系青年</h2><p><img src="/images/posts/20171229/2017-12-12-yunnan-party.jpeg" alt=""></p>
+<p>去了一趟香格里拉，接触藏民后，彻底改变了我对藏民和佛教的看法。认知中，藏M是野蛮和暴利的代名词，佛教是无知的人期望佛教来改变自身命运，现在看来，原来自己如井底之蛙般视野短浅，认知还停留在本能层。在一名叫做“幸福哥”的藏M导游解说藏传佛教的信仰之时，自己不知不觉中流下了真诚而感动的泪水。回来的途中，阅读了鬼脚七的《人生所有经过的路，都是必经之路》，感受他在出嫁求佛路中的点滴感悟，领悟颇多，自此下定决心，没事就开始背诵和抄写心经。佛教教会我们如何看待自己和这个世界，这个视角是脱离自我的视角，是以更高层的认识来看到实物的视角；比如“画外看画”，脱离自我，站在旁观者角度审视自己的举止言行，我们会有不一样的思考。</p>
+<p>在工作生活中，我也不断践行佛教的自我审视的方法，遇到不开心的或者困惑的事情，也尝试着使用佛教中思想来指导言行，虽然有些时候还是不能控制住自己的身为人的本性，但是我相信，通过不断的练习，终究会抵达彼岸，菩提萨婆诃。</p>
+<h2 id="8-让自己成为有一技之长的专业人才"><a href="#8-让自己成为有一技之长的专业人才" class="headerlink" title="8. 让自己成为有一技之长的专业人才"></a>8. 让自己成为有一技之长的专业人才</h2><p><img src="/images/posts/20171229/2017-12-12-aliyun-profile-money.png" alt=""></p>
+<p>身为一名软件工程师，但是迟迟没有专业自信，究其原因，是因为自己在专业性上的精力投入远远不够，由于积累的太薄，很多技术都不说不清其核心思想，当面对未知的问题时，顿时会觉得恐慌和无助，更不要谈自信了。如何成为专业的人才，方法和策略其实自己都已知晓，但是迟迟未能行动，即便是行动起来了，也是三天打鱼两天晒网。这是一个道理过剩，行动力匮乏的年代，我们不会因为知道了变得不一样，而会因我们做了什么而不一样。以此祭奠我过去5年的专业自卑感，计划用一到两年时间来培养自己的专业自信。</p>
+<h2 id="9-认清自己的核心优势，差异化竞争"><a href="#9-认清自己的核心优势，差异化竞争" class="headerlink" title="9. 认清自己的核心优势，差异化竞争"></a>9. 认清自己的核心优势，差异化竞争</h2><p>总觉得自己啥都能干，但是啥都不专业。在面对当前追求效率的社会大浪潮中，分工越来越细化，我们必须清楚的自己在社会大分工中位置，知道自己相比于其他人有哪些优势，短板在哪里，如何发挥个人的差异化竞争。最近在招聘中，对于那些什么都能干，然后什么研究的都不深入，有没有任何亮点的同学，我们基本都会直接Pass掉。我们常常笑道：如果按照现在的标准，我们也许都面不过当前的岗位。</p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Think//" class="article-tag-list-link color1">Think</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2017/12/29/Think/2017-12-29-2017-my-success-and-fail/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-Program/2017-12-27-the-twelve-factor-app" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/12/27/Program/2017-12-27-the-twelve-factor-app/">The Twelve-Factor App</a>
+    </h1>
+  
+
+        
+        <a href="/2017/12/27/Program/2017-12-27-the-twelve-factor-app/" class="archive-article-date">
+  	<time datetime="2017-12-26T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2017-12-27</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>如今，软件通常会作为一种服务来交付，它们被称为网络应用程序，或软件即服务（SaaS）。12-Factor 为构建如下的 SaaS 应用提供了方法论：</p>
+<ul>
+<li>使用标准化流程自动配置，从而使新的开发者花费最少的学习成本加入这个项目。</li>
+<li>和操作系统之间尽可能的划清界限，在各个系统中提供最大的可移植性。</li>
+<li>适合部署在现代的云计算平台，从而在服务器和系统管理方面节省资源。</li>
+<li>将开发环境和生产环境的差异降至最低，并使用持续交付实施敏捷开发。</li>
+<li>可以在工具、架构和开发流程不发生明显变化的前提下实现扩展。</li>
+<li>这套理论适用于任意语言和后端服务（数据库、消息队列、缓存等）开发的应用程序。</li>
+</ul>
+<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>本文的贡献者者参与过数以百计的应用程序的开发和部署，并通过 Heroku 平台间接见证了数十万应用程序的开发，运作以及扩展的过程。</p>
+<p>本文综合了我们关于 SaaS 应用几乎所有的经验和智慧，是开发此类应用的理想实践标准，并特别关注于应用程序如何保持良性成长，开发者之间如何进行有效的代码协作，以及如何 避免软件污染 。</p>
+<p>我们的初衷是分享在现代软件开发过程中发现的一些系统性问题，并加深对这些问题的认识。我们提供了讨论这些问题时所需的共享词汇，同时使用相关术语给出一套针对这些问题的广义解决方案。本文格式的灵感来自于 Martin Fowler 的书籍： Patterns of Enterprise Application Architecture ， Refactoring 。</p>
+<h2 id="读者应该是哪些人？"><a href="#读者应该是哪些人？" class="headerlink" title="读者应该是哪些人？"></a>读者应该是哪些人？</h2><p>任何 SaaS 应用的开发人员。部署和管理此类应用的运维工程师。</p>
+<hr>
+<h1 id="12-factors"><a href="#12-factors" class="headerlink" title="12-factors"></a>12-factors</h1><h2 id="I-基准代码"><a href="#I-基准代码" class="headerlink" title="I. 基准代码"></a>I. 基准代码</h2><p>一份基准代码（Codebase），多份部署（deploy）<br>12-Factor应用(译者注：应该是说一个使用本文概念来设计的应用，下同)通常会使用版本控制系统加以管理，如Git, Mercurial, Subversion。一份用来跟踪代码所有修订版本的数据库被称作 代码库（code repository, code repo, repo）。</p>
+<p>在类似 SVN 这样的集中式版本控制系统中，基准代码 就是指控制系统中的这一份代码库；而在 Git 那样的分布式版本控制系统中，基准代码 则是指最上游的那份代码库。</p>
+<p><img src="https://12factor.net/images/codebase-deploys.png" alt=""></p>
+<p>基准代码和应用之间总是保持一一对应的关系：</p>
+<ul>
+<li>一旦有多个基准代码，就不能称为一个应用，而是一个分布式系统。分布式系统中的每一个组件都是一个应用，每一个应用可以分别使用 12-Factor 进行开发。</li>
+<li>多个应用共享一份基准代码是有悖于 12-Factor 原则的。解决方案是将共享的代码拆分为独立的类库，然后使用 依赖管理 策略去加载它们。</li>
+</ul>
+<p>尽管每个应用只对应一份基准代码，但可以同时存在多份部署。每份 部署 相当于运行了一个应用的实例。通常会有一个生产环境，一个或多个预发布环境。此外，每个开发人员都会在自己本地环境运行一个应用实例，这些都相当于一份部署。</p>
+<p>所有部署的基准代码相同，但每份部署可以使用其不同的版本。比如，开发人员可能有一些提交还没有同步至预发布环境；预发布环境也有一些提交没有同步至生产环境。但它们都共享一份基准代码，我们就认为它们只是相同应用的不同部署而已。</p>
+<h2 id="II-依赖"><a href="#II-依赖" class="headerlink" title="II. 依赖"></a>II. 依赖</h2><p>显式声明依赖关系（ dependency ）<br>大多数编程语言都会提供一个打包系统，用来为各个类库提供打包服务，就像 Perl 的 CPAN 或是 Ruby 的 Rubygems 。通过打包系统安装的类库可以是系统级的（称之为 “site packages”），或仅供某个应用程序使用，部署在相应的目录中（称之为 “vendoring” 或 “bunding”）。</p>
+<p>12-Factor规则下的应用程序不会隐式依赖系统级的类库。 它一定通过 依赖清单 ，确切地声明所有依赖项。此外，在运行过程中通过 依赖隔离 工具来确保程序不会调用系统中存在但清单中未声明的依赖项。这一做法会统一应用到生产和开发环境。</p>
+<p>例如， Ruby 的 <a href="https://bundler.io/" target="_blank" rel="noopener">Bundler</a> 使用 Gemfile 作为依赖项声明清单，使用 bundle exec 来进行依赖隔离。Python 中则可分别使用两种工具 – <a href="http://www.pip-installer.org/en/latest/" target="_blank" rel="noopener">Pip</a> 用作依赖声明， <a href="http://www.virtualenv.org/en/latest/" target="_blank" rel="noopener">Virtualenv</a> 用作依赖隔离。甚至 C 语言也有类似工具， <a href="http://www.gnu.org/s/autoconf/" target="_blank" rel="noopener">Autoconf</a> 用作依赖声明，静态链接库用作依赖隔离。无论用什么工具，依赖声明和依赖隔离必须一起使用，否则无法满足 12-Factor 规范。</p>
+<p>显式声明依赖的优点之一是为新进开发者简化了环境配置流程。新进开发者可以检出应用程序的基准代码，安装编程语言环境和它对应的依赖管理工具，只需通过一个 构建命令 来安装所有的依赖项，即可开始工作。例如，Ruby/Bundler 下使用 bundle install，而 Clojure/Leiningen 则是 lein deps。</p>
+<p>12-Factor 应用同样不会隐式依赖某些系统工具，如 ImageMagick 或是curl。即使这些工具存在于几乎所有系统，但终究无法保证所有未来的系统都能支持应用顺利运行，或是能够和应用兼容。如果应用必须使用到某些系统工具，那么这些工具应该被包含在应用之中。</p>
+<h2 id="III-配置"><a href="#III-配置" class="headerlink" title="III. 配置"></a>III. 配置</h2><p>在环境中存储配置<br>通常，应用的 配置 在不同 部署 (预发布、生产环境、开发环境等等)间会有很大差异。这其中包括：</p>
+<ul>
+<li>数据库，Memcached，以及其他 后端服务 的配置</li>
+<li>第三方服务的证书，如 Amazon S3、Twitter 等</li>
+<li>每份部署特有的配置，如域名等</li>
+</ul>
+<p>有些应用在代码中使用常量保存配置，这与 12-Factor 所要求的代码和配置严格分离显然大相径庭。配置文件在各部署间存在大幅差异，代码却完全一致。</p>
+<p>判断一个应用是否正确地将配置排除在代码之外，一个简单的方法是看该应用的基准代码是否可以立刻开源，而不用担心会暴露任何敏感的信息。</p>
+<p>需要指出的是，这里定义的“配置”并不包括应用的内部配置，比如 Rails 的 config/routes.rb，或是使用 <a href="http://spring.io/" target="_blank" rel="noopener">Spring</a> 时 <a href="http://docs.spring.io/spring/docs/current/spring-framework-reference/html/beans.html" target="_blank" rel="noopener">代码模块间的依赖注入关系</a> 。这类配置在不同部署间不存在差异，所以应该写入代码。</p>
+<p>另外一个解决方法是使用配置文件，但不把它们纳入版本控制系统，就像 Rails 的 config/database.yml 。这相对于在代码中使用常量已经是长足进步，但仍然有缺点：总是会不小心将配置文件签入了代码库；配置文件的可能会分散在不同的目录，并有着不同的格式，这让找出一个地方来统一管理所有配置变的不太现实。更糟的是，这些格式通常是语言或框架特定的。</p>
+<p><strong>12-Factor推荐将应用的配置存储于</strong> 环境变量 中（ env vars, env ）。环境变量可以非常方便地在不同的部署间做修改，却不动一行代码；与配置文件不同，不小心把它们签入代码库的概率微乎其微；与一些传统的解决配置问题的机制（比如 Java 的属性配置文件）相比，环境变量与语言和系统无关。</p>
+<p>配置管理的另一个方面是分组。有时应用会将配置按照特定部署进行分组（或叫做“环境”），例如Rails中的 development,test, 和 production 环境。这种方法无法轻易扩展：更多部署意味着更多新的环境，例如 staging或 qa 。 随着项目的不断深入，开发人员可能还会添加他们自己的环境，比如 joes-staging ，这将导致各种配置组合的激增，从而给管理部署增加了很多不确定因素。</p>
+<p>12-Factor 应用中，环境变量的粒度要足够小，且相对独立。它们永远也不会组合成一个所谓的“环境”，而是独立存在于每个部署之中。当应用程序不断扩展，需要更多种类的部署时，这种配置管理方式能够做到平滑过渡。</p>
+<h2 id="IV-后端服务"><a href="#IV-后端服务" class="headerlink" title="IV. 后端服务"></a>IV. 后端服务</h2><p>把后端服务(backing services)当作附加资源<br>后端服务是指程序运行所需要的通过网络调用的各种服务，如数据库（<a href="http://dev.mysql.com/" target="_blank" rel="noopener">MySQL</a>，<a href="http://couchdb.apache.org/" target="_blank" rel="noopener">CouchDB</a>），消息/队列系统（<a href="http://www.rabbitmq.com/" target="_blank" rel="noopener">RabbitMQ</a>，<a href="http://kr.github.com/beanstalkd/" target="_blank" rel="noopener">Beanstalkd</a>），SMTP 邮件发送服务（<a href="http://www.postfix.org/" target="_blank" rel="noopener">Postfix</a>），以及缓存系统（<a href="http://memcached.org/" target="_blank" rel="noopener">Memcached</a>）。</p>
+<p>类似数据库的后端服务，通常由部署应用程序的系统管理员一起管理。除了本地服务之外，应用程序有可能使用了第三方发布和管理的服务。示例包括 SMTP（例如 <a href="http://postmarkapp.com/" target="_blank" rel="noopener">Postmark</a>），数据收集服务（例如 <a href="http://newrelic.com/" target="_blank" rel="noopener">New Relic</a> 或 <a href="http://www.loggly.com/" target="_blank" rel="noopener">Loggly</a>），数据存储服务（如 <a href="http://http//aws.amazon.com/s3/" target="_blank" rel="noopener">Amazon S3</a>），以及使用 API 访问的服务（例如 Twitter, Google Maps, Last.fm）。</p>
+<p><strong>12-Factor 应用不会区别对待本地或第三方服务。</strong> 对应用程序而言，两种都是附加资源，通过一个 url 或是其他存储在 配置 中的服务定位/服务证书来获取数据。12-Factor 应用的任意 部署 ，都应该可以在不进行任何代码改动的情况下，将本地 MySQL 数据库换成第三方服务（例如 Amazon RDS）。类似的，本地 SMTP 服务应该也可以和第三方 SMTP 服务（例如 Postmark ）互换。上述 2 个例子中，仅需修改配置中的资源地址。</p>
+<p>每个不同的后端服务是一份 资源 。例如，一个 MySQL 数据库是一个资源，两个 MySQL 数据库（用来数据分区）就被当作是 2 个不同的资源。12-Factor 应用将这些数据库都视作 附加资源 ，这些资源和它们附属的部署保持松耦合。</p>
+<p><img src="https://12factor.net/images/attached-resources.png" alt=""></p>
+<p>部署可以按需加载或卸载资源## 部署可以按需加载或卸载资源部署可以按需加载或卸载资源部署可以按需加载或卸载资源。例如，如果应用的数据库服务由于硬件问题出现异常，管理员可以从最近的备份中恢复一个数据库，卸载当前的数据库，然后加载新的数据库 – 整个过程都不需要修改代码。</p>
+<h2 id="V-构建，发布，运行"><a href="#V-构建，发布，运行" class="headerlink" title="V. 构建，发布，运行"></a>V. 构建，发布，运行</h2><p> 严格分离构建和运行</p>
+<p><a href="https://12factor.net/zh_cn/codebase" target="_blank" rel="noopener">基准代码</a> 转化为一份部署(非开发环境)需要以下三个阶段：</p>
+<ul>
+<li>构建阶段 是指将代码仓库转化为可执行包的过程。构建时会使用指定版本的代码，获取和打包 依赖项，编译成二进制文件和资源文件。</li>
+<li>发布阶段 会将构建的结果和当前部署所需 配置 相结合，并能够立刻在运行环境中投入使用。</li>
+<li>运行阶段 （或者说“运行时”）是指针对选定的发布版本，在执行环境中启动一系列应用程序 进程。</li>
+</ul>
+<p><img src="https://12factor.net/images/release.png" alt=""></p>
+<p><strong>12-factor 应用严格区分构建，发布，运行这三个步骤。</strong> 举例来说，直接修改处于运行状态的代码是非常不可取的做法，因为这些修改很难再同步回构建步骤。</p>
+<p>部署工具通常都提供了发布管理工具，最引人注目的功能是退回至较旧的发布版本。比如， <a href="">Capistrano</a> 将所有发布版本都存储在一个叫 releases 的子目录中，当前的在线版本只需映射至对应的目录即可。该工具的 rollback 命令可以很容易地实现回退版本的功能。</p>
+<p>每一个发布版本必须对应一个唯一的发布 ID，例如可以使用发布时的时间戳（2011-04-06-20:32:17），亦或是一个增长的数字（v100）。发布的版本就像一本只能追加的账本，一旦发布就不可修改，任何的变动都应该产生一个新的发布版本。</p>
+<p>新的代码在部署之前，需要开发人员触发构建操作。但是，运行阶段不一定需要人为触发，而是可以自动进行。如服务器重启，或是进程管理器重启了一个崩溃的进程。因此，运行阶段应该保持尽可能少的模块，这样假设半夜发生系统故障而开发人员又捉襟见肘也不会引起太大问题。构建阶段是可以相对复杂一些的，因为错误信息能够立刻展示在开发人员面前，从而得到妥善处理。</p>
+<h2 id="VI-进程"><a href="#VI-进程" class="headerlink" title="VI. 进程"></a>VI. 进程</h2><p>以一个或多个无状态进程运行应用<br>运行环境中，应用程序通常是以一个和多个 进程 运行的。</p>
+<p>最简单的场景中，代码是一个独立的脚本，运行环境是开发人员自己的笔记本电脑，进程由一条命令行（例如python my_script.py）。另外一个极端情况是，复杂的应用可能会使用很多 进程类型 ，也就是零个或多个进程实例。</p>
+<p>12-Factor 应用的进程必须无状态且 无共享 。 任何需要持久化的数据都要存储在 后端服务 内，比如数据库。</p>
+<p>内存区域或磁盘空间可以作为进程在做某种事务型操作时的缓存，例如下载一个很大的文件，对其操作并将结果写入数据库的过程。12-Factor应用根本不用考虑这些缓存的内容是不是可以保留给之后的请求来使用，这是因为应用启动了多种类型的进程，将来的请求多半会由其他进程来服务。即使在只有一个进程的情形下，先前保存的数据（内存或文件系统中）也会因为重启（如代码部署、配置更改、或运行环境将进程调度至另一个物理区域执行）而丢失。</p>
+<p>源文件打包工具（Jammit, django-compressor） 使用文件系统来缓存编译过的源文件。12-Factor 应用更倾向于在 构建步骤做此动作——正如 Rails资源管道 ，而不是在运行阶段。</p>
+<p>一些互联网系统依赖于 “粘性 session”， 这是指将用户 session 中的数据缓存至某进程的内存中，并将同一用户的后续请求路由到同一个进程。粘性 session 是 12-Factor 极力反对的。Session 中的数据应该保存在诸如 Memcached 或 Redis 这样的带有过期时间的缓存中。</p>
+<h2 id="VII-端口绑定"><a href="#VII-端口绑定" class="headerlink" title="VII. 端口绑定"></a>VII. 端口绑定</h2><p>通过端口绑定(Port binding)来提供服务<br>互联网应用有时会运行于服务器的容器之中。例如 PHP 经常作为 Apache HTTPD 的一个模块来运行，正如 Java 运行于 Tomcat 。</p>
+<p>12-Factor 应用完全自我加载 而不依赖于任何网络服务器就可以创建一个面向网络的服务。互联网应用 通过端口绑定来提供服务 ，并监听发送至该端口的请求。</p>
+<p>本地环境中，开发人员通过类似<a href="http://localhost:5000/的地址来访问服务。在线上环境中，请求统一发送至公共域名而后路由至绑定了端口的网络进程。" target="_blank" rel="noopener">http://localhost:5000/的地址来访问服务。在线上环境中，请求统一发送至公共域名而后路由至绑定了端口的网络进程。</a></p>
+<p>通常的实现思路是，将网络服务器类库通过 依赖声明 载入应用。例如，Python 的 Tornado, Ruby 的Thin , Java 以及其他基于 JVM 语言的 Jetty。完全由 用户端 ，确切的说应该是应用的代码，发起请求。和运行环境约定好绑定的端口即可处理这些请求。</p>
+<p>HTTP 并不是唯一一个可以由端口绑定提供的服务。其实几乎所有服务器软件都可以通过进程绑定端口来等待请求。例如，使用 XMPP 的 ejabberd ， 以及使用 Redis 协议 的 Redis 。</p>
+<p>还要指出的是，端口绑定这种方式也意味着一个应用可以成为另外一个应用的 后端服务 ，调用方将服务方提供的相应 URL 当作资源存入 配置 以备将来调用。</p>
+<h2 id="VIII-并发"><a href="#VIII-并发" class="headerlink" title="VIII. 并发"></a>VIII. 并发</h2><p>通过进程模型进行扩展<br>任何计算机程序，一旦启动，就会生成一个或多个进程。互联网应用采用多种进程运行方式。例如，PHP 进程作为 Apache 的子进程存在，随请求按需启动。Java 进程则采取了相反的方式，在程序启动之初 JVM 就提供了一个超级进程储备了大量的系统资源(CPU 和内存)，并通过多线程实现内部的并发管理。上述 2 个例子中，进程是开发人员可以操作的最小单位。<br><img src="https://12factor.net/images/process-types.png" alt=""><br>扩展表现为运行中的进程，工作多样性表现为进程类型。</p>
+<p>在 12-factor 应用中，进程是一等公民。12-Factor 应用的进程主要借鉴于 unix 守护进程模型 。开发人员可以运用这个模型去设计应用架构，将不同的工作分配给不同的 进程类型 。例如，HTTP 请求可以交给 web 进程来处理，而常驻的后台工作则交由 worker 进程负责。</p>
+<p>这并不包括个别较为特殊的进程，例如通过虚拟机的线程处理并发的内部运算，或是使用诸如 EventMachine, Twisted, Node.js 的异步/事件触发模型。但一台独立的虚拟机的扩展有瓶颈（垂直扩展），所以应用程序必须可以在多台物理机器间跨进程工作。</p>
+<p>上述进程模型会在系统急需扩展时大放异彩。 12-Factor 应用的进程所具备的无共享，水平分区的特性 意味着添加并发会变得简单而稳妥。这些进程的类型以及每个类型中进程的数量就被称作 进程构成 。</p>
+<p>12-Factor 应用的进程 不需要守护进程 或是写入 PID 文件。相反的，应该借助操作系统的进程管理器(例如 systemd ，分布式的进程管理云平台，或是类似 Foreman 的工具)，来管理 输出流 ，响应崩溃的进程，以及处理用户触发的重启和关闭超级进程的请求。</p>
+<h2 id="IX-易处理"><a href="#IX-易处理" class="headerlink" title="IX. 易处理"></a>IX. 易处理</h2><p>快速启动和优雅终止可最大化健壮性<br>12-Factor 应用的 进程 是 易处理（disposable）的，意思是说它们可以瞬间开启或停止。 这有利于快速、弹性的伸缩应用，迅速部署变化的 代码 或 配置 ，稳健的部署应用。</p>
+<p>进程应当追求 最小启动时间 。 理想状态下，进程从敲下命令到真正启动并等待请求的时间应该只需很短的时间。更少的启动时间提供了更敏捷的 发布 以及扩展过程，此外还增加了健壮性，因为进程管理器可以在授权情形下容易的将进程搬到新的物理机器上。</p>
+<p>进程 一旦接收 终止信号（SIGTERM） 就会优雅的终止 。就网络进程而言，优雅终止是指停止监听服务的端口，即拒绝所有新的请求，并继续执行当前已接收的请求，然后退出。此类型的进程所隐含的要求是HTTP请求大多都很短(不会超过几秒钟)，而在长时间轮询中，客户端在丢失连接后应该马上尝试重连。</p>
+<p>对于 worker 进程来说，优雅终止是指将当前任务退回队列。例如，RabbitMQ 中，worker 可以发送一个NACK信号。 Beanstalkd 中，任务终止并退回队列会在worker断开时自动触发。有锁机制的系统诸如 Delayed Job 则需要确定释放了系统资源。此类型的进程所隐含的要求是，任务都应该 可重复执行 ， 这主要由将结果包装进事务或是使重复操作 幂等 来实现。</p>
+<p>进程还应当在面对突然死亡时保持健壮，例如底层硬件故障。虽然这种情况比起优雅终止来说少之又少，但终究有可能发生。一种推荐的方式是使用一个健壮的后端队列，例如 Beanstalkd ，它可以在客户端断开或超时后自动退回任务。无论如何，12-Factor 应用都应该可以设计能够应对意外的、不优雅的终结。Crash-only design 将这种概念转化为 合乎逻辑的理论。</p>
+<h2 id="X-开发环境与线上环境等价"><a href="#X-开发环境与线上环境等价" class="headerlink" title="X. 开发环境与线上环境等价"></a>X. 开发环境与线上环境等价</h2><p>尽可能的保持开发，预发布，线上环境相同<br>从以往经验来看，开发环境（* 从以往经验来看，开发环境（即开发人员的本地 部署）和线上环境（外部用户访问的真实部署）之间存在着很多差异。这些差异表现在以下三个方面：</p>
+<ul>
+<li>时间差异： 开发人员正在编写的代码可能需要几天，几周，甚至几个月才会上线。</li>
+<li>人员差异： 开发人员编写代码，运维人员部署代码。</li>
+<li>工具差异： 开发人员或许使用 Nginx，SQLite，OS X，而线上环境使用 Apache，MySQL 以及 Linux。</li>
+</ul>
+<p>想要做到 持续部署 就必须* 想要做到 持续部署 就必须缩小本地与线上差异。 再回头看上面所描述的三个差异:</p>
+<ul>
+<li>缩小时间差异：开发人员可以几小时，甚至几分钟就部署代码。</li>
+<li>缩小人员差异：开发人员不只要编写代码，更应该密切参与部署过程以及代码在线上的表现。</li>
+<li>缩小工具差异：尽量保证开发环境以及线上环境的一致性。</li>
+</ul>
+<p>将上述总结变为一个表格如下：</p>
+<p>传统应用    12-FACTOR 应用<br>每次部署间隔    数周    几小时<br>开发人员 VS 运维人员    不同的人    相同的人<br>开发环境 VS 线上环境    不同    尽量接近<br>后端服务 是保持开发与线上等价的重要部分，例如数据库，队列系统，以及缓存。许多语言都提供了简化获取后端服务的类库，例如不同类型服务的 适配器 。下列表格提供了一些例子。</p>
+<p>类型    语言    类库    适配器<br>数据库    Ruby/Rails    ActiveRecord    MySQL, PostgreSQL, SQLite<br>队列    Python/Django    Celery    RabbitMQ, Beanstalkd, Redis<br>缓存    Ruby/Rails    ActiveSupport::Cache    Memory, filesystem, Memcached<br>开发人员有时会觉得在本地环境中使用轻量的后端服务具有很强的吸引力，而那些更重量级的健壮的后端服务应该使用在生产环境。例如，本地使用 SQLite 线上使用 PostgreSQL；又如本地缓存在进程内存中而线上存入 Memcached。</p>
+<p>12-Factor 应用的开发人员应该反对在不同环境间使用不同的后端服务 ，即使适配器已经可以几乎消除使用上的差异。这是因为，不同的后端服务意味着会突然出现的不兼容，从而导致测试、预发布都正常的代码在线上出现问题。这些错误会给持续部署带来阻力。从应用程序的生命周期来看，消除这种阻力需要花费很大的代价。</p>
+<p>与此同时，轻量的本地服务也不像以前那样引人注目。借助于Homebrew，apt-get等现代的打包系统，诸如Memcached、PostgreSQL、RabbitMQ 等后端服务的安装与运行也并不复杂。此外，使用类似 Chef 和 Puppet 的声明式配置工具，结合像 Vagrant 这样轻量的虚拟环境就可以使得开发人员的本地环境与线上环境无限接近。与同步环境和持续部署所带来的益处相比，安装这些系统显然是值得的。</p>
+<p>不同后端服务的适配器仍然是## 不同后端服务的适配器仍然是有用的，因为它们可以使移植后端服务变得简单。但应用的所有部署，这其中包括开发、预发布以及线上环境，都应该使用同一个后端服务的相同版本。</p>
+<h2 id="XI-日志"><a href="#XI-日志" class="headerlink" title="XI. 日志"></a>XI. 日志</h2><p>把日志当做事件流<br>日志 使得应用程序运行的动作变得透明。在基于服务器的环境中，日志通常被写在硬盘的一个文件里，但这只是一种输出格式。</p>
+<p>日志应该是 事件流 的汇总，将所有运行中进程和后端服务的输出流按照时间顺序收集起来。尽管在回溯问题时可能需要看很多行，日志最原始的格式确实是一个事件一行。日志没有确定开始和结束，但随着应用在运行会持续的增加。</p>
+<p>12-factor应用本身从不考虑存储自己的输出流。 不应该试图去写或者管理日志文件。相反，每一个运行的进程都会直接的标准输出（stdout）事件流。开发环境中，开发人员可以通过这些数据流，实时在终端看到应用的活动。</p>
+<p>在预发布或线上部署中，每个进程的输出流由运行环境截获，并将其他输出流整理在一起，然后一并发送给一个或多个最终的处理程序，用于查看或是长期存档。这些存档路径对于应用来说不可见也不可配置，而是完全交给程序的运行环境管理。类似 Logplex 和 Fluentd 的开源工具可以达到这个目的。</p>
+<p>这些事件流可以输出至文件，或者在终端实时观察。最重要的，输出流可以发送到 Splunk 这样的日志索引及分析系统，或 Hadoop/Hive 这样的通用数据存储系统。这些系统为查看应用的历史活动提供了强大而灵活的功能，包括：</p>
+<p>找出过去一段时间特殊的事件。<br>图形化一个大规模的趋势，比如每分钟的请求量。<br>根据用户定义的条件实时触发警报，比如每分钟的报错超过某个警戒线。</p>
+<h2 id="XII-管理进程"><a href="#XII-管理进程" class="headerlink" title="XII. 管理进程"></a>XII. 管理进程</h2><p>后台管理任务当作一次性进程运行<br>进程构成（process formation）是指用来处理应用的常规业务（比如处理 web 请求）的一组进程。与此不同，开发人员经常希望执行一些管理或维护应用的一次性任务，例如：</p>
+<p>运行数据移植（Django 中的 manage.py migrate, Rails 中的 rake db:migrate）。<br>运行一个控制台（也被称为 REPL shell），来执行一些代码或是针对线上数据库做一些检查。大多数语言都通过解释器提供了一个 REPL 工具（python 或 perl） ，或是其他命令（Ruby 使用 irb, Rails 使用 rails console）。<br>运行一些提交到代码仓库的一次性脚本。<br>一次性管理进程应该和正常的 常驻进程 使用同样的环境。这些管理进程和任何其他的进程一样使用相同的 代码 和 配置 ，基于某个 发布版本 运行。后台管理代码应该随其他应用程序代码一起发布，从而避免同步问题。</p>
+<p>所有进程类型应该使用同样的 依赖隔离 技术。例如，如果Ruby的web进程使用了命令 bundle exec thin start ，那么数据库移植应使用 bundle exec rake db:migrate 。同样的，如果一个 Python 程序使用了 Virtualenv，则需要在运行 Tornado Web 服务器和任何 manage.py 管理进程时引入 bin/python 。</p>
+<p>12-factor 尤其青睐那些提供了 REPL shell 的语言，因为那会让运行一次性脚本变得简单。在本地部署中，开发人员直接在命令行使用 shell 命令调用一次性管理进程。在线上部署中，开发人员依旧可以使用ssh或是运行环境提供的其他机制来运行这样的进程。</p>
+<p>转发自：<a href="https://12factor.net/zh_cn/" target="_blank" rel="noopener">https://12factor.net/zh_cn/</a></p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Program//" class="article-tag-list-link color3">Program</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2017/12/27/Program/2017-12-27-the-twelve-factor-app/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-Program/2017-12-24-devops-three-method" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/12/24/Program/2017-12-24-devops-three-method/">DevOps的三种方式</a>
+    </h1>
+  
+
+        
+        <a href="/2017/12/24/Program/2017-12-24-devops-three-method/" class="archive-article-date">
+  	<time datetime="2017-12-23T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2017-12-24</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>这篇博客中提到的“三种方式“源自 <a href="http://www.itrevolution.com/book/the-devops-handbook/" target="_blank" rel="noopener">《DevOps Handbook》</a> 及<a href="https://itrevolution.com/books/novel/" target="_blank" rel="noopener">《凤凰项目》</a>（The Phoenix Project: A Novel About IT, DevOps, and Helping Your Business Win.），这三种方式描述了构成 DevOps 的理论框架、流程、实践及价值观和哲学。</p>
+<p>感谢《Lean IT》的作者 Mike Orzen 为此文提供宝贵建议。</p>
+<h2 id="三种方式"><a href="#三种方式" class="headerlink" title="三种方式"></a>三种方式</h2><p>下文将介绍三种模式及在该种模式指导下的 DevOps 实践。</p>
+<h3 id="第一种方式：-系统思考"><a href="#第一种方式：-系统思考" class="headerlink" title="第一种方式： 系统思考"></a>第一种方式： 系统思考</h3><p><img src="https://gw.alipayobjects.com/zos/skylark/90fda8c1-ed1d-414d-bf7a-379e3fc7bd54/2018/png/46243fa7-bffa-4015-acd8-2597e974feee.png" alt=""></p>
+<p>第一种方式强调全局优化，而非局部改进。— 大到部门职能划分（例如研发部和运维部门），小到个人（开发和系统工程师）。</p>
+<p>这种方式将关注点放在整个业务价值流上。换句话说，整个团队应该关注在从需求被定义到开发，再到运维这个过程，直到价值被以服务的形式交付给最终用户。</p>
+<p>将这种方式带到实践中的产出便是永远不要将已知的缺陷传递到下游工作，永远不要为了局部优化影响了整体价值流交付，总是为了增加价值流动努力，永远追求对架构的深刻理解。</p>
+<p>涉及到这种方式的实践有：</p>
+<ul>
+<li>所有环境和代码使用同一个仓库，将软件包纳入版本管理</li>
+<li>团队共同决定发布流程</li>
+<li>保持 DEV、TEST、PRODUCTION 环境的一致性</li>
+<li>自动化回归测试</li>
+<li>小步提交，每日部署；而不是一次部署大量变更</li>
+<li>更快、更频繁发布</li>
+</ul>
+<h3 id="第二种方式：经过放大的反馈回路"><a href="#第二种方式：经过放大的反馈回路" class="headerlink" title="第二种方式：经过放大的反馈回路"></a>第二种方式：经过放大的反馈回路</h3><p><img src="https://gw.alipayobjects.com/zos/skylark/f6cc08b5-b7e5-4162-92a3-0d0df213d902/2018/png/c8e97809-c293-4170-a84c-143789ea7faf.png" alt=""></p>
+<p>第二种方式是创建从开发过程下游至上游的反馈环。几乎所有的流程改进都是为了从时间上缩短和从覆盖面上放大反馈循环，从而可以不断地进行必要的改正。</p>
+<p>第二种方式的产出是关注到价值流中所有涉及到的用户，包括价值流内部和外部的，缩短和放大反馈回路，并且可以随时定位到需要改进的地方。</p>
+<p>涉及到这种方式的实践有：</p>
+<ul>
+<li>代码审查及配置变更检查</li>
+<li>有纪律的自动化测试，使许多同时的小型敏捷团队能够有效地工作</li>
+<li>尽早设置监控预警</li>
+<li>修复 bug 为团队最高优先级</li>
+<li>团队成员之间高度互相信任</li>
+<li>团队之间保持沟通和良好合作<h3 id="第三种方式：持续做试验和学习的文化"><a href="#第三种方式：持续做试验和学习的文化" class="headerlink" title="第三种方式：持续做试验和学习的文化"></a>第三种方式：持续做试验和学习的文化</h3><img src="https://gw.alipayobjects.com/zos/skylark/dfea288e-e3e5-4f41-b1c0-998f7def0202/2018/png/096c5099-06da-403c-8329-3c88f8851fd9.png" alt=""></li>
+</ul>
+<p>第三种方式提倡持续做试验，承担风险、从失败中学习；通过反复实践来达到精通。</p>
+<p>我们需要实验和冒着失败的风险，及时不断地尝试将我们置于一个危险的境地，我们要通过反复试错来掌握使我们远离危险的技能。</p>
+<p>第三种方式的输出为为改善日常工作分配时间、奖励团队冒险精神，将错误人工引入系统以提高系统健壮性。</p>
+<p>最具有代表性的就是 Netfilx 的 Chaos monkey ，Netflix 在他们的生产环境搭建一个服务用于定时随机关闭服务器，用以模拟服务器正常损坏或服务异常，他们的系统长期在这种环境下运行，“服务器故障”成为系统每日都要面临的问题，因此当服务器真的以外故障时不会对系统整体造成任何的影响。</p>
+<h2 id="译者后记"><a href="#译者后记" class="headerlink" title="译者后记"></a>译者后记</h2><p>全局优化、快速反馈、鼓励失败。我们发现其实敏捷、精益、持续交付、DevOps中间有很多相似的东西。</p>
+<blockquote>
+<p>参考资料: <a href="https://es.slideshare.net/SonatypeCorp/devops-connect-josh-corman-and-gene-kim-discuss-devopssec" target="_blank" rel="noopener">https://es.slideshare.net/SonatypeCorp/devops-connect-josh-corman-and-gene-kim-discuss-devopssec</a></p>
+</blockquote>
+<blockquote>
+<p><a href="http://itrevolution.com/the-three-ways-principles-underpinning-devops/" target="_blank" rel="noopener">http://itrevolution.com/the-three-ways-principles-underpinning-devops/</a></p>
+</blockquote>
+<p>转发自：@duyidong</p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Program//" class="article-tag-list-link color3">Program</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2017/12/24/Program/2017-12-24-devops-three-method/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-Think/2017-12-20-high-school-years" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/12/20/Think/2017-12-20-high-school-years/">《那时花开》</a>
+    </h1>
+  
+
+        
+        <a href="/2017/12/20/Think/2017-12-20-high-school-years/" class="archive-article-date">
+  	<time datetime="2017-12-19T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2017-12-20</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <blockquote>
+<p>作品：《那时花开》</p>
+<p>字数：约 35000 字</p>
+<p>体裁：中篇小说</p>
+<p>关键字：校园青春</p>
+<p>背景：小说记录了自己以在高中时期一群小伙伴的学习生活，作者：陈晓雷</p>
+</blockquote>
+<p><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/ebd88c6345e5ad414d1007e6f121417e.jpg" alt=""></p>
+<p>袁河是高二上学期转到陆可凡他们班的。至于转班的原因却不得而知。不过众所周知的是，陆可凡他们班的语文老师是袁河的爸爸，所以就有人猜测这可能是他爸爸的注意，目的很简单，无非就是为了方便监督和管教儿子学习。那为什么到了高二才转班呢？答案也很简单，因为高二是承上启下的关键学期，既能延续高一时的学习状态，又能为高三做准备，所以这时转班最合适不过了。</p>
+<p>转到陆可凡他们班上后，袁河发现了一个奇怪的现象。</p>
+<p>比如一般课间休息的时候，同学们都会以固有的方式来放松自己。其中少数同学会走出教室，站在外面的走廊上，抬头仰望天空，认真盘算自己忧伤的心事。或者靠在旁边的栏杆上，低头看着地面，仔细回忆某天的快乐心情。而大多数同学则会三五成群地聚在一起，找一个大家都感兴趣的话题，然后各抒己见，开始谈论。
+        
+          <a class="article-more-a" href="/2017/12/20/Think/2017-12-20-high-school-years/#more">more >></a>
+        
+      
+
+      
+    </p></div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Think//" class="article-tag-list-link color1">Think</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2017/12/20/Think/2017-12-20-high-school-years/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-Program/2017-12-07-architecture-design-rule" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/12/07/Program/2017-12-07-architecture-design-rule/">应用架构设计原则</a>
+    </h1>
+  
+
+        
+        <a href="/2017/12/07/Program/2017-12-07-architecture-design-rule/" class="archive-article-date">
+  	<time datetime="2017-12-06T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2017-12-07</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>软件系统架构设计原则就是把我们在各种场景下的架构设计进行抽选化提取公共特征形成过一定的方法论，这些方法论是经过严格推敲并具备移植性的，我们在设计系统时遵从这些设计规则可以为我们的体统提供更高的扩展性、稳定性。</p>
+<h2 id="抽象原则"><a href="#抽象原则" class="headerlink" title="抽象原则"></a>抽象原则</h2><p>各平台(含基础设施、中间件技术服务、各层业务服务等)需要通过合理地抽象，将内部信息、处理与扩展能力聚合成标准的服务于扩展接口，并通过统一的形式提供给使用者，屏蔽内部的实现与运行细节。</p>
+<p>以下是一些符合抽象原则的架构规范或模式：<br>架构分层(layer)/级(tier)，层、级间提供标准服务与数据接口<br>根据业务模型，统一服务标准与数据标准<br>使用服务目录屏蔽服务位置等实现细节<br>使用“逻辑库”屏蔽数据库物理细节<br>通过SLA，标准化服务的质量水平<br>提供标准插件架构支持扩展<br>使用标准数据库特性，保持厂商无关性<br>使用逻辑的网络与系统名称<br>使用商品化硬件单元</p>
+<h2 id="共享原则"><a href="#共享原则" class="headerlink" title="共享原则"></a>共享原则</h2><p>最大化重用数据、计算资源、业务组件等资产，防止数据、逻辑与技术实现不一致性带来的管理复杂性，避免重复建设成本与管理成本，通过安全机制保证共享资产的合法使用，通过业务分级保障共享资源效益最大化。<br>以下是一些符合共享原则的架构规范或模式：</p>
+<ul>
+<li>同一业务服务有唯一提供者</li>
+<li>同一技术服务有唯一提供者</li>
+<li>同一数据有唯一可信源</li>
+<li>控制技术多样性 (但需要同时防止厂商绑定)</li>
+<li>服务具备互操作性</li>
+<li>服务具备易用性</li>
+<li>统一的身份、访问控制与加解密机制</li>
+<li>为共享服务提供多租户能力 (Multi-tenancy)</li>
+<li>提供访问计量与控制能力</li>
+<li>提供业务分级能力，对不同级别的业务提供区分服务</li>
+</ul>
+<h2 id="自治原则"><a href="#自治原则" class="headerlink" title="自治原则"></a>自治原则</h2><p>每一个组件（计算资源、业务组件、信息实体等）具备最大可能的自我完备性，可独立运行、监控、部署、配置与禁用，具备确定的SLA，并与其它组件之间以松散耦合的方式进行协作。当依赖的组件不存在或者无法正常提供服务时，能够以良好的方式降级，且在故障解除后自动恢复。<br>以下是一些符合自治原则的架构规范或模式：</p>
+<ul>
+<li>基于开-闭原则(OCP)设计组件</li>
+<li>应用无启动依赖</li>
+<li>最小化运行依赖集</li>
+<li>根据运行依赖关系合理安排组件物理colocation</li>
+<li>能够隔离依赖组件的故障</li>
+<li>异步调用 (提升异常流量的承载能力，简化故障隔离的实现)</li>
+<li>具备自我健康检查能力</li>
+<li>具备自我恢复能力</li>
+<li>无状态设计</li>
+</ul>
+<h2 id="冗余原则"><a href="#冗余原则" class="headerlink" title="冗余原则"></a>冗余原则</h2><p>各组件（计算资源、业务组件、数据等）都必须有充分、合理的冗余实例，保证单一组件实例失效不影响业务正常运行（多活/热备），或可以通过切换备份实例快速恢复（温备/冷备），不会丢失不可恢复的数据。针对不同类型的组件，需要明确定义冗余量与冗余类型。<br>以下是一些符合冗余原则的架构规范或模式：</p>
+<ul>
+<li>高可用水平扩展服务器集群（负载均衡、健康检查与自动切换）</li>
+<li>无单点设计 (含逻辑单点)</li>
+<li>采用“随机写”策略的数据库水平拆分</li>
+<li>Failover数据库</li>
+<li>N+1或N+x设计</li>
+<li>“多活”数据中心</li>
+<li>数据复制</li>
+<li>灾难备份</li>
+</ul>
+<h2 id="分布原则"><a href="#分布原则" class="headerlink" title="分布原则"></a>分布原则</h2><p>整个系统拆分成职责清晰、粒度恰当、便于管理的组件，各组件（计算资源、业务组件、数据等）可分布部署运行。组件的拆分与分布可以采取复制、根据功能垂直拆分、或根据用户与访问模式水平拆分等形式。<br>以下是一些符合分布原则的架构规范或模式：</p>
+<ul>
+<li>读写分离设计</li>
+<li>垂直分拆</li>
+<li>水平分拆</li>
+<li>柔性的分布事务</li>
+</ul>
+<h2 id="自动原则"><a href="#自动原则" class="headerlink" title="自动原则"></a>自动原则</h2><p>系统设计了具备自监控、自管理、自适应与自优化能力，可以随着业务量与访问模式的变化、以及其它内、外部因素的改变，自动地对资源进行调度、调整服务策略，保障自身的稳定与服务的质量。<br>以下是一些符合自动原则的架构规范或模式：</p>
+<ul>
+<li>监控每一个服务的质量与资源的状态与报警</li>
+<li>从客户视角监控最终服务的质量</li>
+<li>统一、自动的错误报告、管理与响应</li>
+<li>提供完备的配置能力</li>
+<li>自动化系统安装</li>
+<li>自动化应用部署</li>
+<li>自动化资源分配</li>
+<li>可以mark up/mark down服务</li>
+<li>支持优雅降级</li>
+<li>自动拒绝超出SLA之外异常流量</li>
+</ul>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Program//" class="article-tag-list-link color3">Program</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2017/12/07/Program/2017-12-07-architecture-design-rule/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-Think/2017-11-24-how-to-study" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/11/24/Think/2017-11-24-how-to-study/">如何进行高效学习</a>
+    </h1>
+  
+
+        
+        <a href="/2017/11/24/Think/2017-11-24-how-to-study/" class="archive-article-date">
+  	<time datetime="2017-11-23T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2017-11-24</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <ul>
+<li><img src="/slides/how-to-study/01.jpg" alt=""></li>
+<li><img src="/slides/how-to-study/02.jpg" alt=""></li>
+<li><img src="/slides/how-to-study/03.jpg" alt=""></li>
+<li><img src="/slides/how-to-study/04.jpg" alt=""></li>
+<li><img src="/slides/how-to-study/05.jpg" alt=""></li>
+<li><img src="/slides/how-to-study/06.jpg" alt=""></li>
+<li><img src="/slides/how-to-study/07.jpg" alt=""></li>
+<li><img src="/slides/how-to-study/08.jpg" alt=""></li>
+<li><img src="/slides/how-to-study/09.jpg" alt=""></li>
+<li><img src="/slides/how-to-study/10.jpg" alt=""></li>
+<li><img src="/slides/how-to-study/11.jpg" alt=""></li>
+<li><img src="/slides/how-to-study/12.jpg" alt=""></li>
+<li><img src="/slides/how-to-study/13.jpg" alt=""></li>
+<li><img src="/slides/how-to-study/14.jpg" alt=""></li>
+<li><img src="/slides/how-to-study/15.jpg" alt=""></li>
+<li><img src="/slides/how-to-study/16.jpg" alt=""></li>
+<li><img src="/slides/how-to-study/17.jpg" alt=""></li>
+<li><img src="/slides/how-to-study/18.jpg" alt=""></li>
+<li><img src="/slides/how-to-study/19.jpg" alt=""></li>
+<li><img src="/slides/how-to-study/20.jpg" alt=""></li>
+</ul>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Think//" class="article-tag-list-link color1">Think</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2017/11/24/Think/2017-11-24-how-to-study/">展开全文 >></a>
         </p>
       
 
@@ -730,13 +1296,13 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2018/11/09/Java/2017-10-20-message-string-byte/">消息收发中的中文乱码</a>
+      <a class="article-title" href="/2017/10/20/Java/2017-10-20-message-string-byte/">消息收发中的中文乱码</a>
     </h1>
   
 
         
-        <a href="/2018/11/09/Java/2017-10-20-message-string-byte/" class="archive-article-date">
-  	<time datetime="2018-11-09T13:48:02.844Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-11-09</time>
+        <a href="/2017/10/20/Java/2017-10-20-message-string-byte/" class="archive-article-date">
+  	<time datetime="2017-10-19T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2017-10-20</time>
 </a>
         
       </header>
@@ -780,373 +1346,7 @@
 
       
         <p class="article-more-link">
-          <a class="article-more-a" href="/2018/11/09/Java/2017-10-20-message-string-byte/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-Java/2017-07-31-distrubute-id-gen" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/11/09/Java/2017-07-31-distrubute-id-gen/">Distributed System Id Gen</a>
-    </h1>
-  
-
-        
-        <a href="/2018/11/09/Java/2017-07-31-distrubute-id-gen/" class="archive-article-date">
-  	<time datetime="2018-11-09T13:48:02.842Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-11-09</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="分布式系统高效唯一ID生成方案"><a href="#分布式系统高效唯一ID生成方案" class="headerlink" title="分布式系统高效唯一ID生成方案"></a>分布式系统高效唯一ID生成方案</h1><blockquote>
-<p>背景：在分布式系统中，对于订单ID如何保证全局唯一地高效的生成，并对性能影响不大的情况下，利于建立索引和业务使用？</p>
-</blockquote>
-<h3 id="方案一：使用数据库主键ID"><a href="#方案一：使用数据库主键ID" class="headerlink" title="方案一：使用数据库主键ID"></a>方案一：使用数据库主键ID</h3><p>优势：实现简单；<br>弊端：使用数据库增加写库的压力，生成订单的上限受限于数据库的写性能上限；扩展性差；</p>
-<h3 id="方案二：使用数据库的列-1"><a href="#方案二：使用数据库的列-1" class="headerlink" title="方案二：使用数据库的列+1"></a>方案二：使用数据库的列+1</h3><p>主键采用业务编码，普通列current_value标识id当前值，通过数据库的行锁来保障唯一的；<br>优势：一张表可以存储不同业务类型的生成规则，没必要每一个id规则都新建一张附表；<br>劣势：涉及行锁，性能不高；</p>
-<p>需要注意使用此方式生成数字序列事务隔离级别需要是RR。</p>
-<h3 id="方案三：单点批量生成订单号的服务"><a href="#方案三：单点批量生成订单号的服务" class="headerlink" title="方案三：单点批量生成订单号的服务"></a>方案三：单点批量生成订单号的服务</h3><p>优势：批量降低了数据库的读写压力<br>弊端：服务单点风险；</p>
-<h3 id="方案四：使用UUID"><a href="#方案四：使用UUID" class="headerlink" title="方案四：使用UUID"></a>方案四：使用UUID</h3><p>优势：本地生成ID，不进行远程调用，延迟低；<br>弊端：无法保证趋势增长；uuid过长且建立索引效率低下；64位太长；</p>
-<h3 id="方案五：使用毫秒数"><a href="#方案五：使用毫秒数" class="headerlink" title="方案五：使用毫秒数"></a>方案五：使用毫秒数</h3><p>优势：本地生成ID，不进行远程调用，延迟低；ID为整数利于建立索引；<br>弊端：并发超过1000，可能会重复；<br>优化方案：使用LRU Cache存储最近生成的100Key，去除后先判断是否重复；进一步降低重复的可能性；但是无法根本上解决高并发下的重复；</p>
-<h3 id="方案六：订单号分段表示具体含义"><a href="#方案六：订单号分段表示具体含义" class="headerlink" title="方案六：订单号分段表示具体含义"></a>方案六：订单号分段表示具体含义</h3><p>方案描述：使用39bit表示毫秒数、4bit表示业务线、7bit表示机器等<br>优势：实现简单，且重复可能性很低；<br>弊端：订单长度过长，不利于业务使用；</p>
-<h3 id="方案七：使用Redis服务-毫秒数双重方案"><a href="#方案七：使用Redis服务-毫秒数双重方案" class="headerlink" title="方案七：使用Redis服务+毫秒数双重方案"></a>方案七：使用Redis服务+毫秒数双重方案</h3><p>优势：使用redis的自增序列特性，每次获取一定数量的数据（1000个），降低了每次调用Redis的开销；当Redis挂了，使用基于毫秒数的本地生成ID优化方案；<br>弊端：redis挂了后，订单号的重复性不可避免；</p>
-<p>使用redis需要配置主备，避免在极端情况下redis节点down机， 导致丢失序列或序列重复。</p>
-<h3 id="总结："><a href="#总结：" class="headerlink" title="总结："></a>总结：</h3><p>我们在设计分布式全局唯一单号的时候，不仅需要考虑生成单号的是否重复性，还要考虑生成时的性能开销、是否有容灾方案、是否便于建立索引、是否利于业务使用等。基于这些点的考虑，我们采用了方案六作为线上的唯一生成方案，并把此方案作为一个业务隔离的二方库，可以提供给不同业务方式用；</p>
-<p>参考：<a href="https://mp.weixin.qq.com/s?__biz=MzIwODA4NjMwNA==&amp;mid=2652898525&amp;idx=1&amp;sn=7e7c1a64fa288eceb17fd4057afd2a62&amp;chksm=8cdcd092bbab598469534293f1eff0d65edcfeaf65050c79f8d054e008c0d1843af1502d34a7&amp;mpshare=1&amp;scene=1&amp;srcid=0731m6EiK3LyvkmVltj03hG9&amp;key=807bd2816f4e78936c683f90def8c012cc01115330c60aaa1377edae1f76fec7b00e4698f4d6ddc22680f9a80dade15c2cf6caa00853e61b925ff2ab93d1110eff532aedcb1347a8db1074bea22542a1&amp;ascene=0&amp;uin=MTE3NTkxNDk4MA%3D%3D&amp;devicetype=iMac+MacBookPro11%2C4+OSX+OSX+10.12.5+build(16F73" target="_blank" rel="noopener">高可用高性能可扩展的单号生成方案</a>&amp;version=12020810&amp;nettype=WIFI&amp;fontScale=100&amp;pass_ticket=Q2dSEf7cwUT%2FHuuZ1wpxUh3%2Fd9hovwWFg9YsoOzUMokJ2WygwbBZxUPkJXDCEA09)</p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2018/11/09/Java/2017-07-31-distrubute-id-gen/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-Java/2017-09-21-phantomjs-install" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/11/09/Java/2017-09-21-phantomjs-install/">Linux phantomJs install course</a>
-    </h1>
-  
-
-        
-        <a href="/2018/11/09/Java/2017-09-21-phantomjs-install/" class="archive-article-date">
-  	<time datetime="2018-11-09T13:48:02.842Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-11-09</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <blockquote>
-<p>背景：<br>我们在进行系统报告研发时，需要对报告结果进行定时邮件，所以需要把HTML内容自动转换为邮件内容，通常我们在发送邮件内容的时候内容是模板化的，模板基本不怎么改变，然而我们的报告却是由无数个子模块组成，这些子模块可以只有组合成为任意报告，每一个模块中的内容均为用户自定义，如果我们要实现通用化报告邮件化，那就需要把渲染后的报告转换为图片或者HTML格式，headless方案中常用的有phantomJS和Headless Chrome，phantomJS提供了截图等功能，所以称为我们的首选。</p>
-</blockquote>
-<h4 id="遇到的问题："><a href="#遇到的问题：" class="headerlink" title="遇到的问题："></a>遇到的问题：</h4><p>我们生产环境大部分机器操作系统为5u，默认的glibc版本最高到2.5。然而 PhantomJS官网中明确指出Linux 64-bit操作系统下，需要依赖GLIBCXX_3.4.9 和 GLIBC_2.7/GLIBC_2.9/GLIBC_2.10。<br><img src="/images/posts/20170921/15059814992587.jpg" alt=""></p>
-<p>但是在我们生产环境中：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">strings /lib64/libc.so.6 |grep GLIBC</span><br><span class="line">strings /usr/lib64/libstdc++.so.6 |grep GLIBCXX</span><br></pre></td></tr></table></figure>
-<p><img src="/images/posts/20170921/15059815133485.jpg" alt=""></p>
-<p>所以需要安装：GLIBCXX_3.4.9  GLIBC_2.7</p>
-<h3 id="一、安装phantoomjs"><a href="#一、安装phantoomjs" class="headerlink" title="一、安装phantoomjs"></a>一、安装phantoomjs</h3><h4 id="1-安装node："><a href="#1-安装node：" class="headerlink" title="1. 安装node："></a>1. 安装node：</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">sudo wget  http:<span class="comment">//xxxxx/node-v6.11.2-linux-x64.tar.xz</span></span><br><span class="line">sudo xz -d node-v6.11.2-linux-x64.tar.xz</span><br><span class="line">sudo tar xvf node-v6.11.2-linux-x64.tar</span><br><span class="line"></span><br><span class="line">sudo ln -s /home/admin/phantomjs/node-v6.11.2-linux-x64/bin/node /usr/local/bin/node</span><br><span class="line">sudo ln -s /home/admin/phantomjs/node-v6.11.2-linux-x64/bin/npm /usr/local/bin/npm</span><br><span class="line"></span><br><span class="line">sudo vi /etc/profile</span><br><span class="line">PATH=$PATH:/home/admin/phantomjs/node-v6.11.2-linux-x64/bin</span><br><span class="line"></span><br><span class="line">node -v</span><br></pre></td></tr></table></figure>
-<h4 id="2-安装npm："><a href="#2-安装npm：" class="headerlink" title="2. 安装npm："></a>2. 安装npm：</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -vvvL https://npmjs.com/install.sh &gt;/dev/null</span><br></pre></td></tr></table></figure>
-<h4 id="3-安装phantomJS："><a href="#3-安装phantomJS：" class="headerlink" title="3. 安装phantomJS："></a>3. 安装phantomJS：</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">sudo wget http://xxxx/phantomjs-2.1.1-linux-x86_64.tar.bz2</span><br><span class="line">sudo tar -jxvf phantomjs-2.1.1-linux-x86_64.tar.bz2</span><br><span class="line">sudo ln -s /home/admin/phantomjs/phantomjs-2.1.1-linux-x86_64/bin/phantomjs /usr/local/bin/phantomjs</span><br><span class="line"></span><br><span class="line">phantomjs --version</span><br></pre></td></tr></table></figure>
-<p><img src="/images/posts/20170921/15059819937015.jpg" alt=""><br>我们的系统中没有这些动态库，有联两种办法，第一自己安装这些版本，第二升级操作系统到7u，我们先尝试使用第一种方法。</p>
-<h3 id="二、安装GCC"><a href="#二、安装GCC" class="headerlink" title="二、安装GCC"></a>二、安装GCC</h3><p>因为部分版本的Glibc的安装需要高版本的GCC，默认的GCC版本为4.1.2，导致不能编译glibc的2.10以上版本，所以必须升级，gcc&gt;=4.3.3。</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">cd  /home/admin/gcc/gcc-build</span><br><span class="line">sudo yum install libstdc++-devel.i686</span><br><span class="line">sudo yum install  libstdc++-devel.x86_64</span><br><span class="line">sudo ../gcc-4.8.2/configure --prefix=/usr/local/gcc-4.8.2  --with-gmp=/usr/local/gmp-6.0.0 --with-mpfr=/usr/local/mpfr-3.1.2 --with-mpc=/usr/local/mpc-1.0.1  --with-java-home=/opt/taobao/java --disable-multilib  --disable-shared --enable-threads=posix --disable-checking  --enable-languages=all  --enable-static --enable-shared=libstdc++,libgcc_eh</span><br></pre></td></tr></table></figure>
-<p>或者：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">sudo ../gcc-4.8.2/configure --prefix=/usr/local/gcc-4.8.2 --enable-threads=posix  --with-gmp=/usr/local/gmp-6.0.0 --with-mpfr=/usr/local/mpfr-3.1.2 --with-mpc=/usr/local/mpc-1.0.1  --mandir=/usr/share/man --infodir=/usr/share/info --enable-shared --disable-multilib --enable-checking=release --with-system-zlib --enable-__cxa_atexit --disable-libunwind-exceptions --enable-libgcj-multifile --enable-languages=c,c++,objc,obj-c++,java --disable-dssi --disable-plugin --with-java-home=/opt/taobao/java/jre --with-cpu=generic</span><br><span class="line"></span><br><span class="line">sudo make</span><br><span class="line">sudo make install </span><br><span class="line"></span><br><span class="line"><span class="meta">#</span>配置环境变量：</span><br><span class="line">sudo vi /etc/profile</span><br><span class="line">export PATH=$PATH:/usr/local/gcc-4.8.2</span><br><span class="line">source /etc/profile</span><br><span class="line"></span><br><span class="line">sudo rm /usr/bin/gcc    //删除旧的软连接  </span><br><span class="line">sudo ln -s /usr/local/gcc-4.8.2/bin/gcc /usr/bin/gcc //使新版本建立软连接</span><br></pre></td></tr></table></figure>
-<p>安装完毕后，查看GCC版本：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span>gcc -v</span><br><span class="line">Using built-in specs.</span><br><span class="line">COLLECT_GCC=gcc</span><br><span class="line">COLLECT_LTO_WRAPPER=/usr/local/gcc-4.8.2/libexec/gcc/x86_64-unknown-linux-gnu/4.8.2/lto-wrapper</span><br><span class="line">Target: x86_64-unknown-linux-gnu</span><br><span class="line">Configured with: ../gcc-4.8.2/configure --prefix=/usr/local/gcc-4.8.2 --with-gmp=/usr/local/gmp-6.0.0 --with-mpfr=/usr/local/mpfr-3.1.2 --with-mpc=/usr/local/mpc-1.0.1 --with-java-home=/opt/taobao/java --disable-multilib --disable-shared --enable-threads=posix --disable-checking --enable-static --enable-shared=libstdc++</span><br><span class="line">Thread model: posix</span><br><span class="line">gcc version 4.8.2 (GCC)</span><br></pre></td></tr></table></figure></p>
-<h5 id="出现错误1："><a href="#出现错误1：" class="headerlink" title="出现错误1："></a>出现错误1：</h5><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">configure: error: cannot compute suffix of object files: cannot compile See `config.log' for more details</span><br></pre></td></tr></table></figure>
-<p>查看config.log，发现错误：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/home/admin/gcc/gcc-build/./gcc/cc1: error while loading shared libraries: libmpc.so.3: cannot open shared object file: No such file or directory</span><br></pre></td></tr></table></figure>
-<p>说明是环境变量设置未生效，检查环境变量&amp;ldconfig相关设置。</p>
-<h5 id="出现错误2："><a href="#出现错误2：" class="headerlink" title="出现错误2："></a>出现错误2：</h5><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">/usr/local/include/gnu/stubs.h:7:27: fatal error: gnu/stubs-32.h: No such file or directory</span><br><span class="line">compilation terminated.</span><br></pre></td></tr></table></figure>
-<p>安装：<br>查看可用的版本：yum list available glibc-devel<br>sudo yum install glibc-devel<br>sudo yum install libstdc++-devel.i686</p>
-<h5 id="出现错误3："><a href="#出现错误3：" class="headerlink" title="出现错误3："></a>出现错误3：</h5><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">/usr/lib/gcc/x86_64-redhat-linux/4.1.2/../../../../include/c++/4.1.2/iosfwd:44:28: error: bits/c++config.h: No such file or directory</span><br><span class="line">/usr/lib/gcc/x86_64-redhat-linux/4.1.2/../../../../include/c++/4.1.2/iosfwd:45:29: error: bits/c++locale.h: No such file or directory</span><br><span class="line">/usr/lib/gcc/x86_64-redhat-linux/4.1.2/../../../../include/c++/4.1.2/iosfwd:46:25: error: bits/c++io.h: No such file or directory</span><br></pre></td></tr></table></figure>
-<p>解决方案：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo yum install  libstdc++-devel.x86_64</span><br></pre></td></tr></table></figure>
-<h5 id="出现错误4："><a href="#出现错误4：" class="headerlink" title="出现错误4："></a>出现错误4：</h5><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">lib/libgmp.so: could not read symbols: File in wrong format collect2: error: ld returned 1 exit status</span><br><span class="line">/home/admin/gcc/gcc-build/x86_64-unknown-linux-gnu/32/libjava/classpath/native/jni/java-math'</span><br></pre></td></tr></table></figure>
-<p>解决方案：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo ../gcc-4.8.2/configure --prefix=/usr/local/gcc-4.8.2 --enable-threads=posix --disable-checking --with-gmp=/usr/local/gmp-6.0.0 --with-mpfr=/usr/local/mpfr-3.1.2 --with-mpc=/usr/local/mpc-1.0.1 --enable-shared --enable-languages=all  --enable-libgomp --enable-lto --enable-tls --with-fpmath=sse --disable-multilib --build=x86_64-redhat-linux    --with-java-home=/opt/taobao/java</span><br></pre></td></tr></table></figure>
-<h5 id="出现错误5："><a href="#出现错误5：" class="headerlink" title="出现错误5："></a>出现错误5：</h5><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Error: unrecognized symbol type "gnu_unique_object"</span><br></pre></td></tr></table></figure>
-<p>解决方案：移除 configure参数中的 gnu_unique_object 配置；</p>
-<h5 id="出现错误6："><a href="#出现错误6：" class="headerlink" title="出现错误6："></a>出现错误6：</h5><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">configure: error: libXtst not found, required by java.awt.Robot</span><br></pre></td></tr></table></figure>
-<p>解决方案：移除 configure参数中的 java.awt 配置；</p>
-<h5 id="出现错误7："><a href="#出现错误7：" class="headerlink" title="出现错误7："></a>出现错误7：</h5><p>libtool: compile: not configured to build any kind of library<br>解决方案：<br>sudo ../gcc-4.8.2/configure –prefix=/usr/local/gcc-4.8.2  –with-gmp=/usr/local/gmp-6.0.0 –with-mpfr=/usr/local/mpfr-3.1.2 –with-mpc=/usr/local/mpc-1.0.1  –with-java-home=/opt/taobao/java –disable-multilib –disable-shared –enable-threads=posix –disable-checking  –enable-languages=all  –enable-static –enable-shared=libstdc++,libgcc_eh</p>
-<h5 id="出现错误8："><a href="#出现错误8：" class="headerlink" title="出现错误8："></a>出现错误8：</h5><p>cc1plus: error: unrecognized command line option “-Wno-narrowing”<br>解决方案：目前没有查询到好的解决方案；</p>
-<h5 id="出现错误9："><a href="#出现错误9：" class="headerlink" title="出现错误9："></a>出现错误9：</h5><p>/usr/include/string.h:550:18: error: unknown type name ‘__locale_t’<br>解决方案：暂无</p>
-<h5 id="出现错误10："><a href="#出现错误10：" class="headerlink" title="出现错误10："></a>出现错误10：</h5><p>/usr/lib64/libstdc++.so.6: undefined symbol: _ZNSt7num_getIcSt19istreambuf_iteratorIcSt11char_traitsIcEEE2idE, version GLIBCXX_3.4</p>
-<h3 id="三、安装GlibC"><a href="#三、安装GlibC" class="headerlink" title="三、安装GlibC"></a>三、安装GlibC</h3><p>查看当前系统Glibc的版本：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">strings /lib64/libc.so.6 |grep GLIBC</span><br></pre></td></tr></table></figure>
-<p>编译glibc：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">sudo mkdir glic</span><br><span class="line">cd glic</span><br><span class="line">sudo wget http://ftp.gnu.org/pub/gnu/glibc/glibc-2.7.tar.gz</span><br><span class="line">sudo wget http://ftp.gnu.org/pub/gnu/glibc/glibc-2.9.tar.gz</span><br><span class="line">//sudo wget http://ftp.gnu.org/pub/gnu/glibc/glibc-2.10.1.tar.gz</span><br><span class="line">sudo wget http://ftp.gnu.org/pub/gnu/glibc/glibc-2.14.tar.gz</span><br><span class="line"></span><br><span class="line">sudo tar zxvf glibc-2.7.tar.gz</span><br><span class="line">sudo tar zxvf glibc-2.9.tar.gz</span><br><span class="line">sudo tar zxvf glibc-2.10.1.tar.gz</span><br><span class="line">sudo tar zxvf glibc-2.14.tar.gz</span><br><span class="line"></span><br><span class="line">sudo mkdir glibc-build-2.7</span><br><span class="line">sudo mkdir glibc-build-2.9</span><br><span class="line">sudo mkdir glibc-build-2.10.1</span><br><span class="line">sudo mkdir glibc-build-2.14</span><br><span class="line"></span><br><span class="line">cd glibc-build-2.7</span><br><span class="line"></span><br><span class="line">sudo ../glibc-2.7/configure</span><br></pre></td></tr></table></figure>
-<p>遇到错误：<br>configure: error: no acceptable C compiler found in $PATH<br>安装gcc套件(rpm -qa |grep gcc  可以看到目前的版本时4.1.2，注意此版本太老，导致不能编译glibc的2.10以上版本，所以必须升级，gcc&gt;=4.3.3)：</p>
-<p>遇到错误：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">*** On GNU/Linux systems the GNU C Library should not be installed into</span><br><span class="line">*** /usr/local since this might make your system totally unusable.</span><br><span class="line">*** We strongly advise to use a different prefix.  For details read the FAQ.</span><br></pre></td></tr></table></figure>
-<p>INSTALL文件摘录如下：</p>
-<blockquote>
-<p><code>configure&#39; takes many options, but the only one that is usually
-mandatory is</code>–prefix’.  This option tells <code>configure&#39; where you want
-glibc installed.  This defaults to</code>/usr/local’, but the normal setting<br>to install as the standard system library is <code>--prefix=/usr&#39; for
-GNU/linux systems and</code>–prefix=’ (an empty prefix) for GNU/Hurd<br>systems.</p>
-</blockquote>
-<p>关于安装目录的选择:</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">--prefix=PREFIX</span><br></pre></td></tr></table></figure>
-<p>安装目录，默认为 /usr/local<br>Linux文件系统标准要求基本库必须位于 /lib 目录并且必须与根目录在同一个分区上，但是 /usr 可以在其他分区甚至是其他磁盘上。因此，如果指定 –prefix=/usr ，那么基本库部分将自动安装到 /lib 目录下，而非基本库部分则会自动安装到 /usr/lib 目录中。但是如果保持默认值或指定其他目录，那么所有组件都间被安装到PREFIX目录下。</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sudo ../glibc-2.7/configure --prefix=/usr --disable-multi-arch</span><br><span class="line">sudo ../glibc-2.9/configure --prefix=/usr --disable-multi-arch</span><br><span class="line">sudo ../glibc-2.14/configure --prefix=/usr --disable-multi-arch</span><br></pre></td></tr></table></figure>
-<p>在每个build目录下，执行glibc的配置：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sudo ../glibc-2.7/configure --prefix=/usr --disable-multi-arch</span><br><span class="line">sudo ../glibc-2.9/configure --prefix=/usr --disable-multi-arch</span><br><span class="line">sudo ../glibc-2.10.1/configure --prefix=/usr --disable-multi-arch</span><br></pre></td></tr></table></figure>
-<p>分别进入每个build目录，执行命令(在 glibc-build-xx 目录下)：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo make all &amp;&amp; make install</span><br></pre></td></tr></table></figure>
-<p>如果直接执行（sudo make install）出现错误提示：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">make[2]: *** No rule to make target `/home/admin/glibc-build/dlfcn/libdl.so.2', needed by `/home/admin/glibc-build/elf/sprof'.  Stop.</span><br><span class="line">make[2]: Leaving directory `/home/admin/glibc-2.7/elf'</span><br><span class="line">make[1]: *** [elf/subdir_install] Error 2</span><br><span class="line">make[1]: Leaving directory `/home/admin/glibc-2.7'</span><br><span class="line">make: *** [install] Error 2</span><br></pre></td></tr></table></figure>
-<p>解决方案(先执行make all， 再执行 make install);</p>
-<p>安装完毕后，出现提示：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Your new glibc installation seems to be ok.</span><br><span class="line">make[1]: Leaving directory `/home/admin/glibc-2.7'</span><br></pre></td></tr></table></figure>
-<h5 id="常见错误信息1："><a href="#常见错误信息1：" class="headerlink" title="常见错误信息1："></a>常见错误信息1：</h5><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">/lib/modules/2.6.32-220.23.2.ali927.el5.x86_64/build/include/linux/swab.h:6:22: fatal error: asm/swab.h: No such file or directory</span><br><span class="line"><span class="meta"> #</span>include &lt;asm/swab.h&gt;</span><br></pre></td></tr></table></figure>
-<p>解决办法：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo touch /lib/modules/2.6.32-220.23.2.ali927.el5.x86_64/build/include/asm-x86/swab.h</span><br></pre></td></tr></table></figure>
-<p>参考：<a href="https://bbs.archlinux.org/viewtopic.php?id=70488" target="_blank" rel="noopener">https://bbs.archlinux.org/viewtopic.php?id=70488</a></p>
-<h5 id="常见错误信息2："><a href="#常见错误信息2：" class="headerlink" title="常见错误信息2："></a>常见错误信息2：</h5><p>configure: error: assembler too old, .cfi_personality support missing<br>解决办法：google说gcc版本太老。</p>
-<h5 id="常见错误信息3："><a href="#常见错误信息3：" class="headerlink" title="常见错误信息3："></a>常见错误信息3：</h5><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/usr/bin/ld: cannot find -lgcc_eh</span><br></pre></td></tr></table></figure>
-<p>原因是： glibc在安装的时候，需要使用gcc_eh（–enable-shared），但是我们在安装gcc时，添加了–disable-shared，禁用了shared功能，所以导致此库找不到；<br>测试gcc_eh是否安装：sudo gcc -lgcc_eh –verbose</p>
-<p>解决办法：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sudo find / -name libgcc.a</span><br><span class="line">sudo cp libgcc.a libgcc_eh.a</span><br></pre></td></tr></table></figure>
-<p>参考：<br><a href="http://www.linuxfromscratch.org/clfs/view/clfs-2.0/arm/cross-tools/glibc.html" target="_blank" rel="noopener">http://www.linuxfromscratch.org/clfs/view/clfs-2.0/arm/cross-tools/glibc.html</a><br><a href="https://gcc.gnu.org/ml/gcc-patches/2005-02/msg00532.html" target="_blank" rel="noopener">https://gcc.gnu.org/ml/gcc-patches/2005-02/msg00532.html</a><br><a href="http://lists.linuxfromscratch.org/pipermail/lfs-support/2012-December/044174.html" target="_blank" rel="noopener">http://lists.linuxfromscratch.org/pipermail/lfs-support/2012-December/044174.html</a></p>
-<h5 id="常见错误信息4："><a href="#常见错误信息4：" class="headerlink" title="常见错误信息4："></a>常见错误信息4：</h5><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Can't open configuration file /usr/etc/ld.so.conf: No such file or directory</span><br></pre></td></tr></table></figure>
-<p>参考：<br><a href="http://www.math.ias.edu/~tarzadon/pages/posts/install-opam-on-springdalerhelcentossl-5.x-111.php" target="_blank" rel="noopener">http://www.math.ias.edu/~tarzadon/pages/posts/install-opam-on-springdalerhelcentossl-5.x-111.php</a></p>
-<h5 id="常见错误信息5："><a href="#常见错误信息5：" class="headerlink" title="常见错误信息5："></a>常见错误信息5：</h5><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/build/include/linux/capability.h:73: error: expected specifier-qualifier-list before ‘__le32’</span><br></pre></td></tr></table></figure>
-<p>解决方案：<br>参考：<br><a href="https://github.com/spotify/linux/blob/master/include/linux/capability.h" target="_blank" rel="noopener">https://github.com/spotify/linux/blob/master/include/linux/capability.h</a><br>sudo yum install openssl-devel gnutls-devel libcap-devel<br>查看版本：<br>strings /lib64/libc.so.6 |grep GLIBC</p>
-<h3 id="四、安装GLIBCXX"><a href="#四、安装GLIBCXX" class="headerlink" title="四、安装GLIBCXX"></a>四、安装GLIBCXX</h3><p>查看版本：strings /usr/lib64/libstdc++.so.6 |grep GLIBCXX<br>查看：ls -l /usr/lib64/libstdc++.so.6<br>lrwxrwxrwx 1 root root 18 Aug 14  2015 /usr/lib64/libstdc++.so.6 -&gt; libstdc++.so.6.0.8</p>
-<p>自己编译gcc的过程太繁琐，需要依赖非常多的文件，直接下载高版本下的文件进行替换：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">sudo wget http://xxx/libstdc%2B%2B.so.6.0.13</span><br><span class="line">sudo cp libstdc++.so.6.0.13 /usr/lib</span><br><span class="line">sudo cp libstdc++.so.6.0.13 /usr/lib64</span><br><span class="line"></span><br><span class="line">cd /usr/lib</span><br><span class="line">sudo ln -sf libstdc++.so.6.0.13  libstdc++.so.6</span><br><span class="line"></span><br><span class="line">cd /usr/lib64</span><br><span class="line">sudo ln -sf libstdc++.so.6.0.13  libstdc++.so.6</span><br></pre></td></tr></table></figure>
-<p>再次执行</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">strings /usr/lib64/libstdc++.so.6 |grep GLIBCXX</span><br></pre></td></tr></table></figure>
-<p>发现需要的安装包已经安装完毕；</p>
-<h3 id="五、MAC下安装phantomJS："><a href="#五、MAC下安装phantomJS：" class="headerlink" title="五、MAC下安装phantomJS："></a>五、MAC下安装phantomJS：</h3><p>下载文件到本地目录；<br>添加环境变量：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">vi .bash_profile</span><br><span class="line">export PATH=$PATH:/Users/xinyuan/soft/phantomjs-2.5.0-beta-macos/bin</span><br><span class="line">source  .bash_profile</span><br></pre></td></tr></table></figure>
-<p>安装webp：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" &lt; /dev/null 2&gt; /dev/null</span><br><span class="line">brew install webp</span><br></pre></td></tr></table></figure>
-<p>建立软连：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ln -s  /usr/local/opt/webp/lib/libwebp.7.dylib /usr/local/opt/webp/lib/libwebp.6.dylib</span><br></pre></td></tr></table></figure>
-<p>查看版本：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">phantomjs -v</span><br><span class="line">2.5.0-development</span><br></pre></td></tr></table></figure>
-<h3 id="六、总结："><a href="#六、总结：" class="headerlink" title="六、总结："></a>六、总结：</h3><p>整个OS的环境安装由于对linux底层不熟悉，参数配置也没有详细查看文档，导致安装过程出现了非常多的意外，之前使用的操作系统是5u，gcc版本为4.1.2，依赖的glibc、glibxx、gmp、mpfr、mpc库版本都比较低，但是phantomjs（JS截图）需要依赖其高版本库，为了升级响应的库，通过下载源码，make、install ，出现了不下于30个错误，每次解决一个错误后续流程中又出现了新的错误，费劲周折把所有依赖的库都装好后，运行phantomjs还是出错，怀疑是缺少了一些动态库；  后来还是通过升级操作系统，解决了此问题，升级操作系统完成docker化文件配置，总共才花费了不到一天时间。反思：遇到问题，首选需要评估一下解决此问题的最有效手段，而不是闷头上去搞，要看我们从中能得到什么，在linux操作系统上安装一坨软件并不能证明我们有什么能力，所以这件事情就不应该自己去尝试做，投入产出比是做事情非常重要的一个衡量手段。</p>
-<h3 id="七、参考链接："><a href="#七、参考链接：" class="headerlink" title="七、参考链接："></a>七、参考链接：</h3><p><a href="http://blog.csdn.net/tsaiyong_ahnselina/article/details/21552485" target="_blank" rel="noopener">http://blog.csdn.net/tsaiyong_ahnselina/article/details/21552485</a><br><a href="http://siliconcali.com/2012/10/glibcxx_3-4-9-not-found-in-red-hatfedoracentos-linux/" target="_blank" rel="noopener">http://siliconcali.com/2012/10/glibcxx_3-4-9-not-found-in-red-hatfedoracentos-linux/</a><br><a href="http://blog.csdn.net/tengdazhang770960436/article/details/41348035" target="_blank" rel="noopener">http://blog.csdn.net/tengdazhang770960436/article/details/41348035</a><br><a href="http://www.cnblogs.com/LitLeo/p/3534196.html" target="_blank" rel="noopener">http://www.cnblogs.com/LitLeo/p/3534196.html</a><br><a href="http://blog.csdn.net/wtfmonking/article/details/17577925" target="_blank" rel="noopener">http://blog.csdn.net/wtfmonking/article/details/17577925</a><br><a href="http://www.cnblogs.com/coolulu/p/4124803.html" target="_blank" rel="noopener">http://www.cnblogs.com/coolulu/p/4124803.html</a></p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2018/11/09/Java/2017-09-21-phantomjs-install/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-Java/2017-07-29-springmvc-file-download" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/11/09/Java/2017-07-29-springmvc-file-download/">Springmvc  File Download</a>
-    </h1>
-  
-
-        
-        <a href="/2018/11/09/Java/2017-07-29-springmvc-file-download/" class="archive-article-date">
-  	<time datetime="2018-11-09T13:48:02.841Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-11-09</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <blockquote>
-<p>背景：<br>对于后端程序员来说，经常会遇到使用POI对excel进行上传与下载的需求，掌握一套高效的文件下载核心库和核心方法，会让我们日常编码效率变得更高。本文针对几种常见的的文件下载场景进行阐述如何高效实现文件下载。</p>
-</blockquote>
-<h3 id="一、了解HttpServletResponse："><a href="#一、了解HttpServletResponse：" class="headerlink" title="一、了解HttpServletResponse："></a>一、了解HttpServletResponse：</h3><p>不了解servlet及其工作原理的，建议先学习许令波写的<a href="https://www.ibm.com/developerworks/cn/java/j-lo-servlet/" target="_blank" rel="noopener">Servlet 工作原理解析</a>。</p>
-<p>当服务端返回到数据给浏览器时，浏览器怎么知道是按照文本解析呢还是以附件的形式保存文件？这就涉及到了请求响应体（HttpServletResponse）中的两个重要参数：contentType、Content-Disposition；</p>
-<p>HttpServletResponse 继承了ServletResponse接口，增加了http特性相关的一系列方法。</p>
-<p>HttpServletResponse对象代表服务器的响应。这个对象中封装了向客户端发送数据、发送响应头，发送响应状态码的方法。查看HttpServletResponse的API，可以看到这些相关的方法。</p>
-<h4 id="1-1、负责向客户端-浏览器-发送数据的相关方法"><a href="#1-1、负责向客户端-浏览器-发送数据的相关方法" class="headerlink" title="1.1、负责向客户端(浏览器)发送数据的相关方法"></a>1.1、负责向客户端(浏览器)发送数据的相关方法</h4><p><img src="/images/posts/20170729/15013170603938.jpg" alt=""><br>这两个方法继承自ServletResponse接口，分为二进制输出（一般用于文件下载）、字符输出；</p>
-<h4 id="1-2、负责向客户端-浏览器-发送响应头的相关方法"><a href="#1-2、负责向客户端-浏览器-发送响应头的相关方法" class="headerlink" title="1.2、负责向客户端(浏览器)发送响应头的相关方法"></a>1.2、负责向客户端(浏览器)发送响应头的相关方法</h4><p><img src="/images/posts/20170729/15013171616768.jpg" alt=""><br><img src="/images/posts/20170729/15013171868842.jpg" alt=""></p>
-<h4 id="1-3、负责向客户端-浏览器-发送重定向的相关方法"><a href="#1-3、负责向客户端-浏览器-发送重定向的相关方法" class="headerlink" title="1.3、负责向客户端(浏览器)发送重定向的相关方法"></a>1.3、负责向客户端(浏览器)发送重定向的相关方法</h4><p><img src="/images/posts/20170729/15013200170363.jpg" alt=""><br><img src="/images/posts/20170729/15013200322290.jpg" alt=""></p>
-<h4 id="1-4、负责向客户端-浏览器-发送错误信息的相关方法"><a href="#1-4、负责向客户端-浏览器-发送错误信息的相关方法" class="headerlink" title="1.4、负责向客户端(浏览器)发送错误信息的相关方法"></a>1.4、负责向客户端(浏览器)发送错误信息的相关方法</h4><p><img src="/images/posts/20170729/15013200810263.jpg" alt=""></p>
-<p><img src="/images/posts/20170729/15013198529222.png" alt=""><br>图中的四种处理响应的方式，都是通过HttpServletResponse对象来完成的：<br><img src="/images/posts/20170729/15013199075789.png" alt=""></p>
-<h3 id="二、静态资源下载："><a href="#二、静态资源下载：" class="headerlink" title="二、静态资源下载："></a>二、静态资源下载：</h3><p>静态资源包括web服务器上或者云存储上的静态资源下载，这部分只需要我们配置化一定的请求过滤器即可实现下载，这里不做过多阐述；一般情况下，提供资源下载的服务会使用类似于Nginx的<a href="https://docs.oracle.com/javase/8/docs/jre/api/net/httpserver/spec/com/sun/net/httpserver/HttpServer.html" target="_blank" rel="noopener">Http Server</a>，提高响应效率，tomcat更多的使用在动态http资源请求处理上；</p>
-<h3 id="三、动态资源下载："><a href="#三、动态资源下载：" class="headerlink" title="三、动态资源下载："></a>三、动态资源下载：</h3><p>有些场景下，我们需要下载的文件并不存在，而是实时根据查询条件生成的文件，比如写在的报表数据通过excel合适输出。</p>
-<p>最早的HTTP协议中，并没有附加的数据类型信息，所有传送的数据都被客户程序解释为超文本标记语言HTML 文档，而为了支持多媒体数据类型，HTTP协议中就使用了附加在文档之前的MIME数据类型信息来标识数据类型。</p>
-<p><a href="https://www.iana.org/assignments/media-types/media-types.xhtml" target="_blank" rel="noopener">MIME</a>意为多功能Internet邮件扩展，它设计的最初目的是为了在发送电子邮件时附加多媒体数据，让邮件客户程序能根据其类型进行处理。然而当它被HTTP协议支持之后，它的意义就更为显著了。它使得HTTP传输的不仅是普通的文本，而变得丰富多彩。</p>
-<h4 id="3-1-设置contentType和Content-Disposition："><a href="#3-1-设置contentType和Content-Disposition：" class="headerlink" title="3.1 设置contentType和Content-Disposition："></a>3.1 设置contentType和Content-Disposition：</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">httpServletResponse.setContentType(<span class="string">"application/octet-stream"</span>);</span><br><span class="line">httpServletResponse.addHeader(<span class="string">"Content-Disposition"</span>,</span><br><span class="line">                <span class="string">"attachment;filename="</span> + <span class="keyword">new</span> String(fileName.getBytes(<span class="string">"UTF-8"</span>), <span class="string">"iso8859-1"</span>));</span><br></pre></td></tr></table></figure>
-<p>application/octet-stream：<br>这是应用程序文件的默认值。意思是 未知的应用程序文件 ，浏览器一般不会自动执行或询问执行。浏览器会像对待 设置了 HTTP头Content-Disposition 值为“附件”的文件一样来对待这类文件。</p>
-<p>Content-Disposition：<br>它是 MIME 协议的扩展，MIME 协议指示 MIME 用户代理如何显示附加的文件。</p>
-<p>文件名中文被过滤问题：<br>当我们使用new String(fileName,”UTF-8”)时，文件名称中的中文被自动过滤掉了，原因是header中只支持ASCII。解决办法有三个：</p>
-<ol>
-<li>使用iso8859-1字符编码；<br>此解决方案在IE浏览器下，下载的文件名称如果包含中文还是会出现乱码；</li>
-<li>使用URLEncoder.encode(fileName,”UTF-8”)进行转换；<br>注意这里文件名称字符如果使用urlencoder转换只支持UTF-8，不支持GBK；</li>
-<li>使用filename*=charset’lang’value<br>charset则是给浏览器指明以什么编码方式来还原中文文件名；比如：</li>
-</ol>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">headers.add(<span class="string">"Content-Disposition"</span>,<span class="string">"attachment;filename*=UTF-8''"</span>+URLEncoder.encode(fileName,<span class="string">"UTF-8"</span>)+<span class="string">".xls"</span>);</span><br></pre></td></tr></table></figure>
-<h4 id="3-2-输出二进制流："><a href="#3-2-输出二进制流：" class="headerlink" title="3.2 输出二进制流："></a>3.2 输出二进制流：</h4><p>定义BufferedOutputStream 向httpServletResponse.getOutputStream()写入二进制文件：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">FileWriterWithEncoding fwwe = <span class="keyword">new</span> FileWriterWithEncoding(file, <span class="string">"gb18030"</span>);</span><br><span class="line">BufferedWriter bw = <span class="keyword">new</span> BufferedWriter(fwwe);</span><br><span class="line">bw.write(<span class="string">"待写入内容"</span>);</span><br><span class="line">fwwe.close();</span><br><span class="line">bw.close();</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">BufferedInputStream bis = <span class="keyword">null</span>;</span><br><span class="line">BufferedOutputStream out = <span class="keyword">null</span>;</span><br><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line"> bis = <span class="keyword">new</span> BufferedInputStream(<span class="keyword">new</span> FileInputStream(file));</span><br><span class="line"> out = <span class="keyword">new</span> BufferedOutputStream(httpServletResponse.getOutputStream());</span><br><span class="line"> <span class="keyword">byte</span>[] buff = <span class="keyword">new</span> <span class="keyword">byte</span>[<span class="number">2048</span>];</span><br><span class="line"> <span class="keyword">while</span> (<span class="keyword">true</span>) &#123;</span><br><span class="line">     <span class="keyword">int</span> bytesRead;</span><br><span class="line">     <span class="keyword">if</span> (-<span class="number">1</span> == (bytesRead = bis.read(buff, <span class="number">0</span>, buff.length))) &#123;</span><br><span class="line">         <span class="keyword">break</span>;</span><br><span class="line">     &#125;</span><br><span class="line">     out.write(buff, <span class="number">0</span>, bytesRead);</span><br><span class="line"> &#125;</span><br><span class="line"> file.deleteOnExit();</span><br><span class="line">&#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line"> <span class="keyword">throw</span> e;</span><br><span class="line">&#125; <span class="keyword">finally</span> &#123;</span><br><span class="line"> <span class="keyword">try</span> &#123;</span><br><span class="line">     <span class="keyword">if</span> (bis != <span class="keyword">null</span>) &#123;</span><br><span class="line">         bis.close();</span><br><span class="line">     &#125;</span><br><span class="line">     <span class="keyword">if</span> (out != <span class="keyword">null</span>) &#123;</span><br><span class="line">         out.flush();</span><br><span class="line">         out.close();</span><br><span class="line">     &#125;</span><br><span class="line"> &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">     <span class="keyword">throw</span> e;</span><br><span class="line"> &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>如果我们使用了easyExcel二方库，输出excel变得更加简单：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">ExcelWriter writer = <span class="keyword">new</span> ExcelWriter(httpServletResponse.getOutputStream(), ExcelTypeEnum.XLS, <span class="keyword">true</span>);</span><br><span class="line">Sheet sheet = <span class="keyword">new</span> Sheet(<span class="number">1</span>, <span class="number">1</span>);</span><br><span class="line">writer.write0(datas, sheet);</span><br><span class="line">writer.finish();</span><br></pre></td></tr></table></figure>
-<p>写入数据过程中，注意中文乱码。<br>data.getBytes()是一个将字符转换成字节数组的过程，这个过程中一定会去查码表，如果是中文的操作系统环境，默认就是查找查GB18030的码表，将字符转换成字节数组的过程就是将中文字符转换成GB18030的码表上对应的数字，所以我们在带有中文的文件输出到中文环境时，尽可能使用GB18030编码；</p>
-<p>GB2312是过时标准、GBK是微软标准、GB18030是国家标准；</p>
-<h5 id="关于中文字符编码："><a href="#关于中文字符编码：" class="headerlink" title="关于中文字符编码："></a>关于中文字符编码：</h5><ul>
-<li>GB2312：1980年，一共收录了7445个字符，包括6763个汉字和682个其它符号。</li>
-<li>GBK：是微软对GB2312的扩展，向下兼容GB2312编码，出现于Windows 95简体中文版中，微软标准但不是国家标准。</li>
-<li>GB18030：2000年，取代了GBK1.0的正式国家标准。该标准收录了27484个汉字，同时还收录了一些少数民族文字。</li>
-<li>GB13000：GB13000等同于国际标准的《通用多八位编码字符集 (UCS)》 ISO10646.1，就是等同于Unicode的标准，代码页等等的都使用UTF的一套标准。</li>
-</ul>
-<h3 id="四、大文件下载"><a href="#四、大文件下载" class="headerlink" title="四、大文件下载"></a>四、大文件下载</h3><p>对于大文件的下载，建议服务端先将文件在本地生成后，上传到文件存储服务中心，用户再从存储中心下载，当然，我们也可以针对大文件实现多线程并发断点下载，提高下载速度；</p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2018/11/09/Java/2017-07-29-springmvc-file-download/">展开全文 >></a>
+          <a class="article-more-a" href="/2017/10/20/Java/2017-10-20-message-string-byte/">展开全文 >></a>
         </p>
       
 

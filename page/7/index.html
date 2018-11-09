@@ -152,6 +152,185 @@
           <div id="js-content" class="content-ll">
             
   
+    <article id="post-Program/2016-05-09-user-login-and-regist" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2016/05/09/Program/2016-05-09-user-login-and-regist/">怎么编写用户注册/登录服务</a>
+    </h1>
+  
+
+        
+        <a href="/2016/05/09/Program/2016-05-09-user-login-and-regist/" class="archive-article-date">
+  	<time datetime="2016-05-08T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2016-05-09</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>看似简单的注册登录功能，如果想考虑完善，并且做到极致体验和良好的安全性，并不是一件容易的事情。本篇文章就结合我们公司的登录体系来分析一下怎么去做好一个用户注册与登录功能。</p>
+<h4 id="密码设置与传输："><a href="#密码设置与传输：" class="headerlink" title="密码设置与传输："></a>密码设置与传输：</h4><p>用户在注册的时候最好对密码的强度做验证，防止弱密码。其次切记不能将密码明文传输，一般的做法是前对对密码做一次Md5加密，后端再做一次Md5加密然后出到DB中。</p>
+<h4 id="请求参数签名与验签："><a href="#请求参数签名与验签：" class="headerlink" title="请求参数签名与验签："></a>请求参数签名与验签：</h4><p>现在主流的开发模式是前后端分离，那么前端再对参数加密的时候，怎么管理盐值？盐值怎么在请求中传递？服务端怎么在不侵入业务的方式下做到验签？<br>接下来主要讲讲Token(CrsfToken/UserToken)在请求加解密中的使用方式：</p>
+<ul>
+<li>UserToken是通过用户基本信息和CrsfToken进行AES加密生成，并存储到用户的Cookie中，每次请求的时候浏览器自动会携带Cookie进行数据请求，这样服务端就可以从request中获取到Cookie对象。UserToken的主要作用是进行验签。</li>
+<li>CrsfToken的作用是防止<a href="https://zh.wikipedia.org/wiki/%E8%B7%A8%E7%AB%99%E8%AF%B7%E6%B1%82%E4%BC%AA%E9%80%A0" target="_blank" rel="noopener">CRSF攻击</a>，传统的做法是在form表单中加入此参数，后端验证crsfToken的有效性，但是这种方式对业务有侵入性，比较好的做法是无业务侵入就完成预防Crsf的功能。我们采用的方式是用户登录成功后将CrsfToken存储在浏览器的localStorage中，每次请求的时候使用CrsfToken作为盐值对参数进行Md5签名，网关从请求的Cookie中取出userToken并AES解密出CrsfToken，再进行验签。用户退出或者userToken时效的时候都会主动从LocalStorage中清除CrsfToken,从cookie中清除Token和用户信息，任何需要访问用户登录态的数据因为都需要加密，所以首先会判断CrsfToken是否存在，不存在直接跳登录页了。</li>
+</ul>
+<p>下图为JS方式使用CrsfToken对请求参数进行加密处理：</p>
+<p><img src="/images/posts/20160509/js-url-param-sign.png" alt=""></p>
+<p>下图为页面服务请求时Request中Cookie携带的userToken信息：</p>
+<p><img src="/images/posts/20160509/user-token-cookie.png" alt=""></p>
+<h4 id="总结："><a href="#总结：" class="headerlink" title="总结："></a>总结：</h4><p>这就相当于把加密使用的盐值超出在用户的浏览器中，盐值并不会在每次请求中传递，只用来加密使用，每次在请求中传递的是使用盐值+用户的基本信息进行AES加密生成的秘钥Token，网关系统从此秘钥Token中反解密出CrsfToken来验证请求的合法性。这种实现方式在攻击者未拿到localStorage中的CrsfToken时是无法生成正确的签名值的，所以就在一定程度上解决了CRSF攻击问题。假设攻击者劫持了用户登录请求，就可以拿到CrsfToken，就有可能被CRSF攻击，所以在Web端简单处理办法是用户每次重新登录都会更新CrsfToken和userToken。当然，如果网站上了HTTPS的话，攻击者就无法获取到CrsfToken了。</p>
+<p>其次，通过自主管理Cookie的生命周期，也可以完成用户登录态的维护。</p>
+<p>那你肯定会问App端如何存储CrsfToken，如何通过Cookie传递用户登录态，如何在多设备上同时登录？</p>
+<h4 id="图片-短信验证码："><a href="#图片-短信验证码：" class="headerlink" title="图片/短信验证码："></a>图片/短信验证码：</h4><p>现在大部分的网站注册基本都使用的是手机号注册的方式，那手机号注册为了验证手机号的正确性，一般都会使用手机验证码，考虑到短信成本，在下发手机验证码前为了防止机器攻击，会加上图片验证码。<br>那怎么选择有效的图片验证码服务？如果你随便从网上找一段生成验证码的代码，很不幸告诉你，你找的很可能会被破解，现在<a href="https://www.zhihu.com/question/22479139" target="_blank" rel="noopener">图片验证码识别</a>的技术还是也算比较成熟，回想一下12306的图片验证码吧。如果图片验证码做的太复杂，干扰元素太多，那么又会降低用户体验，直接影响是用户注册率。怎么寻找一个体验好的图片验证码方案呢？</p>
+<p>目前我认为有两种选择，第一，自主编写一套服务，在用户体验和安全性上寻求一个平衡，我们目前使用的是Captcha,体验还不错。第二，采用三方图片验证服务，比如类似于极验的厂商。</p>
+<p><img src="/images/posts/20160509/fqht-regist.png" alt=""></p>
+<p><img src="/images/posts/20160509/geetest-captcha.png" alt=""></p>
+<p>目前图片验证码的服务实现一般分为两部分，一部分是通过sessionId生成图片验证码，一部分是使用sessionId校验用户输入的验证码的正确性，验证完毕后就会从服务端清楚缓存的sessionId对应的图片验证码。</p>
+<h5 id="短信验证码："><a href="#短信验证码：" class="headerlink" title="短信验证码："></a>短信验证码：</h5><p>短信验证由于一定的延迟性，基本会考虑60s下发一次，服务端也要控制一下同一来源短信下发的次数，做好一定的风控防范。短信下发中好的用户体验的几项考核指标是短信下发送达率、送达时效、多网支持度等，试想，你兴致傲然的注册一家网站，结果半天收不到短信，试了N次未果，这是怎么样的糟糕体验，所以选择一家优质的短信提供商很有必要。</p>
+<h5 id="短信验证业务实现原理："><a href="#短信验证业务实现原理：" class="headerlink" title="短信验证业务实现原理："></a>短信验证业务实现原理：</h5><p>上面讲到了图片验证码，在下发短信钱强制图片验证码必填，这个时候用户点击获取短信验证码的时候首先验证图片验证码的有效性，如果图片验证码有效，在验证用户是否符合下发短信的限制条件，为什么要这部分呢，因为在一些恶意攻击情况下，防止短信成本增加，是需要对恶意攻击进行风控的，其次，就算不是恶意攻击，也需要配合前段做60s限制，最后生成随机数缓存Redis，并调用短信服务商的短信发送接口。</p>
+<h4 id="多域登录："><a href="#多域登录：" class="headerlink" title="多域登录："></a>多域登录：</h4><p>其实我们这里阐述的方式是通过自主管理Cookie的生命周期来达到多系统共享登录态的，如果我们有fengqu.com 和 fengxiang.com两个域名，想公用登录体系，能否还利用Cookie的实现方式实现呢？答案是可以但稍微麻烦。因为对于Cookie，处于安全性考虑，它有一个作用域问题，这个作用域由属性Domain和Path共同决定的。也就是说，如果浏览器发送的请求不在此Cookie的作用域范围内，请求是不会带上此Cookie的。我们的网关就无法拿到Cookie中的userToken，也就无法做验签；怎么办呢，我们需要一个SSO，来做Cookie的中转操作，这部分晨悟同学在阿里做了不少SSO的工作，经验丰富。</p>
+<p>扩展阅读：<a href="http://coolshell.cn/articles/5353.html" target="_blank" rel="noopener">你会做Web上的用户登录功能吗？</a></p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Program//" class="article-tag-list-link color3">Program</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2016/05/09/Program/2016-05-09-user-login-and-regist/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-Think/2016-05-09-choice-is-important" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2016/05/09/Think/2016-05-09-choice-is-important/">努力并不等于优秀，选择更重要</a>
+    </h1>
+  
+
+        
+        <a href="/2016/05/09/Think/2016-05-09-choice-is-important/" class="archive-article-date">
+  	<time datetime="2016-05-08T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2016-05-09</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>最近从原来的工作岗位跳了出来，尝试去做不同的事情。回顾过去，结果发现自己在过去的一年过得非常混沌，没有目的，自以为是，非常努力的做着对自身毫无价值的事情。</p>
+<p>一个事情，你做的时间长了，就容易产生惰性，因为你已经有了舒适区，很多时候忘记了为什么要做这样的事情。就比如我负责的物流订单系统，每天都要处理很多的异常单，处理多了，也就习惯了，忘记了怎么彻底的解决问题或者寻找高效的解决方案，总想着，怎么把当前问题摆平，事情一多，难免需要加班解决。我每天加班到很晚，实则是在<strong>用行为上上的努力来掩饰思维上的懒惰</strong>。</p>
+<p>决定一个人有多优秀，并不是看他有多努力，而是看这个人的思维模式，思维方式决定了行为习惯。</p>
+<p>再努力，再加班，如果不思考的话，也只能做一些简单的活，提供的也是基本价值，因为<strong>你选择的做事情的内容和方式已经决定了你即将提供的价值</strong>。过去一年，我为公司的业务发展燃烧着自己的生命，几乎把除了睡觉的时间都投入在了工作当中，然而结果却是，我让自己逐渐丧失了竞争能力。</p>
+<p>你很努力，每天工作16个小时，然并卵，你并没有变得更优秀，因为走在错误的道路上，停止努力，你就是进步。</p>
+<p><strong>优秀的人能够快速抓取事物背后的运行规律(方法论)</strong>。看实物不要去看表面，尝试去抓取事物背后的运行规律和本质。反思自己，感觉还是太年轻，一般人都懂的道理，自己却不懂，全世界感觉就自己一个是傻瓜。</p>
+<p>优秀的人知道自己想要什么，<strong>能很好的实现理想与现实之间的自洽</strong>。理想是什么，现实又是什么，一开始我还天真的以为自己真的是在创业，一年之后幡然醒悟，自己原来只是在一家创业公司打工而已。之前一切动心的承诺都似那过眼烟云，纵然是落下的白纸黑字，有时也无济于事。你在资本的游戏里面，只是一个连智力都没有发展健全的婴儿而已。</p>
+<p>每一个人的时间与精力都是有限的，想要变得优秀，需要在这个领域不断的投入和产出，因而优秀的人往往方向明确，<strong>知道自己想要什么，并且最大化自己的投入与产出比</strong>。时间与精力就是他们的匕首和投枪，用只会来指挥操纵他们，战无不胜。</p>
+<p>不做无用功，多想想你得到了什么？</p>
+<p>你的选择决定了你是什么样的人。</p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Think//" class="article-tag-list-link color1">Think</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2016/05/09/Think/2016-05-09-choice-is-important/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
     <article id="post-Java/2016-05-06-java-io" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
   <div class="article-inner">
     
@@ -159,13 +338,13 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2018/11/09/Java/2016-05-06-java-io/">Java基础 之 IO</a>
+      <a class="article-title" href="/2016/05/06/Java/2016-05-06-java-io/">Java基础 之 IO</a>
     </h1>
   
 
         
-        <a href="/2018/11/09/Java/2016-05-06-java-io/" class="archive-article-date">
-  	<time datetime="2018-11-09T13:48:02.817Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-11-09</time>
+        <a href="/2016/05/06/Java/2016-05-06-java-io/" class="archive-article-date">
+  	<time datetime="2016-05-05T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2016-05-06</time>
 </a>
         
       </header>
@@ -230,7 +409,92 @@
 
       
         <p class="article-more-link">
-          <a class="article-more-a" href="/2018/11/09/Java/2016-05-06-java-io/">展开全文 >></a>
+          <a class="article-more-a" href="/2016/05/06/Java/2016-05-06-java-io/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-Java/2016-05-05-mem-visiable" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2016/05/05/Java/2016-05-05-mem-visiable/">JVM内存可见性之use Or read-load-use</a>
+    </h1>
+  
+
+        
+        <a href="/2016/05/05/Java/2016-05-05-mem-visiable/" class="archive-article-date">
+  	<time datetime="2016-05-04T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2016-05-05</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <blockquote>
+<p>问题描述：<br>如果两个线程都对静态共享变量shareVar有引用，其中一个线程1使用 shareVar，另外一个线程2对shareVar进行修改，那么线程1是否能够理解拿到修改后的值呢？</p>
+</blockquote>
+<p><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/85bf0b2656136362bbe81ace0ae8c981.png?zoom=2" alt=""></p>
+<p>代码描述：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">StaticVarVisibility</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">boolean</span> shareVar = <span class="keyword">true</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">new</span> Thread(<span class="keyword">new</span> Runnable() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">                <span class="keyword">int</span> i = <span class="number">0</span>;</span><br><span class="line">                <span class="comment">//JVM优化导致，当频繁使用主存变量的时候只做use，并未做read-load-use</span></span><br><span class="line">                <span class="keyword">while</span> (shareVar) &#123;</span><br><span class="line">                    i++;</span><br><span class="line">                    <span class="comment">//循环1000次，进行new Object();</span></span><br><span class="line">                    <span class="comment">//synchronized (this) &#123; &#125; 会强制刷新主内存的变量值到线程栈?我认为不是，是因为同步操作是一个耗时操作，所以对is的使用从单纯的use变为read-load-use</span></span><br><span class="line">                    <span class="comment">//System.out.println(i); //println 是synchronized 的</span></span><br><span class="line">                    <span class="comment">//try &#123;</span></span><br><span class="line">                    <span class="comment">//sleep操作释放了CPU，所以遵循JVM优化基准，尽可能保证工作内存和主存的及时同步，如果CPU一直被占用，就无法及时做到数据同步</span></span><br><span class="line">                    <span class="comment">//TimeUnit.MICROSECONDS.sleep(1);</span></span><br><span class="line">                    <span class="comment">//&#125; catch (InterruptedException e) &#123;</span></span><br><span class="line">                    <span class="comment">//&#125;</span></span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;).start();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            TimeUnit.SECONDS.sleep(<span class="number">1</span>);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">new</span> Thread(<span class="keyword">new</span> Runnable() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">                shareVar = <span class="keyword">false</span>;  <span class="comment">//设置shareVar为false，使上面的线程结束while循环</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;).start();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="程序现象："><a href="#程序现象：" class="headerlink" title="程序现象："></a>程序现象：</h4><p>如果线程1中循环体内只有i++，此时循环并不会立即停止下来，为什么呢？线程2已经对shareVar设置了false，为什么线程1没有及时获取到修改后的变量呢？</p>
+<p>在线程1中无论是循环创建对象还是使用synchronized还是sleep，都会触发线程1对shareVar变量的可见性。</p>
+<h4 id="结果分析："><a href="#结果分析：" class="headerlink" title="结果分析："></a>结果分析：</h4><p>为什么static的变量能够实现可见性？其实跟static是否无关，即使只是一个简单的变量，线程1也是可以读到修改后的数据的，只是时间不可预期而已。</p>
+<p>那为什么开始循环没有及时停止呢？原因是在JVM的优化策略下，当线程1频繁使用主存变量shareVar的时候只做use，并未做read-load-use，所以变更后的数据未能及时同步，当执行创建对象、sleep、synchronized这些耗时操作时，cpu对共享变量shareVar的使用不再频繁，所以jvm就可以来保证数据的同步，并从单纯的use变为read-load-use。</p>
+<p>当然在shareVar变量前主动加上volatile关键字，程序会立即停下来，因为这相当于告诉jvm当变量进行变更后强制进行read-load-use。</p>
+<h4 id="总结："><a href="#总结：" class="headerlink" title="总结："></a>总结：</h4><p>  知晓JVM什么时候只进行use，什么时候进行read-load-use。 在后续的编程中，如果需要修改后的数据必须做到实时可见性，必须在前面添加volatile关键字，这可能在支付相关的业务中存在。</p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2016/05/05/Java/2016-05-05-mem-visiable/">展开全文 >></a>
         </p>
       
 
@@ -267,13 +531,13 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2018/11/09/Java/2016-05-03-dubbo-timeout/">记一次系统Dubbo调用超时的故障</a>
+      <a class="article-title" href="/2016/05/03/Java/2016-05-03-dubbo-timeout/">记一次系统Dubbo调用超时的故障</a>
     </h1>
   
 
         
-        <a href="/2018/11/09/Java/2016-05-03-dubbo-timeout/" class="archive-article-date">
-  	<time datetime="2018-11-09T13:48:02.816Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-11-09</time>
+        <a href="/2016/05/03/Java/2016-05-03-dubbo-timeout/" class="archive-article-date">
+  	<time datetime="2016-05-02T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2016-05-03</time>
 </a>
         
       </header>
@@ -339,7 +603,7 @@
 
       
         <p class="article-more-link">
-          <a class="article-more-a" href="/2018/11/09/Java/2016-05-03-dubbo-timeout/">展开全文 >></a>
+          <a class="article-more-a" href="/2016/05/03/Java/2016-05-03-dubbo-timeout/">展开全文 >></a>
         </p>
       
 
@@ -369,38 +633,30 @@
 
 
   
-    <article id="post-Java/2016-05-05-mem-visiable" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
+    <article id="post-Think/2016-04-17-programmer-think-point" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
   <div class="article-inner">
     
       <header class="article-header">
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2018/11/09/Java/2016-05-05-mem-visiable/">JVM内存可见性之use Or read-load-use</a>
+      <a class="article-title" href="/2016/04/17/Think/2016-04-17-programmer-think-point/">一个程序员的醒悟</a>
     </h1>
   
 
         
-        <a href="/2018/11/09/Java/2016-05-05-mem-visiable/" class="archive-article-date">
-  	<time datetime="2018-11-09T13:48:02.816Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-11-09</time>
+        <a href="/2016/04/17/Think/2016-04-17-programmer-think-point/" class="archive-article-date">
+  	<time datetime="2016-04-16T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2016-04-17</time>
 </a>
         
       </header>
     
     <div class="article-entry" itemprop="articleBody">
       
-        <blockquote>
-<p>问题描述：<br>如果两个线程都对静态共享变量shareVar有引用，其中一个线程1使用 shareVar，另外一个线程2对shareVar进行修改，那么线程1是否能够理解拿到修改后的值呢？</p>
-</blockquote>
-<p><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/85bf0b2656136362bbe81ace0ae8c981.png?zoom=2" alt=""></p>
-<p>代码描述：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">StaticVarVisibility</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">boolean</span> shareVar = <span class="keyword">true</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">new</span> Thread(<span class="keyword">new</span> Runnable() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">                <span class="keyword">int</span> i = <span class="number">0</span>;</span><br><span class="line">                <span class="comment">//JVM优化导致，当频繁使用主存变量的时候只做use，并未做read-load-use</span></span><br><span class="line">                <span class="keyword">while</span> (shareVar) &#123;</span><br><span class="line">                    i++;</span><br><span class="line">                    <span class="comment">//循环1000次，进行new Object();</span></span><br><span class="line">                    <span class="comment">//synchronized (this) &#123; &#125; 会强制刷新主内存的变量值到线程栈?我认为不是，是因为同步操作是一个耗时操作，所以对is的使用从单纯的use变为read-load-use</span></span><br><span class="line">                    <span class="comment">//System.out.println(i); //println 是synchronized 的</span></span><br><span class="line">                    <span class="comment">//try &#123;</span></span><br><span class="line">                    <span class="comment">//sleep操作释放了CPU，所以遵循JVM优化基准，尽可能保证工作内存和主存的及时同步，如果CPU一直被占用，就无法及时做到数据同步</span></span><br><span class="line">                    <span class="comment">//TimeUnit.MICROSECONDS.sleep(1);</span></span><br><span class="line">                    <span class="comment">//&#125; catch (InterruptedException e) &#123;</span></span><br><span class="line">                    <span class="comment">//&#125;</span></span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;).start();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            TimeUnit.SECONDS.sleep(<span class="number">1</span>);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">new</span> Thread(<span class="keyword">new</span> Runnable() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">                shareVar = <span class="keyword">false</span>;  <span class="comment">//设置shareVar为false，使上面的线程结束while循环</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;).start();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h4 id="程序现象："><a href="#程序现象：" class="headerlink" title="程序现象："></a>程序现象：</h4><p>如果线程1中循环体内只有i++，此时循环并不会立即停止下来，为什么呢？线程2已经对shareVar设置了false，为什么线程1没有及时获取到修改后的变量呢？</p>
-<p>在线程1中无论是循环创建对象还是使用synchronized还是sleep，都会触发线程1对shareVar变量的可见性。</p>
-<h4 id="结果分析："><a href="#结果分析：" class="headerlink" title="结果分析："></a>结果分析：</h4><p>为什么static的变量能够实现可见性？其实跟static是否无关，即使只是一个简单的变量，线程1也是可以读到修改后的数据的，只是时间不可预期而已。</p>
-<p>那为什么开始循环没有及时停止呢？原因是在JVM的优化策略下，当线程1频繁使用主存变量shareVar的时候只做use，并未做read-load-use，所以变更后的数据未能及时同步，当执行创建对象、sleep、synchronized这些耗时操作时，cpu对共享变量shareVar的使用不再频繁，所以jvm就可以来保证数据的同步，并从单纯的use变为read-load-use。</p>
-<p>当然在shareVar变量前主动加上volatile关键字，程序会立即停下来，因为这相当于告诉jvm当变量进行变更后强制进行read-load-use。</p>
-<h4 id="总结："><a href="#总结：" class="headerlink" title="总结："></a>总结：</h4><p>  知晓JVM什么时候只进行use，什么时候进行read-load-use。 在后续的编程中，如果需要修改后的数据必须做到实时可见性，必须在前面添加volatile关键字，这可能在支付相关的业务中存在。</p>
+        <p>工作四年了，作为一个程序员，该有怎样的定位，如何更新自己的知识库不至于自己落后于时代，如何保证自己不沉溺于每天重复性的劳动而缺乏思考，这些问题最近一直萦绕于耳。为什么是最近，因为最近参与了公司招聘新人的流程，深切感受到了刚毕业同学最技术的追求，感觉似乎自己掌握也不比他们太多，一下子感觉自己是不是要被淘汰了。静下心来，仔细回顾自己的这几年的成长，发现前两年主要在阿里做测试领域，虽然感觉对技术没有什么帮助，但是阿里的工作氛围和做事方式让我受益良多，比如结果导向、用户为上、用户体验。来到创业公司的这一年半，一直在做业务系统，缺乏技术积累和磨练，虽然写了大量代码，现在去看看，很多都有优化空间，似乎只是为了实现功能而实现，完全缺乏深入的思考。</p>
+<p>  在目前企业中，我逐渐从他人身上领悟到一个道理，那就是在公司发展的同时，让自己也能有更大的挑战。不是任何事情事必躬亲就一定会让你的价值得到凸显，而是要学会选择，学会做什么事情，不做什么事情。对一个已经工作了四年的人来说，<strong>你具备能力挑选你想做的事情，而不是等待被安排</strong>。自己的成长路线只有自己对自己负责，老板最多也就给你一些指导而已，老板还要思考他自己的成长路线，以为的把自己的未来之路交给老板去规划与督促，这个就像把自己的命运交给别人掌控一样，至少不是一个聪明人的做法。把握好事情的核心层面，找人帮你完成实现就可以了，关键你自己要把里面的核心点想清楚。</p>
+<p>创业公司一定少不了加班，但是自己不能一直加班而不知道停下来想想为什么自己要加班，而别人就不用，是自己的效率低下还是真的事情比较多。如果是自己的效率为题，就应该停下来，想想怎么跟聪明的把这个事情做好，通过更好的框架设计还是把这个事情抛出来让大家配合去完成。我在过去的一年中很有一段时间就忘了自己为什么加班而加班，每天都感觉有做不完的事情，做的越多，给人的印象就是越不会做事情，效率低下。对我自己来说，损害了自己的身体，做了一堆垃圾活，对自己的个人成长一点好处都没有，反而最终结果也不好。我以前一直认为，一些事情我能做掉的就不要麻烦别人，能通过加班时间多为公司多争取一些利益的事情我就会去做；但是现在看看，至少有更聪明的做法让自己在得到成长的同事，更轻松。时常问问自己为什么要加班？难道是为了年终的绩效？那有多少钱呢，为什么不是把加班的时间拿来用于自己的技能成长呢，<strong>技术的提升可以在后期解决收入的问题，而不需要靠加班来解决这个问题</strong>。</p>
+<p>  我庆幸有这样的环境，因为让我自己只使用了一年的时间就明白了这个道理，而不是用两到三年。</p>
 
       
 
@@ -415,7 +671,7 @@
 		<ul class="article-tag-list">
 			 
         		<li class="article-tag-list-item">
-        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
+        			<a href="/categories/Think//" class="article-tag-list-link color1">Think</a>
         		</li>
       		
 		</ul>
@@ -424,182 +680,7 @@
 
       
         <p class="article-more-link">
-          <a class="article-more-a" href="/2018/11/09/Java/2016-05-05-mem-visiable/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-Java/2016-03-09-byte-code-java-serailze" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/11/09/Java/2016-03-09-byte-code-java-serailze/">透过序列化字节码看Java序列化</a>
-    </h1>
-  
-
-        
-        <a href="/2018/11/09/Java/2016-03-09-byte-code-java-serailze/" class="archive-article-date">
-  	<time datetime="2018-11-09T13:48:02.815Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-11-09</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>Java序列化的基础知识 请参考之前的文章 ‘Java基础 之 序列化与反序列化’</p>
-<p><strong>序列化数据的存储结构：</strong></p>
-<p>Java序列化后存储的信息包括：类元数据描述、类的属性、父类信息以及属性域的值。</p>
-<p>编写一个测试类：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SerializableTest</span> <span class="keyword">implements</span> <span class="title">Serializable</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> father;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">long</span> serialVersionUID = <span class="number">1937803012639770720L</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="class"><span class="keyword">class</span> <span class="title">ObjectSaver</span>  <span class="keyword">extends</span>  <span class="title">SerializableTest</span> <span class="keyword">implements</span> <span class="title">Serializable</span></span>&#123;</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">long</span> serialVersionUID = -<span class="number">1460368089309853877L</span>;</span><br><span class="line">        <span class="keyword">public</span> String name;</span><br><span class="line">        <span class="keyword">public</span> <span class="keyword">int</span> old;</span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="title">ObjectSaver</span><span class="params">(String name, <span class="keyword">int</span> old)</span> </span>&#123;</span><br><span class="line">            <span class="keyword">super</span>.father = <span class="number">1</span>;</span><br><span class="line">            <span class="keyword">this</span>.name = name;</span><br><span class="line">            <span class="keyword">this</span>.old = old;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>通过Junit进行序列化，生成序列化后的对象：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">testWriteObject</span><span class="params">()</span> <span class="keyword">throws</span> Exception</span>&#123;</span><br><span class="line">    ObjectOutputStream objectOutputStream = <span class="keyword">new</span> ObjectOutputStream(<span class="keyword">new</span> FileOutputStream(<span class="string">"/Users/xinyuan/tmp/ObjectSaver.obj"</span>));</span><br><span class="line">    objectOutputStream.writeObject(<span class="string">"严明明"</span>);</span><br><span class="line">    objectOutputStream.writeObject(<span class="keyword">new</span> Date());</span><br><span class="line">    objectOutputStream.writeObject(<span class="keyword">new</span> ObjectSaver(<span class="string">"测试类"</span>,<span class="number">30</span>));</span><br><span class="line">    objectOutputStream.close();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>使用strings打开ObjectSaver.obj 文件，可以看到存储下来的可打印的字符信息如下：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">java.util.Datehj</span><br><span class="line">Scxsr</span><br><span class="line"><span class="number">7</span>com.java.demo.serializable.SerializableTest$ObjectSaver</span><br><span class="line">oldL</span><br><span class="line">namet</span><br><span class="line">Ljava/lang/String;L</span><br><span class="line"><span class="keyword">this</span>$<span class="number">0</span>t</span><br><span class="line">-Lcom/java/demo/serializable/SerializableTest;xr</span><br><span class="line">+com.java.demo.serializable.SerializableTest</span><br><span class="line">fatherxp</span><br></pre></td></tr></table></figure>
-<p>二进制内容为：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">aced <span class="number">0005</span> <span class="number">7400</span> <span class="number">09e4</span> b8a5 e698 <span class="number">8</span>ee6 <span class="number">988</span>e</span><br><span class="line"><span class="number">7372</span> <span class="number">000</span>e <span class="number">6</span>a61 <span class="number">7661</span> <span class="number">2e75</span> <span class="number">7469</span> <span class="number">6</span>c2e <span class="number">4461</span></span><br><span class="line"><span class="number">7465</span> <span class="number">686</span>a <span class="number">8101</span> <span class="number">4</span>b59 <span class="number">7419</span> <span class="number">0300</span> <span class="number">0078</span> <span class="number">7077</span></span><br><span class="line"><span class="number">0800</span> <span class="number">0001</span> <span class="number">5356</span> b659 b778 <span class="number">7372</span> <span class="number">0037</span> <span class="number">636f</span></span><br><span class="line"><span class="number">6</span>d2e <span class="number">6</span>a61 <span class="number">7661</span> <span class="number">2e64</span> <span class="number">656</span>d <span class="number">6f</span>2e <span class="number">7365</span> <span class="number">7269</span></span><br><span class="line"><span class="number">616</span>c <span class="number">697</span>a <span class="number">6162</span> <span class="number">6</span>c65 <span class="number">2e53</span> <span class="number">6572</span> <span class="number">6961</span> <span class="number">6</span>c69</span><br><span class="line"><span class="number">7</span>a61 <span class="number">626</span>c <span class="number">6554</span> <span class="number">6573</span> <span class="number">7424</span> <span class="number">4f</span>62 <span class="number">6</span>a65 <span class="number">6374</span></span><br><span class="line"><span class="number">5361</span> <span class="number">7665</span> <span class="number">72</span>eb bbba f5cb <span class="number">5</span>ec7 <span class="number">4</span>b02 <span class="number">0003</span></span><br><span class="line"><span class="number">4900</span> <span class="number">036f</span> <span class="number">6</span>c64 <span class="number">4</span>c00 <span class="number">046</span>e <span class="number">616</span>d <span class="number">6574</span> <span class="number">0012</span></span><br><span class="line"><span class="number">4</span>c6a <span class="number">6176</span> <span class="number">612f</span> <span class="number">6</span>c61 <span class="number">6e67</span> <span class="number">2f</span>53 <span class="number">7472</span> <span class="number">696</span>e</span><br><span class="line"><span class="number">673</span>b <span class="number">4</span>c00 <span class="number">0674</span> <span class="number">6869</span> <span class="number">7324</span> <span class="number">3074</span> <span class="number">002</span>d <span class="number">4</span>c63</span><br><span class="line"><span class="number">6f</span>6d <span class="number">2f</span>6a <span class="number">6176</span> <span class="number">612f</span> <span class="number">6465</span> <span class="number">6</span>d6f <span class="number">2f</span>73 <span class="number">6572</span></span><br><span class="line"><span class="number">6961</span> <span class="number">6</span>c69 <span class="number">7</span>a61 <span class="number">626</span>c <span class="number">652f</span> <span class="number">5365</span> <span class="number">7269</span> <span class="number">616</span>c</span><br><span class="line"><span class="number">697</span>a <span class="number">6162</span> <span class="number">6</span>c65 <span class="number">5465</span> <span class="number">7374</span> <span class="number">3</span>b78 <span class="number">7200</span> <span class="number">2</span>b63</span><br><span class="line"><span class="number">6f</span>6d <span class="number">2e6</span>a <span class="number">6176</span> <span class="number">612</span>e <span class="number">6465</span> <span class="number">6</span>d6f <span class="number">2e73</span> <span class="number">6572</span></span><br><span class="line"><span class="number">6961</span> <span class="number">6</span>c69 <span class="number">7</span>a61 <span class="number">626</span>c <span class="number">652</span>e <span class="number">5365</span> <span class="number">7269</span> <span class="number">616</span>c</span><br><span class="line"><span class="number">697</span>a <span class="number">6162</span> <span class="number">6</span>c65 <span class="number">5465</span> <span class="number">7374</span> <span class="number">1</span>ae4 <span class="number">7592</span> b513</span><br><span class="line"><span class="number">4860</span> <span class="number">0200</span> <span class="number">0149</span> <span class="number">0006</span> <span class="number">6661</span> <span class="number">7468</span> <span class="number">6572</span> <span class="number">7870</span></span><br><span class="line"><span class="number">0000</span> <span class="number">0001</span> <span class="number">0000</span> <span class="number">001</span>e <span class="number">7400</span> <span class="number">09e6</span> b58b e8af</span><br><span class="line"><span class="number">95e7</span> b1bb <span class="number">7371</span> <span class="number">007</span>e <span class="number">0006</span> <span class="number">0000</span> <span class="number">0000</span></span><br></pre></td></tr></table></figure>
-<h5 id="第一部分："><a href="#第一部分：" class="headerlink" title="第一部分："></a>第一部分：</h5><p><strong>aced</strong> STREAM_MAGIC 流的幻数，用于标识序列化协议；</p>
-<p><strong>0005</strong>  STREAM_VERSION 标识序列化协议的版本号；</p>
-<p>一些标识性字符可以参考类：ObjectStreamConstants<br>ObjectOutputStream.writeStreamHeader()方法：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">writeStreamHeader</span><span class="params">()</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">bout.writeShort(STREAM_MAGIC);</span><br><span class="line">bout.writeShort(STREAM_VERSION);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h5 id="第二部分："><a href="#第二部分：" class="headerlink" title="第二部分："></a>第二部分：</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">objectOutputStream.writeObject(“严明明”)</span><br></pre></td></tr></table></figure>
-<ol>
-<li>74  标识TC_STRING</li>
-<li>00 09 标识第一个String的长度为9个字节</li>
-<li>e4 b8a5 e698 8ee6 988e 表示String类型的值：严明明</li>
-</ol>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">objectOutputStream.writeObject(<span class="keyword">new</span> Date())</span><br></pre></td></tr></table></figure>
-<ol>
-<li>7372 标识TC_OBJECT 和 TC_CLASSDESC</li>
-<li>000e  标识类名称长度为14个字节</li>
-<li>6a61 7661 2e75 7469 6c2e 4461 7465 表示类型值：java.util.Date</li>
-<li>686a 8101 4b59 7419  标识uid对象序列化ID的类型为long型，占用8个字节</li>
-<li>03 这一个字节可能有十种值标识：参考java.io.ObjectStreamConstants#SC_*</li>
-<li>0000 标识类属性个数，因为是Date类型，所以没有自定义属性</li>
-<li>78 标识域类型TC_ENDBLOCKDATA ，因为属性个数为0，所以对象数据结束</li>
-<li>70 再没有父类的标识</li>
-<li>77  对象数据块开始，TC_BLOCKDATA</li>
-<li>08 标识数据长度为8个字节</li>
-<li>00 0001 5356 b659 b7 标识new Date()的对象时间戳long型，占用8个字节</li>
-<li>78 TC_ENDBLOCKDATA 对象数据库结束标识</li>
-</ol>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">objectOutputStream.writeObject(<span class="keyword">new</span> ObjectSaver(“测试类”,<span class="number">30</span>))</span><br></pre></td></tr></table></figure>
-<ol>
-<li>7372 0037 表示TC_OBJECT 和 TC_CLASSDESC ，且类名称长度为55个字节</li>
-<li>636f<pre><code>6d2e 6a61 7661 2e64 656d 6f2e 7365 7269
-616c 697a 6162 6c65 2e53 6572 6961 6c69
-7a61 626c 6554 6573 7424 4f62 6a65 6374
-5361 7665 72
-表示类名值：com.java.demo.serializable.SerializableTest$ObjectSaver
-</code></pre></li>
-<li>eb bbba f5cb 5ec7 4b 标识ObjectSaver对象序列化ID的类型为long型，占用8个字节 ，值为-1460368089309853877L，因为uid为静态属性，所以属于类元信息一部分</li>
-<li>02 这一个字节可能有十种值标识，其中02标识SC_SERIALIZABLE，此类继承了Serializable接口</li>
-<li>0003 标识类属性个数为 3 个，包含this；</li>
-<li>49 域类型，49转十进制为73，73在ASC码中对应的是 I ，因为old为int类型</li>
-<li>00 03 标识属性名称长度为3个字节</li>
-<li>6f 6c64 标识属性名称为 old</li>
-<li>4c 域类型，4c转十进制为76，76在ASC码中对应的是 L，因为name为String对象</li>
-<li>00 04 标识属性名称长度为4个字节,name字符占四个字符</li>
-<li>6e 616d 65 标识属性名称的值 name</li>
-<li>74 标识TC_STRING一个新的字符串</li>
-<li>0012 域类型长度为18个字节</li>
-<li>4c6a 6176 612f 6c61 6e67 2f53 7472 696e<pre><code>673b
-对象类型签名 Ljava/lang/String;  包含封号
-</code></pre></li>
-<li>4c 域类型，4c转十进制为76，76在ASC码中对应的是 L</li>
-<li>00 06 标识属性名称长度为6个字节</li>
-<li>74 6869 7324 30  标识字符串 this$0</li>
-<li>74 标识TC_STRING一个新的字符串</li>
-<li>002d 域类型长度为45个字节</li>
-<li>4c63<pre><code>6f6d 2f6a 6176 612f 6465 6d6f 2f73 6572
-6961 6c69 7a61 626c 652f 5365 7269 616c
-697a 6162 6c65 5465 7374 3b
-Lcom/java/demo/serializable/SerializableTest;
-</code></pre></li>
-<li>78  标识域类型TC_ENDBLOCKDATA</li>
-<li><code>上面为之类ObjectSaver的描述信息和元信息，下面为父类SerializableTest的描述信息和元信息</code></li>
-<li>72 标识TC_CLASSDESC</li>
-<li>002b 标识类名称长度为43个字节</li>
-<li>63<pre><code>6f6d 2e6a 6176 612e 6465 6d6f 2e73 6572
-6961 6c69 7a61 626c 652e 5365 7269 616c
-697a 6162 6c65 5465 7374
-标识类字符串：com.java.demo.serializable.SerializableTest
-</code></pre></li>
-<li>1ae4 7592 b513 4860  标识ObjectSaver对象序列化ID的类型为long型，占用8个字节 ，值为-1937803012639770720L</li>
-<li>02 这一个字节可能有十种值标识，其中02标识SC_SERIALIZABLE，此类继承了Serializable接口</li>
-<li>00 01 标识类属性个数为1个</li>
-<li>49 域类型，49转十进制为73，73在ASC码中对应的是 I ，因为old为int类型</li>
-<li>0006 标识属性名称长度为6个字节</li>
-<li>6661 7468 6572 标识father六个字符；</li>
-<li>7870 TC_ENDBLOCKDATA 对象数据库结束标识，且没有父类</li>
-</ol>
-<h5 id="第三部分："><a href="#第三部分：" class="headerlink" title="第三部分："></a>第三部分：</h5><p>接下来是对象属性域的值部分，按照从父类到子类的顺序写入域的值</p>
-<ol>
-<li>0000 0001 标识的十进制为1，对应父类father的值为1</li>
-<li>0000 001e 标识十进制为30，标识之类old的值为30</li>
-<li>74 标识TC_STRING一个新的字符串</li>
-<li>0009 标识占用9个字节</li>
-<li>e6b5 8be8 af95 e7b1 bb 标识字符“测试类”</li>
-<li>73 71  标识TC_OBJECT  TC_REFERENCE</li>
-<li>007e 0006 0000 0000</li>
-</ol>
-<h4 id="总结-Java序列化算法的基本步骤"><a href="#总结-Java序列化算法的基本步骤" class="headerlink" title="总结 Java序列化算法的基本步骤"></a>总结 Java序列化算法的基本步骤</h4><ul>
-<li>输出序列化的头部信息，包括序列化协议的幻数和版本；</li>
-<li>基本类型按照一字节的类型标识、两字节类型长度、N个字节值</li>
-<li>基本对象类型，7372标识OBJECT和CLASSDESC，两字节类型长度，8字节uid，一些辅助信息</li>
-<li>复杂对象类型，第一步按照由子类到父类的顺序，递归的输出类的描述信息，知道不再有父类为止；类描述信息按照类元数据，类属性信息的顺序写入序列化流中；第二步按照由父类到之类的顺序，递归的输出对象域对象域的实际数据值；而对象的属性信息是按照基本类型到java对象类型的顺序写入序列化流中，其中java对象类型的属性会从第一步重新开始递归的输出，知道不再存在java对象类型的属性。</li>
-</ul>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2018/11/09/Java/2016-03-09-byte-code-java-serailze/">展开全文 >></a>
+          <a class="article-more-a" href="/2016/04/17/Think/2016-04-17-programmer-think-point/">展开全文 >></a>
         </p>
       
 
@@ -636,13 +717,13 @@ Lcom/java/demo/serializable/SerializableTest;
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2018/11/09/Java/2016-03-10-simpledateformat/">为什么SimpleDateFormat 不是线程安全</a>
+      <a class="article-title" href="/2016/03/10/Java/2016-03-10-simpledateformat/">为什么SimpleDateFormat 不是线程安全</a>
     </h1>
   
 
         
-        <a href="/2018/11/09/Java/2016-03-10-simpledateformat/" class="archive-article-date">
-  	<time datetime="2018-11-09T13:48:02.815Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-11-09</time>
+        <a href="/2016/03/10/Java/2016-03-10-simpledateformat/" class="archive-article-date">
+  	<time datetime="2016-03-09T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2016-03-10</time>
 </a>
         
       </header>
@@ -697,7 +778,7 @@ Lcom/java/demo/serializable/SerializableTest;
 
       
         <p class="article-more-link">
-          <a class="article-more-a" href="/2018/11/09/Java/2016-03-10-simpledateformat/">展开全文 >></a>
+          <a class="article-more-a" href="/2016/03/10/Java/2016-03-10-simpledateformat/">展开全文 >></a>
         </p>
       
 
@@ -727,83 +808,195 @@ Lcom/java/demo/serializable/SerializableTest;
 
 
   
-    <article id="post-Java/2015-03-26-java-mem-visualization" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
+    <article id="post-Java/2016-03-09-byte-code-java-serailze" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
   <div class="article-inner">
     
       <header class="article-header">
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2018/11/09/Java/2015-03-26-java-mem-visualization/">Java 内存管理可视化</a>
+      <a class="article-title" href="/2016/03/09/Java/2016-03-09-byte-code-java-serailze/">透过序列化字节码看Java序列化</a>
     </h1>
   
 
         
-        <a href="/2018/11/09/Java/2015-03-26-java-mem-visualization/" class="archive-article-date">
-  	<time datetime="2018-11-09T13:48:02.814Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-11-09</time>
+        <a href="/2016/03/09/Java/2016-03-09-byte-code-java-serailze/" class="archive-article-date">
+  	<time datetime="2016-03-08T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2016-03-09</time>
 </a>
         
       </header>
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>开源项目：<a href="https://github.com/kittylyst/jfx-mem" target="_blank" rel="noopener">https://github.com/kittylyst/jfx-mem</a> 提供给我们一个Java内存分配和GC的可视化过程。</p>
-<p><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/a2b296390844a629bc3a17c120dccb55.png" alt=""></p>
-<h4 id="运行方法："><a href="#运行方法：" class="headerlink" title="运行方法："></a>运行方法：</h4><p>下载代码到本地，使用IDEA打开工程，新建配置，选择“Application”。</p>
-<p><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/1ea51c9fd021f3717bd4060c084e6809.png" alt=""></p>
-<h4 id="区块解释："><a href="#区块解释：" class="headerlink" title="区块解释："></a>区块解释：</h4><p>eden区用户新分配内存区，也是使用最为频繁的区域，一般线程的TLAB（Thread Local Allocation Buffer）都是在eden去开辟，且线程间隔离。eden区 、survivor区、old区的内存之和为Heap区，其中eden区与servivor为Young Gen（新生代）。当eden区满后会触发一次YGC，eden区中还需要被使用的对象会被移到survivor区中（survivor一般为2个，也成为from区、to区），这样整个Eden区都是未被使用的空间，可共继续创建对象，当Eden区再次用完，再触发一次Yong GC，将Eden区和From区还在被使用的对象复制到To区，下一次Yong GC则是将Eden区和To区的还被使用的对象复制到From区。因此，进过多次Yong GC，某些对象会在From区和To区多次复制，如果超过某个阀值对象还未被释放，则将该对象复制到Old Generation。如果Old Generation空间也用完，那么就会触发一次Full GC，即所谓的全量回收，全量回收会对系统性能产生较大影响，因此应根据系统业务特点和对象周期，合理设置Yong Generation 和 Old Generation大小，尽量减少 Full GC。为什么Full GC会对系统性能产生较大影响，原因是Full GC不可避免的需要“stop the world” 让应用程序的所有经常暂停。</p>
-<h4 id="执行过程："><a href="#执行过程：" class="headerlink" title="执行过程："></a>执行过程：</h4><p>从动画中我们还可以看出，Old区采用的跟踪计数器（相对于引用计数器）的算法是：标记-清除-压缩 的方式，那我们常用的跟踪计数器的算法有那些呢，各有什么优缺点？</p>
-<h4 id="常见的垃圾回收方法有："><a href="#常见的垃圾回收方法有：" class="headerlink" title="常见的垃圾回收方法有："></a>常见的垃圾回收方法有：</h4><h5 id="1-复制；"><a href="#1-复制；" class="headerlink" title="1. 复制；"></a>1. 复制；</h5><p>从根集合搜扫描出存活的对象，然后将存活的对象复制到一块新的未使用的空间中，当要回收的空间中存活的对象较少时，比较高效；</p>
-<h5 id="2-标记-清除；"><a href="#2-标记-清除；" class="headerlink" title="2. 标记-清除；"></a>2. 标记-清除；</h5><p>从根集合开始扫描，对存活的对象进行标记，比较完毕后，再扫描整个空间中未标记的对象，然后进行回收，不需要对对象进行移动；弊端是造成内存碎片，可能内存有500M，当需要100M时就没有内存了，需要触发一次FGC。</p>
-<h5 id="3-标记-压缩；"><a href="#3-标记-压缩；" class="headerlink" title="3. 标记-压缩；"></a>3. 标记-压缩；</h5><p>标记形式和“标记清除”一样，但是回收不存活的对象后，会把所有存活的对象在内存空间中进行移动，好处是减少了内存碎片，缺点是成本比较高；</p>
-<p>新时代中对象存活时间比较短，YGC次数也比较多，故可以采用效率比较高的复制策略，YGC触发时，把Eden区和From区还存在应用关系的复制到To区中，下一次是把Eden区和To区复制到From区。</p>
-<p>新时代可用的GC方法和老年代可用的GC方法是不一样的：</p>
-<ul>
-<li>新时代可用GC方法：串行GC（Serial GC）、并行回收GC（Parallel Scavenge）、并发GC（ParNew）</li>
-<li>老年代可用GC方法：串行GC（Serial MSC）、并行GC（Parallel MSC）、并发GC（CMS）</li>
+        <p>Java序列化的基础知识 请参考之前的文章 ‘Java基础 之 序列化与反序列化’</p>
+<p><strong>序列化数据的存储结构：</strong></p>
+<p>Java序列化后存储的信息包括：类元数据描述、类的属性、父类信息以及属性域的值。</p>
+<p>编写一个测试类：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SerializableTest</span> <span class="keyword">implements</span> <span class="title">Serializable</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> father;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">long</span> serialVersionUID = <span class="number">1937803012639770720L</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="class"><span class="keyword">class</span> <span class="title">ObjectSaver</span>  <span class="keyword">extends</span>  <span class="title">SerializableTest</span> <span class="keyword">implements</span> <span class="title">Serializable</span></span>&#123;</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">long</span> serialVersionUID = -<span class="number">1460368089309853877L</span>;</span><br><span class="line">        <span class="keyword">public</span> String name;</span><br><span class="line">        <span class="keyword">public</span> <span class="keyword">int</span> old;</span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="title">ObjectSaver</span><span class="params">(String name, <span class="keyword">int</span> old)</span> </span>&#123;</span><br><span class="line">            <span class="keyword">super</span>.father = <span class="number">1</span>;</span><br><span class="line">            <span class="keyword">this</span>.name = name;</span><br><span class="line">            <span class="keyword">this</span>.old = old;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>通过Junit进行序列化，生成序列化后的对象：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">testWriteObject</span><span class="params">()</span> <span class="keyword">throws</span> Exception</span>&#123;</span><br><span class="line">    ObjectOutputStream objectOutputStream = <span class="keyword">new</span> ObjectOutputStream(<span class="keyword">new</span> FileOutputStream(<span class="string">"/Users/xinyuan/tmp/ObjectSaver.obj"</span>));</span><br><span class="line">    objectOutputStream.writeObject(<span class="string">"严明明"</span>);</span><br><span class="line">    objectOutputStream.writeObject(<span class="keyword">new</span> Date());</span><br><span class="line">    objectOutputStream.writeObject(<span class="keyword">new</span> ObjectSaver(<span class="string">"测试类"</span>,<span class="number">30</span>));</span><br><span class="line">    objectOutputStream.close();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>使用strings打开ObjectSaver.obj 文件，可以看到存储下来的可打印的字符信息如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">java.util.Datehj</span><br><span class="line">Scxsr</span><br><span class="line"><span class="number">7</span>com.java.demo.serializable.SerializableTest$ObjectSaver</span><br><span class="line">oldL</span><br><span class="line">namet</span><br><span class="line">Ljava/lang/String;L</span><br><span class="line"><span class="keyword">this</span>$<span class="number">0</span>t</span><br><span class="line">-Lcom/java/demo/serializable/SerializableTest;xr</span><br><span class="line">+com.java.demo.serializable.SerializableTest</span><br><span class="line">fatherxp</span><br></pre></td></tr></table></figure>
+<p>二进制内容为：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">aced <span class="number">0005</span> <span class="number">7400</span> <span class="number">09e4</span> b8a5 e698 <span class="number">8</span>ee6 <span class="number">988</span>e</span><br><span class="line"><span class="number">7372</span> <span class="number">000</span>e <span class="number">6</span>a61 <span class="number">7661</span> <span class="number">2e75</span> <span class="number">7469</span> <span class="number">6</span>c2e <span class="number">4461</span></span><br><span class="line"><span class="number">7465</span> <span class="number">686</span>a <span class="number">8101</span> <span class="number">4</span>b59 <span class="number">7419</span> <span class="number">0300</span> <span class="number">0078</span> <span class="number">7077</span></span><br><span class="line"><span class="number">0800</span> <span class="number">0001</span> <span class="number">5356</span> b659 b778 <span class="number">7372</span> <span class="number">0037</span> <span class="number">636f</span></span><br><span class="line"><span class="number">6</span>d2e <span class="number">6</span>a61 <span class="number">7661</span> <span class="number">2e64</span> <span class="number">656</span>d <span class="number">6f</span>2e <span class="number">7365</span> <span class="number">7269</span></span><br><span class="line"><span class="number">616</span>c <span class="number">697</span>a <span class="number">6162</span> <span class="number">6</span>c65 <span class="number">2e53</span> <span class="number">6572</span> <span class="number">6961</span> <span class="number">6</span>c69</span><br><span class="line"><span class="number">7</span>a61 <span class="number">626</span>c <span class="number">6554</span> <span class="number">6573</span> <span class="number">7424</span> <span class="number">4f</span>62 <span class="number">6</span>a65 <span class="number">6374</span></span><br><span class="line"><span class="number">5361</span> <span class="number">7665</span> <span class="number">72</span>eb bbba f5cb <span class="number">5</span>ec7 <span class="number">4</span>b02 <span class="number">0003</span></span><br><span class="line"><span class="number">4900</span> <span class="number">036f</span> <span class="number">6</span>c64 <span class="number">4</span>c00 <span class="number">046</span>e <span class="number">616</span>d <span class="number">6574</span> <span class="number">0012</span></span><br><span class="line"><span class="number">4</span>c6a <span class="number">6176</span> <span class="number">612f</span> <span class="number">6</span>c61 <span class="number">6e67</span> <span class="number">2f</span>53 <span class="number">7472</span> <span class="number">696</span>e</span><br><span class="line"><span class="number">673</span>b <span class="number">4</span>c00 <span class="number">0674</span> <span class="number">6869</span> <span class="number">7324</span> <span class="number">3074</span> <span class="number">002</span>d <span class="number">4</span>c63</span><br><span class="line"><span class="number">6f</span>6d <span class="number">2f</span>6a <span class="number">6176</span> <span class="number">612f</span> <span class="number">6465</span> <span class="number">6</span>d6f <span class="number">2f</span>73 <span class="number">6572</span></span><br><span class="line"><span class="number">6961</span> <span class="number">6</span>c69 <span class="number">7</span>a61 <span class="number">626</span>c <span class="number">652f</span> <span class="number">5365</span> <span class="number">7269</span> <span class="number">616</span>c</span><br><span class="line"><span class="number">697</span>a <span class="number">6162</span> <span class="number">6</span>c65 <span class="number">5465</span> <span class="number">7374</span> <span class="number">3</span>b78 <span class="number">7200</span> <span class="number">2</span>b63</span><br><span class="line"><span class="number">6f</span>6d <span class="number">2e6</span>a <span class="number">6176</span> <span class="number">612</span>e <span class="number">6465</span> <span class="number">6</span>d6f <span class="number">2e73</span> <span class="number">6572</span></span><br><span class="line"><span class="number">6961</span> <span class="number">6</span>c69 <span class="number">7</span>a61 <span class="number">626</span>c <span class="number">652</span>e <span class="number">5365</span> <span class="number">7269</span> <span class="number">616</span>c</span><br><span class="line"><span class="number">697</span>a <span class="number">6162</span> <span class="number">6</span>c65 <span class="number">5465</span> <span class="number">7374</span> <span class="number">1</span>ae4 <span class="number">7592</span> b513</span><br><span class="line"><span class="number">4860</span> <span class="number">0200</span> <span class="number">0149</span> <span class="number">0006</span> <span class="number">6661</span> <span class="number">7468</span> <span class="number">6572</span> <span class="number">7870</span></span><br><span class="line"><span class="number">0000</span> <span class="number">0001</span> <span class="number">0000</span> <span class="number">001</span>e <span class="number">7400</span> <span class="number">09e6</span> b58b e8af</span><br><span class="line"><span class="number">95e7</span> b1bb <span class="number">7371</span> <span class="number">007</span>e <span class="number">0006</span> <span class="number">0000</span> <span class="number">0000</span></span><br></pre></td></tr></table></figure>
+<h5 id="第一部分："><a href="#第一部分：" class="headerlink" title="第一部分："></a>第一部分：</h5><p><strong>aced</strong> STREAM_MAGIC 流的幻数，用于标识序列化协议；</p>
+<p><strong>0005</strong>  STREAM_VERSION 标识序列化协议的版本号；</p>
+<p>一些标识性字符可以参考类：ObjectStreamConstants<br>ObjectOutputStream.writeStreamHeader()方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">writeStreamHeader</span><span class="params">()</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">bout.writeShort(STREAM_MAGIC);</span><br><span class="line">bout.writeShort(STREAM_VERSION);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="第二部分："><a href="#第二部分：" class="headerlink" title="第二部分："></a>第二部分：</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">objectOutputStream.writeObject(“严明明”)</span><br></pre></td></tr></table></figure>
+<ol>
+<li>74  标识TC_STRING</li>
+<li>00 09 标识第一个String的长度为9个字节</li>
+<li>e4 b8a5 e698 8ee6 988e 表示String类型的值：严明明</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">objectOutputStream.writeObject(<span class="keyword">new</span> Date())</span><br></pre></td></tr></table></figure>
+<ol>
+<li>7372 标识TC_OBJECT 和 TC_CLASSDESC</li>
+<li>000e  标识类名称长度为14个字节</li>
+<li>6a61 7661 2e75 7469 6c2e 4461 7465 表示类型值：java.util.Date</li>
+<li>686a 8101 4b59 7419  标识uid对象序列化ID的类型为long型，占用8个字节</li>
+<li>03 这一个字节可能有十种值标识：参考java.io.ObjectStreamConstants#SC_*</li>
+<li>0000 标识类属性个数，因为是Date类型，所以没有自定义属性</li>
+<li>78 标识域类型TC_ENDBLOCKDATA ，因为属性个数为0，所以对象数据结束</li>
+<li>70 再没有父类的标识</li>
+<li>77  对象数据块开始，TC_BLOCKDATA</li>
+<li>08 标识数据长度为8个字节</li>
+<li>00 0001 5356 b659 b7 标识new Date()的对象时间戳long型，占用8个字节</li>
+<li>78 TC_ENDBLOCKDATA 对象数据库结束标识</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">objectOutputStream.writeObject(<span class="keyword">new</span> ObjectSaver(“测试类”,<span class="number">30</span>))</span><br></pre></td></tr></table></figure>
+<ol>
+<li>7372 0037 表示TC_OBJECT 和 TC_CLASSDESC ，且类名称长度为55个字节</li>
+<li>636f<br>  ​    6d2e 6a61 7661 2e64 656d 6f2e 7365 7269<br>  ​    616c 697a 6162 6c65 2e53 6572 6961 6c69<br>  ​    7a61 626c 6554 6573 7424 4f62 6a65 6374<br>  ​    5361 7665 72<br>  ​    表示类名值：com.java.demo.serializable.SerializableTest$ObjectSaver</li>
+<li>eb bbba f5cb 5ec7 4b 标识ObjectSaver对象序列化ID的类型为long型，占用8个字节 ，值为-1460368089309853877L，因为uid为静态属性，所以属于类元信息一部分</li>
+<li>02 这一个字节可能有十种值标识，其中02标识SC_SERIALIZABLE，此类继承了Serializable接口</li>
+<li>0003 标识类属性个数为 3 个，包含this；</li>
+<li>49 域类型，49转十进制为73，73在ASC码中对应的是 I ，因为old为int类型</li>
+<li>00 03 标识属性名称长度为3个字节</li>
+<li>6f 6c64 标识属性名称为 old</li>
+<li>4c 域类型，4c转十进制为76，76在ASC码中对应的是 L，因为name为String对象</li>
+<li>00 04 标识属性名称长度为4个字节,name字符占四个字符</li>
+<li>6e 616d 65 标识属性名称的值 name</li>
+<li>74 标识TC_STRING一个新的字符串</li>
+<li>0012 域类型长度为18个字节</li>
+<li>4c6a 6176 612f 6c61 6e67 2f53 7472 696e<br>​       673b<br>​       对象类型签名 Ljava/lang/String;  包含封号</li>
+<li>4c 域类型，4c转十进制为76，76在ASC码中对应的是 L</li>
+<li>00 06 标识属性名称长度为6个字节</li>
+<li>74 6869 7324 30  标识字符串 this$0</li>
+<li>74 标识TC_STRING一个新的字符串</li>
+<li>002d 域类型长度为45个字节</li>
+<li>4c63<br>​       6f6d 2f6a 6176 612f 6465 6d6f 2f73 6572<br>​       6961 6c69 7a61 626c 652f 5365 7269 616c<br>​       697a 6162 6c65 5465 7374 3b<br>​       Lcom/java/demo/serializable/SerializableTest;</li>
+<li>78  标识域类型TC_ENDBLOCKDATA</li>
+<li><code>上面为之类ObjectSaver的描述信息和元信息，下面为父类SerializableTest的描述信息和元信息</code></li>
+<li>72 标识TC_CLASSDESC</li>
+<li>002b 标识类名称长度为43个字节</li>
+<li>63<br>​       6f6d 2e6a 6176 612e 6465 6d6f 2e73 6572<br>​       6961 6c69 7a61 626c 652e 5365 7269 616c<br>​       697a 6162 6c65 5465 7374<br>​       标识类字符串：com.java.demo.serializable.SerializableTest</li>
+<li>1ae4 7592 b513 4860  标识ObjectSaver对象序列化ID的类型为long型，占用8个字节 ，值为-1937803012639770720L</li>
+<li>02 这一个字节可能有十种值标识，其中02标识SC_SERIALIZABLE，此类继承了Serializable接口</li>
+<li>00 01 标识类属性个数为1个</li>
+<li>49 域类型，49转十进制为73，73在ASC码中对应的是 I ，因为old为int类型</li>
+<li>0006 标识属性名称长度为6个字节</li>
+<li>6661 7468 6572 标识father六个字符；</li>
+<li>7870 TC_ENDBLOCKDATA 对象数据库结束标识，且没有父类</li>
+</ol>
+<h5 id="第三部分："><a href="#第三部分：" class="headerlink" title="第三部分："></a>第三部分：</h5><p>接下来是对象属性域的值部分，按照从父类到子类的顺序写入域的值</p>
+<ol>
+<li>0000 0001 标识的十进制为1，对应父类father的值为1</li>
+<li>0000 001e 标识十进制为30，标识之类old的值为30</li>
+<li>74 标识TC_STRING一个新的字符串</li>
+<li>0009 标识占用9个字节</li>
+<li>e6b5 8be8 af95 e7b1 bb 标识字符“测试类”</li>
+<li>73 71  标识TC_OBJECT  TC_REFERENCE</li>
+<li>007e 0006 0000 0000</li>
+</ol>
+<h4 id="总结-Java序列化算法的基本步骤"><a href="#总结-Java序列化算法的基本步骤" class="headerlink" title="总结 Java序列化算法的基本步骤"></a>总结 Java序列化算法的基本步骤</h4><ul>
+<li>输出序列化的头部信息，包括序列化协议的幻数和版本；</li>
+<li>基本类型按照一字节的类型标识、两字节类型长度、N个字节值</li>
+<li>基本对象类型，7372标识OBJECT和CLASSDESC，两字节类型长度，8字节uid，一些辅助信息</li>
+<li>复杂对象类型，第一步按照由子类到父类的顺序，递归的输出类的描述信息，知道不再有父类为止；类描述信息按照类元数据，类属性信息的顺序写入序列化流中；第二步按照由父类到之类的顺序，递归的输出对象域对象域的实际数据值；而对象的属性信息是按照基本类型到java对象类型的顺序写入序列化流中，其中java对象类型的属性会从第一步重新开始递归的输出，知道不再存在java对象类型的属性。</li>
 </ul>
-<p>GC 的组合类型（每个参数类型都对应了YGC、FGC采用的GC策略）：</p>
-<table>
-<thead>
-<tr>
-<th>参数</th>
-<th>描述</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>UseSerialGC</td>
-<td>虚拟机运行在Client模式的默认值，打开此开关参数后，使用Serial+Serial Old收集器组合进行垃圾收集。</td>
-</tr>
-<tr>
-<td>UseParNewGC</td>
-<td>打开此开关参数后，使用ParNew+Serial Old收集器组合进行垃圾收集。</td>
-</tr>
-<tr>
-<td>UseConcMarkSweepGC</td>
-<td>打开此开关参数后，使用ParNew+CMS+Serial Old收集器组合进行垃圾收集。Serial Old作为CMS收集器出现Concurrent Mode Failure的备用垃圾收集器。</td>
-</tr>
-<tr>
-<td>UseParallelGC</td>
-<td>虚拟机运行在Server模式的默认值，打开此开关参数后，使用Parallel Scavenge+Serial Old收集器组合进行垃圾收集。</td>
-</tr>
-<tr>
-<td>UseParallelOldGC</td>
-<td>打开此开关参数后，使用Parallel Scavenge+Parallel Old收集器组合进行垃圾收集。</td>
-</tr>
-</tbody>
-</table>
-<p>查看我们小二后台的jvm参数设置，我们使用的是CMS方式：</p>
-<p><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/5bb973bcf6eefcfd36fdedbc1a34a75e.png" alt=""></p>
-<p>-XX:+UseConcMarkSweepGC 表示使用CMS策略；CMS策略默认只做标记-清除，并不做压缩，如果期望FGC的时候，同时做压缩，解决内存碎片的问题，可以采用的方式是添加参数：</p>
-<blockquote>
-<p>-XX:+UseCMSCompactAtFullCollection；</p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2016/03/09/Java/2016-03-09-byte-code-java-serailze/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-Program/2016-02-26-distributed-system-id-generator" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2016/02/26/Program/2016-02-26-distributed-system-id-generator/">分布式系统高效唯一ID生成方案</a>
+    </h1>
+  
+
+        
+        <a href="/2016/02/26/Program/2016-02-26-distributed-system-id-generator/" class="archive-article-date">
+  	<time datetime="2016-02-25T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2016-02-26</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <blockquote>
+<p>背景：在分布式系统中，对于订单ID如何保证全局唯一地高效的生成，并对性能影响不大的情况下，利于建立索引和业务使用？</p>
 </blockquote>
-<p>-XX:CMSInitiatingOccupancyFraction=80 表示只有在第一次Old区使用率超过80%时，自动触发CMS GC，后面都是使用HotSpot VM自动计算出来的值。</p>
-<p>-XX:+UseCMSInitiatingOccupancyOnly 表示命令JVM不基于运行时收集的数据来启动CMS垃圾收集周期。而是，当该标志被开启时，JVM通过CMSInitiatingOccupancyFraction的值进行每一次CMS收集，而不仅仅是第一次。</p>
-<p>-XX:+CMSClassUnloadingEnabled 相对于并行收集器，CMS收集器默认不会对永久代进行垃圾回收。如果希望对永久代进行垃圾回收，可用设置标志-XX:+CMSClassUnloadingEnabled。在早期JVM版本中，要求设置额外的标志-XX:+CMSPermGenSweepingEnabled。注意，即使没有设置这个标志，一旦永久代耗尽空间也会尝试进行垃圾回收，但是收集不会是并行的，而再一次进行Full GC。<br>如果想更深入了解CMS收集器的原理，可以参考：<a href="http://ifeve.com/useful-jvm-flags-part-7-cms-collector/" target="_blank" rel="noopener">http://ifeve.com/useful-jvm-flags-part-7-cms-collector/</a></p>
-<p><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/aa638667a77acf42f9f8f2f9f96fe781.png" alt=""></p>
-<p>从上图中可以看出，Old区满了，即将做一次FGC，如果FGC后内存还是满了，就会触发OutOfMemory。</p>
+<h4 id="方案一：使用数据库主键ID"><a href="#方案一：使用数据库主键ID" class="headerlink" title="方案一：使用数据库主键ID"></a>方案一：使用数据库主键ID</h4><p>优势：实现简单；<br>弊端：使用数据库增加写库的压力，生成订单的上限受限于数据库的写性能上限；扩展性差；</p>
+<h4 id="方案二：单点批量生成订单号的服务；"><a href="#方案二：单点批量生成订单号的服务；" class="headerlink" title="方案二：单点批量生成订单号的服务；"></a>方案二：单点批量生成订单号的服务；</h4><p>优势：批量降低了数据库的读写压力<br>弊端：服务单点风险；</p>
+<h4 id="方案三：使用UUID"><a href="#方案三：使用UUID" class="headerlink" title="方案三：使用UUID"></a>方案三：使用UUID</h4><p>优势：本地生成ID，不进行远程调用，延迟低；<br>弊端：无法保证趋势增长；uuid过长且建立索引效率低下；64位太长；</p>
+<h4 id="方案四：使用毫秒数"><a href="#方案四：使用毫秒数" class="headerlink" title="方案四：使用毫秒数"></a>方案四：使用毫秒数</h4><p>优势：本地生成ID，不进行远程调用，延迟低；ID为整数利于建立索引；<br>弊端：并发超过1000，可能会重复；<br>优化方案：使用LRU Cache存储最近生成的100Key，去除后先判断是否重复；进一步降低重复的可能性；但是无法根本上解决高并发下的重复；</p>
+<h4 id="方案五：订单号分段表示具体含义"><a href="#方案五：订单号分段表示具体含义" class="headerlink" title="方案五：订单号分段表示具体含义"></a>方案五：订单号分段表示具体含义</h4><p>方案描述：使用39bit表示毫秒数、4bit表示业务线、7bit表示机器等<br>优势：实现简单，且重复可能性很低；<br>弊端：订单长度过长，不利于业务使用；<br>方案六：使用Redis服务+毫秒数双重方案<br>优势：使用redis的自增序列特性，每次获取一定数量的数据（1000个），降低了每次调用Redis的开销；当Redis挂了，使用基于毫秒数的本地生成ID优化方案；<br>弊端：redis挂了后，订单号的重复性不可避免；</p>
+<h4 id="总结："><a href="#总结：" class="headerlink" title="总结："></a>总结：</h4><p>我们在设计分布式全局唯一单号的时候，不仅需要考虑生成单号的是否重复性，还要考虑生成时的性能开销、是否有容灾方案、是否便于建立索引、是否利于业务使用等。基于这些点的考虑，我们采用了方案六作为线上的唯一生成方案，并把此方案作为一个业务隔离的二方库，可以提供给不同业务方式用；</p>
 
       
 
@@ -818,7 +1011,7 @@ Lcom/java/demo/serializable/SerializableTest;
 		<ul class="article-tag-list">
 			 
         		<li class="article-tag-list-item">
-        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
+        			<a href="/categories/Program//" class="article-tag-list-link color3">Program</a>
         		</li>
       		
 		</ul>
@@ -827,7 +1020,7 @@ Lcom/java/demo/serializable/SerializableTest;
 
       
         <p class="article-more-link">
-          <a class="article-more-a" href="/2018/11/09/Java/2015-03-26-java-mem-visualization/">展开全文 >></a>
+          <a class="article-more-a" href="/2016/02/26/Program/2016-02-26-distributed-system-id-generator/">展开全文 >></a>
         </p>
       
 
@@ -857,32 +1050,41 @@ Lcom/java/demo/serializable/SerializableTest;
 
 
   
-    <article id="post-Java/2015-06-02-java-singleton-four-method" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
+    <article id="post-Think/2016-01-03-2016-my-success-and-fail" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
   <div class="article-inner">
     
       <header class="article-header">
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2018/11/09/Java/2015-06-02-java-singleton-four-method/">Java 中的单例模式</a>
+      <a class="article-title" href="/2016/01/03/Think/2016-01-03-2016-my-success-and-fail/">二零一五，我的失败与伟大</a>
     </h1>
   
 
         
-        <a href="/2018/11/09/Java/2015-06-02-java-singleton-four-method/" class="archive-article-date">
-  	<time datetime="2018-11-09T13:48:02.814Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-11-09</time>
+        <a href="/2016/01/03/Think/2016-01-03-2016-my-success-and-fail/" class="archive-article-date">
+  	<time datetime="2016-01-02T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2016-01-03</time>
 </a>
         
       </header>
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h4 id="方案一：非延迟加载单例类"><a href="#方案一：非延迟加载单例类" class="headerlink" title="方案一：非延迟加载单例类"></a>方案一：非延迟加载单例类</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Singleton</span> </span>&#123;  </span><br><span class="line">　　<span class="function"><span class="keyword">private</span> <span class="title">Singleton</span><span class="params">()</span></span>&#123;&#125;  </span><br><span class="line">　　<span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Singleton instance = <span class="keyword">new</span> Singleton();  </span><br><span class="line">　　<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Singleton <span class="title">getInstance</span><span class="params">()</span> </span>&#123;</span><br><span class="line">　　　　<span class="keyword">return</span> instance; 　　</span><br><span class="line">　　&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h4 id="方案二：简单的同步延迟加载"><a href="#方案二：简单的同步延迟加载" class="headerlink" title="方案二：简单的同步延迟加载"></a>方案二：简单的同步延迟加载</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Singleton</span> </span>&#123;   </span><br><span class="line">　　<span class="keyword">private</span> <span class="keyword">static</span> Singleton instance = <span class="keyword">null</span>;  </span><br><span class="line">　　<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">synchronized</span> Singleton <span class="title">getInstance</span><span class="params">()</span> </span>&#123;</span><br><span class="line">　　　　<span class="keyword">if</span> (instance == <span class="keyword">null</span>)</span><br><span class="line">　　　　　　instance ＝ <span class="keyword">new</span> Singleton();</span><br><span class="line">　　　　<span class="keyword">return</span> instance; 　　</span><br><span class="line">　　&#125;   </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h4 id="方案三：双重检查成例延迟加载"><a href="#方案三：双重检查成例延迟加载" class="headerlink" title="方案三：双重检查成例延迟加载"></a>方案三：双重检查成例延迟加载</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Singleton</span> </span>&#123;   </span><br><span class="line">　　<span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">volatile</span> Singleton instance = <span class="keyword">null</span>;  </span><br><span class="line">　　<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Singleton <span class="title">getInstance</span><span class="params">()</span> </span>&#123;</span><br><span class="line">　　　　<span class="keyword">if</span> (instance == <span class="keyword">null</span>) &#123;</span><br><span class="line">　　　　　　　　<span class="keyword">synchronized</span> (Singleton.class) &#123;</span><br><span class="line">　　　　　　　　　　　　<span class="keyword">if</span> (instance == <span class="keyword">null</span>) &#123;</span><br><span class="line">　　　　　　　　　　　　　　　　instance ＝ <span class="keyword">new</span> Singleton();</span><br><span class="line">　　　　　　　　　　　　&#125;</span><br><span class="line">　　　　　　　　&#125;</span><br><span class="line">　　　　&#125;</span><br><span class="line">　　　　<span class="keyword">return</span> instance; 　　</span><br><span class="line">　　&#125;   </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>为什么不将 synchronized 关键字加载静态方法上呢？原因是，如果加载方法上，每次获取都会加锁，效率降低了很多。如果加载内部为空的方法里面，则只是在初始化的时候加锁一次。在可能的情况下,一般尽量将要同步的代码最小化, 这样可以达到线程的阻塞最小化。</p>
-<h4 id="方法四：类加载器延迟加载"><a href="#方法四：类加载器延迟加载" class="headerlink" title="方法四：类加载器延迟加载"></a>方法四：类加载器延迟加载</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Singleton</span> </span>&#123;   </span><br><span class="line">　　<span class="keyword">private</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Holder</span> </span>&#123;</span><br><span class="line">　　  <span class="keyword">static</span> <span class="keyword">final</span> Singleton instance = <span class="keyword">new</span> Singleton();</span><br><span class="line">　　&#125;  </span><br><span class="line"></span><br><span class="line">　　<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Singleton <span class="title">getInstance</span><span class="params">()</span> </span>&#123;</span><br><span class="line">　　　　<span class="keyword">return</span> Holder.instance; 　　</span><br><span class="line">　　&#125;   </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>推荐方式四，利用内部类初始化时才进行单例类的初始化，实现了延迟加载，而且防止了并发，且避免使用锁的开销。</p>
+        <p>回顾2015这一年，感觉自己起起伏伏，有过激情不顾一切的奋斗，有过一蹶不振的低沉，心情的变化起伏跟这一年的股市走线很像，经历了超出预期的大牛市后，出现了看一切都绝望的段崖般跳水。现在回想起来并不一定是坏事，创业需要激情，但是激情过后需要对生存本质的思考，关键是如何从低沉期度过，寻找到下一个支撑点。</p>
+<p>####【不顾一切的加班】<br><img src="/images/posts/20160103/2015-fengqu-hard-work.jpg" alt=""><br>从去年决定加入创业团队以来，公司业务一直处于高速发展期，团队整体环境还不错，有节凑的项目规划、执行、上线，大家的注意力也是跟随的公司业务发展不断前进。这段时间一直维持到7月份。那个时候每天工作到晚上10点多，回去了可能继续工作，很多时间到2~3点才休息，第二天依然亢奋的去做事情。有一次，为了赶一个项目的进度，周日从杭州回到上海，晚上加班到第二天5点完成任务。当时没觉得这种节奏有什么问题，但是现在回归头来想想，发现问题挺多的，首先，我让我的状态变得不可持续，长时间的透支了自己的身体，致使年末身体出现各种不适，其次，过度的沉溺于业务中，忘记了自身的发展的思考，年末总结的时候哀叹“一年来没学到什么东西”，技术上的踏步更加剧了我未来的恐惧。</p>
+<p>这段时间的经历也并不是没有收获，我对我负责的项目还是比较用心的，跟产品、运营同学合作也非常融洽，大家对我也表示了一致的认可。好几个同学都说，如果今年评选优秀员工，一定会选我，这个对我的一种肯定。在阿里，它教会了我让他人变得简单，用自己的技术能力给他人以帮助，共同提高效率的工作模式；你再努力让别人工作更轻松的时候，你的工作也会在一定程度上变得轻松，这些值得坚持的事情还得继续坚持。</p>
+<p>我不反对加班，但反对沉溺于加班而忘记了为什么加班，<strong>“吾日三省吾身”，关注自身成长，在日常工作中实践成长的过程，努力了，才不会让未来的自己恐惧。保持良好的作息规律，加强锻炼，是我接下来需要做的事情，让自己找到工作和生活的一个平衡点</strong>。</p>
+<p>####【搬新家&amp;结婚】<br><img src="/images/posts/20160103/2015-jiehongzhao.jpg" alt=""><br>2015年注定是我难忘的一年，5月份的时候，我搬进了自己在杭州新家，摆脱了租房的不稳定，虽然远离市区，但小区环境确实称赞，购买这套房只为自住不为投资，一开始还会关注小区房价的走势，担心自己是不是买贵了，会不会吃了大亏，后来想想，即使我每天看24个小时房市变化，对我们小区有帮助吗，想通了也就不再关心了。</p>
+<p>在我11年第一次到杭州的时候，就被杭州的文化气息所陶醉，我跟自己说我以后一定要在这个城市落下来，这就是我奋斗的目标，这不是为了证明给大山里面的邻里街坊看，只为内心中逃离了偏僻落后的农村追求更加文明和前沿的大城市的憧憬。我一直认为我是幸运的，相比儿时的伙伴们，我拥有了更多的选择机会，他们背负了太多的压力和责任。</p>
+<p>十一，我升级了跟女朋友长达7~8年的恋爱，跟她正式步入了婚姻殿堂，虽然在没能给她豪华艳丽的结婚排场，但我以一种农村农乡的方式给她呈现了拜天地的热闹场景，现在回想起这段记忆，我都像吃了蜜一样甜。我可能不能给她大富大贵，但是我一定会努力，让自己成为一个上进的男人，让她值得依托。</p>
+<p>这一年，我一心投入到工作，似乎忘记了家庭的经营，伯昊说的很对，<strong>幸福的婚姻是需要用心去经营的，这个不比工作简单，需要花时间做，一点一滴都会成为幸福生活的影响因子</strong>。2016年，我在我的GTD工具中增加了一项，叫“生活经营”，也会像给自己布置学习任务一样，制定一些计划在与老婆的共同生活之中。这一年，我完成了人生中的2大事情，置业和婚姻，自己心底安定了很多，很多时候，我们觉得自己伟大不一定需要做出浑浑烈烈见天动地的大事情，选择舒适的生活环境、跟心爱的人生活在一起就是伟大。</p>
+<p>####【选择坚持或放弃】<br><img src="/images/posts/20160103/2015-fengqu-xiaowa.jpg" alt=""><br><strong>出发的目的已在半途中迷失了，剩下的激情便也成了迷路的飞矢。</strong>下半年，公司发展收到外部一些因素的制约，资金捉襟见肘，内部运营团队撤离，一时感觉公司遥遥可危，再加上外部一些用户和媒体对我们公司的期望值降级，更动摇了我坚持走下去的决心，不是我为了躲避危险，没有责任感不能跟公司共同度过难关，而是一时没有找到支撑我继续下去的点，一切的外部因素都告诉我回到阿里会有更好的钱途，但内心又有一颗不干的心，不愿就此放弃。但<strong>各种不愉快小事情累加在一起，聚集成了心理噪音，它在很长一段时间内成为我心理萦回不去的主旋律，甚至忘记了其他目的</strong>，而我过于简单的把问题归咎于家庭或者个人发展的原因，没有认真分析到底是什么原因形成了这些心理噪音，如何消除心理噪音，不被其蒙蔽双眼影响自身的长远发展。好的一面是现在相比半年前，我更加信任了团队，敢于跟Leader讲真话，以一种更加真诚的方式交流，只要我觉得对我们有利的事情，我就会去做。</p>
+<p>我们的团队出现了问题，值得庆幸的是大家都意识到了，都在用自己的行动力促使事情朝好的一面发展。在这件事情我做做的就不太好，没能发挥出正能量，有时候还起到了反作用。之所以出现这种情况，我认为是团队管理的缺陷，我也同样需要被管理和正确的引导。</p>
+<p>很多时候我会有一点点后悔放弃了阿里高新&amp;继续深入学习技术的机会，选择投入到创业的大潮之中，但是又想想，这点放弃算什么呢，跟其他人相比，我的放弃算是小的了，至于钱，没必要过早把自己逼到一切朝钱看得角度，工作中有更美好的事情值得追求。有一句话叫做“你今天放弃的一切，以后都会以另外一种方式馈赠给你”，不纠结，放弃舒适的环境并不一定是坏事情。</p>
+<p>当我这次再次面对选择的时候，我没有像去年从阿里离职的一时头热，而经过了更多的思考，首先我会去与留的各种利弊全部罗列出来，跟老婆进行商量，共同决策，我内心已经有了一个选择的想法，再跟老婆的沟通中稍微带一下，当然我也会尊重她得看法，毕竟以后的生活是两个人的，不再为我一个人生活。<strong>在面临选择的时候，我需要结合自己长远的发展规划，认清自己，消灭选择，然后让自己尽量进入到这个圈子，结识上赏识的人，跟着大家一起集团性的成长。</strong></p>
+<p>留在现有的团队，2016年需要学习和进步的地方还非常多，有太多的机会让我在2016年里可以快速成长，前提是我是否做好了准备。看看身边的人那些还在不停奋斗的人，我有神马理由不努力呢？</p>
+<p>总结2015年，感觉自己看书和思考的太少，这也是我感到恐惧的根本原因，消除它的唯一办法就是迎面直击，多看书，充实自己的大脑，多思考，把学到的东西转换为自己的技能。</p>
+<p>回顾、总结是为了能够走的更远，希望在轻装上阵的2016能够走的更远。</p>
 
       
 
@@ -897,7 +1099,7 @@ Lcom/java/demo/serializable/SerializableTest;
 		<ul class="article-tag-list">
 			 
         		<li class="article-tag-list-item">
-        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
+        			<a href="/categories/Think//" class="article-tag-list-link color1">Think</a>
         		</li>
       		
 		</ul>
@@ -906,344 +1108,7 @@ Lcom/java/demo/serializable/SerializableTest;
 
       
         <p class="article-more-link">
-          <a class="article-more-a" href="/2018/11/09/Java/2015-06-02-java-singleton-four-method/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-Java/2015-03-25-crm-cpu-high-analysis" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/11/09/Java/2015-03-25-crm-cpu-high-analysis/">小二后台CPU使用率超高的问题排查</a>
-    </h1>
-  
-
-        
-        <a href="/2018/11/09/Java/2015-03-25-crm-cpu-high-analysis/" class="archive-article-date">
-  	<time datetime="2018-11-09T13:48:02.813Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-11-09</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>排查方法：</p>
-<h4 id="首先找到cpu使用率高的进程："><a href="#首先找到cpu使用率高的进程：" class="headerlink" title="首先找到cpu使用率高的进程："></a>首先找到cpu使用率高的进程：</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">top</span><br></pre></td></tr></table></figure>
-<p><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/3b592916b5baec5553bf6076f5966a32.png" alt=""></p>
-<h4 id="查看进程对应的应用信息："><a href="#查看进程对应的应用信息：" class="headerlink" title="查看进程对应的应用信息："></a>查看进程对应的应用信息：</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ps -ef |grep 进程id</span><br></pre></td></tr></table></figure>
-<p><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/17d53d36e9a5222ef2b730a9ce5c1eae.png" alt=""><br>发现是小二后台的进程，由于没有配置gc日志，所以看不当gc日志，但是可通过其他方法排查；</p>
-<h4 id="打印堆栈信息，查找占用大量CPU的线程："><a href="#打印堆栈信息，查找占用大量CPU的线程：" class="headerlink" title="打印堆栈信息，查找占用大量CPU的线程："></a>打印堆栈信息，查找占用大量CPU的线程：</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">jstack</span><br></pre></td></tr></table></figure>
-<h4 id="查看GC情况："><a href="#查看GC情况：" class="headerlink" title="查看GC情况："></a>查看GC情况：</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">jstat -gc</span><br></pre></td></tr></table></figure>
-<p>每列的含义：</p>
-<p>S0C Current survivor space 0 capacity (KB). 当前survivor0的容量</p>
-<p>S1C Current survivor space 1 capacity (KB). 当前survivor1的容量</p>
-<p>S0U Survivor space 0 utilization (KB). survivor0的使用</p>
-<p>S1U Survivor space 1 utilization (KB). survivor1的使用</p>
-<p>EC Current eden space capacity (KB). 当前eden的容量</p>
-<p>EU Eden space utilization (KB). eden的使用</p>
-<p>OC Current old space capacity (KB). 当前old的容量</p>
-<p>OU Old space utilization (KB). old的使用</p>
-<p>PC Current permanent space capacity (KB). 当前perm的容量</p>
-<p>PU Permanent space utilization (KB). perm的使用</p>
-<p>YGC Number of young generation GC Events. young gc的次数</p>
-<p>YGCT Young generation garbage collection time. young gc的总时间</p>
-<p>FGC Number of full GC events. full gc的次数</p>
-<p>FGCT Full garbage collection time. full gc的总时间</p>
-<p>GCT Total garbage collection time. 所有gc的总时间</p>
-<p>从上图看到 Yong GC 次数不变，但是FGC的次数几乎每4s一次，一般FGC的触发是由于YGC触发，但是这个就比较特殊了，难道是主动调用了FGC？不会呀，从我们的启动脚本上看，我们禁止了主动调用GC(-XX:+DisableExplicitGC)。<br>重启后，发现没有再频繁的FGC了，恢复了正常，此时我们也同时开启了GC日志（-verbose:gc -Xloggc:/home/admin/logs/gc.log）。</p>
-<p><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/babc327d486ccbce313f8b16ce951f7d.png" alt=""></p>
-<p>但是一天后又出现了同样的情况，CPU使用率飙高，FGC频繁，此时内存使用为1.3G。<br>那有没有可能是大对象在Eden内存不够分配，直接进入Old区，而Old区也不够触发了FGC呢？</p>
-<p>通过分析，这种情况不台可能，首先我们看了Eden和Old区还剩余大量内存，通过Jmap也没有发现大对象。其次，我们使用的GC收集器是CMS，这种情况，CMS必定会触发YGC，因为CMS无法回收New区（至于为什么还需要查一些文档）。</p>
-<p>根据之前毕玄大师给出的GC频繁的排查方法：</p>
-<p><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/31d9dbfe8fb11073e7180fbb5eb069f6.png" alt=""></p>
-<p>CMS GC频繁 的原因可能是缺少UseCMSInitiatingOccupancyOnly参数，而触发了JVM的悲观策略。</p>
-<h4 id="那什么是JVM的悲观策略呢？"><a href="#那什么是JVM的悲观策略呢？" class="headerlink" title="那什么是JVM的悲观策略呢？"></a>那什么是JVM的悲观策略呢？</h4><p>JVM自动触发GC(JVM的动态策略)，是基于之前GC的频率以及旧生代的增长趋势来评估决定什么时候开始执GC；如果不希望JVM自行决定，可以通过-XX：UseCMSInitiatingOccupancyOnly=true来制定；</p>
-<p>旧生代剩余的空间（available）大于新生代中使用的空间（max_promotion_in_bytes），或者大于之前平均晋升的old的大小（av_promo），返回false。cms gc是每隔一个周期（默认2s）就会做一次这个检查，如果为false，则不执行YGC，而触发cms gc。</p>
-<p><strong>对于悲观策略的解释换句话说：</strong></p>
-<p>当Minor GC时如果存活对象过多，无法完全放入Survivor区，就会向老年代借用内存存放对象，以完成Minor GC。在触发Minor GC时，虚拟机会先检测之前GC时租借的老年代内存的平均大小是否大于老年代的剩余内存，如果大于，则将Minor GC变为一次Full GC，如果小于，则查看虚拟机是否允许担保失败，如果允许担保失败，则只执行一次Minor GC，否则也要将Minor GC变为一次Full GC。说白了，新生代放不下就会借用老年代的空间来进行GC。<br>查看GC的log日志：（由于被重启了所以被请清理掉了，但是看到CMS后的内存比CMS前的还大），类似：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">2015</span>-<span class="number">03</span>-<span class="number">26</span>T18:<span class="number">18</span>:<span class="number">06.349</span>+<span class="number">0800</span>: <span class="number">7.092</span>: [GC <span class="number">7.092</span>: [ParNew: <span class="number">471872</span>K-&gt;<span class="number">471872</span>K(<span class="number">471872</span>K), <span class="number">0.0000420</span> secs]<span class="number">7.092</span>: [CMS: <span class="number">366666</span>K-&gt;<span class="number">524287</span>K(<span class="number">524288</span>K), <span class="number">27.0023450</span> secs] <span class="number">838538</span>K-&gt;<span class="number">829914</span>K(<span class="number">996160</span>K), [CMS Perm : <span class="number">3196</span>K-&gt;<span class="number">3195</span>K(<span class="number">131072</span>K)], <span class="number">27.0025170</span> secs]</span><br></pre></td></tr></table></figure>
-<p>ParNew的时间特别短，jvm在FGC前会首先确认old区是不是足够大，如果不够大，这次YGC直接返回，进行MSC。<br>综合以上判断可能是触发了JVM的悲观策略，所以在JVM的启动参数中添加了-XX：UseCMSInitiatingOccupancyOnly=true，在观察一段时间内存使用情况。</p>
-<h4 id="其他思考："><a href="#其他思考：" class="headerlink" title="其他思考："></a>其他思考：</h4><p>为什么生产环境只有小二后台出现了这个情况，其他应用没有呢？</p>
-<p>目前我们小二后台配置的Heap的大小为1G，GC的策略为CMS方式，但是毕玄写过一片文章叫做《<a href="http://hellojava.info/?p=142" target="_blank" rel="noopener">为什么不建议&lt;=3G的情况下使用CMS GC</a>》；而其他应用大部分配置的Heap区大小为2G；<br>淘宝线上应用基本配置均为4核8G，配置的Heap大小为4G，所以一般GC采用CMS，并开启UseCMSInitiatingOccupancyOnly，非常明确的GC策略，方便问题排查。</p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2018/11/09/Java/2015-03-25-crm-cpu-high-analysis/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-Java/2013-07-04-httpclient" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/11/09/Java/2013-07-04-httpclient/">HTTP学习笔记（二）之HttpClient</a>
-    </h1>
-  
-
-        
-        <a href="/2018/11/09/Java/2013-07-04-httpclient/" class="archive-article-date">
-  	<time datetime="2018-11-09T13:48:02.813Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-11-09</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h4 id="HttpClient-是什么："><a href="#HttpClient-是什么：" class="headerlink" title="HttpClient 是什么："></a>HttpClient 是什么：</h4><p>HttpClient 是 Apache Jakarta Common 下的子项目，用来提供高效的、最新的、功能丰富的支持 HTTP 协议的客户端编程工具包，并且它支持 HTTP 协议最新的版本和建议。</p>
-<h4 id="HttpClient-主要功能："><a href="#HttpClient-主要功能：" class="headerlink" title="HttpClient 主要功能："></a>HttpClient 主要功能：</h4><p>实现了所有 HTTP 的方法（GET,POST,PUT,HEAD 等）<br>支持自动转向<br>支持 HTTPS 协议<br>支持代理服务器等<br>HttpClient包下面都有那些内容：</p>
-<h4 id="HttpClient-的基本使用方法："><a href="#HttpClient-的基本使用方法：" class="headerlink" title="HttpClient 的基本使用方法："></a>HttpClient 的基本使用方法：</h4><h5 id="Get方法："><a href="#Get方法：" class="headerlink" title="Get方法："></a>Get方法：</h5><p>使用 HttpClient 需要以下 6 个步骤：</p>
-<ol>
-<li>创建 HttpClient 的实例</li>
-<li>创建某种连接方法的实例，在这里是 GetMethod。在 GetMethod 的构造函数中传入待连接的地址</li>
-<li>调用第一步中创建好的实例的 execute 方法来执行第二步中创建好的 method 实例</li>
-<li>读 response</li>
-<li>释放连接。无论执行方法是否成功，都必须释放连接</li>
-<li>对得到后的内容进行处理</li>
-</ol>
-<p>Demo 示例：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//构造HttpClient的实例</span></span><br><span class="line"> HttpClient httpClient = <span class="keyword">new</span> HttpClient();</span><br><span class="line"> <span class="comment">//创建GET方法的实例</span></span><br><span class="line"> GetMethod getMethod = <span class="keyword">new</span> GetMethod(<span class="string">"http://www.ibm.com"</span>);</span><br><span class="line"> <span class="comment">//使用系统提供的默认的恢复策略</span></span><br><span class="line"> getMethod.getParams().setParameter(HttpMethodParams.RETRY_HANDLER,</span><br><span class="line">   <span class="keyword">new</span> DefaultHttpMethodRetryHandler());</span><br><span class="line"> <span class="keyword">try</span> &#123;</span><br><span class="line">  <span class="comment">//执行getMethod</span></span><br><span class="line">  <span class="keyword">int</span> statusCode = httpClient.executeMethod(getMethod);</span><br><span class="line">  <span class="keyword">if</span> (statusCode != HttpStatus.SC_OK) &#123;</span><br><span class="line">   System.err.println(<span class="string">"Method failed: "</span></span><br><span class="line">     + getMethod.getStatusLine());</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">//读取内容</span></span><br><span class="line">  <span class="keyword">byte</span>[] responseBody = getMethod.getResponseBody();</span><br><span class="line">  <span class="comment">//处理内容</span></span><br><span class="line">  System.out.println(<span class="keyword">new</span> String(responseBody));</span><br><span class="line"> &#125; <span class="keyword">catch</span> (HttpException e) &#123;</span><br><span class="line">  <span class="comment">//发生致命的异常，可能是协议不对或者返回的内容有问题</span></span><br><span class="line">  System.out.println(<span class="string">"Please check your provided http address!"</span>);</span><br><span class="line">  e.printStackTrace();</span><br><span class="line"> &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">  <span class="comment">//发生网络异常</span></span><br><span class="line">  e.printStackTrace();</span><br><span class="line"> &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">  <span class="comment">//释放连接</span></span><br><span class="line">  getMethod.releaseConnection();</span><br><span class="line"> &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>注意点：</p>
-<ol>
-<li>HttpClient的恢复策略是指在遇到异常时自动重试的机制，并且可以自定义（通过实现接口HttpMethodRetryHandler来实现）。通过httpClient的方法setParameter设置你实现的恢复策略，demo中使用的是系统提供的默认恢复策略，该策略在碰到IOException的时候将自动重试3次。</li>
-<li>用GetMethod将会自动处理重定向，如果想要把自动处理重定向去掉的话，可以调用方法setFollowRedirects(false)。</li>
-<li>executeMethod返回值是一个整数，表示了执行该方法后服务器返回的状态码；</li>
-<li>获取响应内容的方式有三种：getResponseBody(返回二进制byte流)、getResponseBodyAsString(返回String)、getResponseBodyAsStream(这个方法对返回大量数据处理效率很高)；</li>
-<li>乱码：在使用getResponseBodyAsString容易出现乱码，影响响应内容字符编码的地方有两个：第一，Response的header设置，这里的设置编码可能与html内容编码不符，通过method对象的getResponseCharSet()方法就可以得到http头中的编码信息；第二，Respone的body内容中设置了<code>&lt;meta http-equiv=”Content-Type” content=”text/html; charset=GBK”/&gt;或&lt;?xml version=”1.0″ encoding=”GBK”?&gt;</code>标签，这样也可能与header编码冲突造成乱码。</li>
-<li>释放连接。无论执行方法是否成功，都必须释放连接。</li>
-</ol>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">method.releaseConnection();</span><br></pre></td></tr></table></figure>
-<h5 id="Post方法："><a href="#Post方法：" class="headerlink" title="Post方法："></a>Post方法：</h5><p>PostMethod基本与GetMethod类似；</p>
-<p>不同点：</p>
-<ul>
-<li>POST和PUT，不支持自动重定向，因此需要自己对页面转向做处理。</li>
-</ul>
-<p>Proxy代理服务的使用(host绑定)：<br>在日常工作中很多url的访问都是需要绑定host地址的，使用httpClient如何进行绑定访问？</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">HttpClient httpclient = <span class="keyword">new</span> HttpClient();</span><br><span class="line">           <span class="comment">// 设置HTTP代理IP和端口</span></span><br><span class="line">           httpclient.getHostConfiguration().setProxy(hostIp, hostIpPort);</span><br></pre></td></tr></table></figure>
-<p>支持Https：<br>HttpClient提供了对SSL的支持，允许HttpClient来打开Https连接。</p>
-<p>有两种方法可以打开https连接，第一种就是得到服务器颁发的证书，然后导入到本地的keystore中；另外一种办法就是通过扩展HttpClient的类来实现自动接受证书。</p>
-<p>方法1参考：<a href="http://www.ibm.com/developerworks/cn/opensource/os-httpclient/#N10060" target="_blank" rel="noopener">处理HTTPS协议</a></p>
-<p>方法2：</p>
-<ol>
-<li>实现自己的socket factory，必须实现SecureProtocolSocketFactory接口。</li>
-<li>自定义私有类 TrustAnyTrustManager implements X509TrustManager。</li>
-<li>定义Protocol ，将socket factory注册到 Protocol中。</li>
-</ol>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Protocol myhttps = <span class="keyword">new</span> Protocol(<span class="string">"https"</span>, <span class="keyword">new</span> MySecureProtocolSocketFactory(), <span class="number">443</span>);</span><br><span class="line">        Protocol.registerProtocol(<span class="string">"https"</span>, myhttps);</span><br></pre></td></tr></table></figure>
-<p>Cookie处理：</p>
-<p>通过state获取cookie：httpclient.getState().getCookies();</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">CookieSpec cookiespec = CookiePolicy.getDefaultSpec();</span><br><span class="line">        cookies = cookiespec.match(<span class="string">"login.daily.taobao.net"</span>, hostIpPort, <span class="string">"/"</span>, <span class="keyword">false</span>,</span><br><span class="line">                httpClient.getState().getCookies());</span><br></pre></td></tr></table></figure>
-<p>CookieSpec接口代表了cookie管理的规范。cookiespec.match获取匹配路径下的cookie数组。</p>
-<p>通过state设置cookie:</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">httpclient.getParams().setCookiePolicy(CookiePolicy.RFC_2109);<span class="comment">//RFC_2109是支持较普遍的一个，还有其他cookie协议</span></span><br><span class="line">HttpState initialState = <span class="keyword">new</span> HttpState();</span><br><span class="line">Cookie cookie=<span class="keyword">new</span> Cookie();</span><br><span class="line">cookie.setDomain(<span class="string">"www.balblabla.com"</span>);</span><br><span class="line">cookie.setPath(<span class="string">"/"</span>);</span><br><span class="line">cookie.setName(<span class="string">"多情环"</span>);</span><br><span class="line">cookie.setValue(<span class="string">"多情即无情"</span>);</span><br><span class="line">initialState.addCookie(cookie);</span><br><span class="line">httpclient.setState(initialState);</span><br></pre></td></tr></table></figure>
-<p>cookie协议：RFC 2109（过时的严格策略）、RFC 2965（严格策略的标准符合）、best-match：最佳匹配meta（元）策略(推荐使用)。</p>
-<p>携带cookie进行页面访问：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">postMethod.setRequestHeader(<span class="string">"Cookie"</span>, cookieToString(cookies));</span><br></pre></td></tr></table></figure>
-<p>httpClient本身就可以保持cookie，可以通过同一个httpclient进行页面登录访问，但是对于有页面跳转的只能使用自带cookie进行模拟登录后访问。</p>
-<p>通过HTTP上传文件：<br>httpclient使用了单独的一个HttpMethod子类来处理文件的上传，这个类就是MultipartPostMethod，该类已经封装了文件上传的细节，我们要做的仅仅是告诉它我们要上传文件的全路径即可。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">ArrayList&lt;Part&gt; partArray = <span class="keyword">new</span> ArrayList&lt;Part&gt;();</span><br><span class="line">      <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; params.size(); i++) &#123;</span><br><span class="line">          <span class="keyword">if</span> (params.get(i) <span class="keyword">instanceof</span> FileNameValuePair) &#123;</span><br><span class="line">              partArray.add(<span class="keyword">new</span> FilePart(params.get(i).getName(), ((FileNameValuePair) params.get(i)).getFile()));</span><br><span class="line">          &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">              postMethod.addParameter(params.get(i).getName(), params.get(i).getValue());</span><br><span class="line">          &#125;</span><br><span class="line">      &#125;</span><br><span class="line">      Part[] parts = <span class="keyword">new</span> Part[partArray.size()];</span><br><span class="line">      <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; partArray.size(); i++) &#123;</span><br><span class="line">          parts[i] = partArray.get(i);</span><br><span class="line">      &#125;</span><br><span class="line">      postMethod.setRequestEntity(<span class="keyword">new</span> MultipartRequestEntity(parts, postMethod.getParams()));</span><br><span class="line"></span><br><span class="line">      <span class="keyword">int</span> statusCode = httpclient.executeMethod(postMethod);</span><br></pre></td></tr></table></figure>
-<p>通过HTTP模拟登录：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title">LoginDailyToGetPageWithHost</span><span class="params">(String nick, String psw, String scopeString, String url, List&lt;NameValuePair&gt; params, String hostIp, Integer hostIpPort)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">        Protocol myhttps = <span class="keyword">new</span> Protocol(<span class="string">"https"</span>, <span class="keyword">new</span> MySecureProtocolSocketFactory(), <span class="number">443</span>);</span><br><span class="line">        Protocol.registerProtocol(<span class="string">"https"</span>, myhttps);</span><br><span class="line">        HttpClient httpClient = <span class="keyword">new</span> HttpClient();</span><br><span class="line">        Cookie[] cookies;</span><br><span class="line">        LOGIN_URL = LOGIN_URL + <span class="string">"?redirectURL="</span> + url;</span><br><span class="line">        PostMethod postMethod = <span class="keyword">new</span> PostMethod(LOGIN_URL);</span><br><span class="line">        postMethod.getParams().setParameter(HttpMethodParams.HTTP_CONTENT_CHARSET, <span class="string">"GBK"</span>);</span><br><span class="line">        List&lt;org.apache.commons.httpclient.NameValuePair&gt; nameValues = <span class="keyword">new</span> ArrayList&lt;org.apache.commons.httpclient.NameValuePair&gt;();</span><br><span class="line">        nameValues.add(<span class="keyword">new</span> org.apache.commons.httpclient.NameValuePair(<span class="string">"TPL_username"</span>, nick));</span><br><span class="line">        nameValues.add(<span class="keyword">new</span> org.apache.commons.httpclient.NameValuePair(<span class="string">"TPL_password"</span>, psw));</span><br><span class="line">        nameValues.add(<span class="keyword">new</span> org.apache.commons.httpclient.NameValuePair(<span class="string">"action"</span>, <span class="string">"Authenticator"</span>));</span><br><span class="line">        <span class="comment">/** httpclient post不支持方式重定向,fuck */</span></span><br><span class="line"><span class="comment">//        nameValues.add(new org.apache.commons.httpclient.NameValuePair("TPL_redirect_url", url));</span></span><br><span class="line">        nameValues.add(<span class="keyword">new</span> org.apache.commons.httpclient.NameValuePair(<span class="string">"from"</span>, <span class="string">"tb"</span>));</span><br><span class="line">        nameValues.add(<span class="keyword">new</span> org.apache.commons.httpclient.NameValuePair(<span class="string">"event_submit_do_login"</span>, <span class="string">"anything"</span>));</span><br><span class="line">        nameValues.add(<span class="keyword">new</span> org.apache.commons.httpclient.NameValuePair(<span class="string">"TPL_checkcode"</span>, <span class="string">"8888"</span>));</span><br><span class="line">        nameValues.add(<span class="keyword">new</span> org.apache.commons.httpclient.NameValuePair(<span class="string">"loginType"</span>, <span class="string">"3"</span>));</span><br><span class="line"></span><br><span class="line">        postMethod.setRequestBody(nameValues.toArray(<span class="keyword">new</span> org.apache.commons.httpclient.NameValuePair[nameValues.size()]));</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">int</span> status = httpClient.executeMethod(postMethod);</span><br><span class="line">            System.out.println(status);</span><br><span class="line">            CookieSpec cookiespec = CookiePolicy.getDefaultSpec();</span><br><span class="line">            cookies = cookiespec.match(<span class="string">"login.daily.taobao.net"</span>, hostIpPort, <span class="string">"/"</span>, <span class="keyword">false</span>,</span><br><span class="line">                    httpClient.getState().getCookies());</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            System.out.println(<span class="string">"Exception: "</span> + e.toString());</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            postMethod.releaseConnection();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">int</span> postresult = -<span class="number">1</span>;</span><br><span class="line">        <span class="keyword">if</span> (scopeString != <span class="keyword">null</span>) &#123;</span><br><span class="line">            url = url + <span class="string">"&amp;"</span> + scopeString;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            URI uri = <span class="keyword">new</span> URI(url);</span><br><span class="line">            postMethod.setURI(uri);</span><br><span class="line">            <span class="comment">// 如果不使用cookie 返回状态码 302，跳到i.daily.taobao.net去了，不能直接跳转到我们自己的页面</span></span><br><span class="line">            postMethod.setRequestHeader(<span class="string">"Cookie"</span>, cookieToString(cookies));</span><br><span class="line">            <span class="comment">// 设置HTTP代理IP和端口</span></span><br><span class="line">            httpClient.getHostConfiguration().setProxy(hostIp, hostIpPort);</span><br><span class="line">            <span class="keyword">if</span> (params != <span class="keyword">null</span>) &#123;</span><br><span class="line">                <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; params.size(); i++) &#123;</span><br><span class="line">                    postMethod.addParameter(params.get(i).getName(), params.get(i).getValue());</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            postresult = httpClient.executeMethod(postMethod);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            System.out.println(<span class="string">"Exception: "</span> + e.toString());</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            postMethod.releaseConnection();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> postresult + postMethod.getResponseBodyAsString();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title">cookieToString</span><span class="params">(Cookie[] cookie)</span></span>&#123;</span><br><span class="line">        StringBuffer cookieBuf = <span class="keyword">new</span> StringBuffer(<span class="number">256</span>);</span><br><span class="line">        <span class="keyword">for</span>(Cookie tmpCookie:cookie)&#123;</span><br><span class="line">            cookieBuf.append(tmpCookie).append(<span class="string">";"</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> cookieBuf.toString();</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
-<p>MySecureProtocolSocketFactory 的实现：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MySecureProtocolSocketFactory</span> <span class="keyword">implements</span> <span class="title">SecureProtocolSocketFactory</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> SSLContext sslcontext = <span class="keyword">null</span>;</span><br><span class="line">    <span class="function"><span class="keyword">private</span> SSLContext <span class="title">createSSLContext</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        SSLContext sslcontext=<span class="keyword">null</span>;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            sslcontext = SSLContext.getInstance(<span class="string">"SSL"</span>);</span><br><span class="line">            sslcontext.init(<span class="keyword">null</span>, <span class="keyword">new</span> TrustManager[]&#123;<span class="keyword">new</span> TrustAnyTrustManager()&#125;, <span class="keyword">new</span> java.security.SecureRandom());</span><br><span class="line">        &#125; <span class="keyword">catch</span> (NoSuchAlgorithmException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (KeyManagementException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> sslcontext;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">private</span> SSLContext <span class="title">getSSLContext</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">this</span>.sslcontext == <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">this</span>.sslcontext = createSSLContext();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">this</span>.sslcontext;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> Socket <span class="title">createSocket</span><span class="params">(Socket socket, String host, <span class="keyword">int</span> port, <span class="keyword">boolean</span> autoClose)</span></span></span><br><span class="line"><span class="function">            <span class="keyword">throws</span> IOException, UnknownHostException </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> getSSLContext().getSocketFactory().createSocket(</span><br><span class="line">                socket,</span><br><span class="line">                host,</span><br><span class="line">                port,</span><br><span class="line">                autoClose);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> Socket <span class="title">createSocket</span><span class="params">(String host, <span class="keyword">int</span> port)</span> <span class="keyword">throws</span> IOException,</span></span><br><span class="line"><span class="function">            UnknownHostException </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> getSSLContext().getSocketFactory().createSocket(</span><br><span class="line">                host,</span><br><span class="line">                port);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Socket <span class="title">createSocket</span><span class="params">(String host, <span class="keyword">int</span> port, InetAddress clientHost, <span class="keyword">int</span> clientPort)</span></span></span><br><span class="line"><span class="function">            <span class="keyword">throws</span> IOException, UnknownHostException </span>&#123;</span><br><span class="line">    	<span class="keyword">return</span> getSSLContext().getSocketFactory().createSocket(host, port, clientHost, clientPort);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> Socket <span class="title">createSocket</span><span class="params">(String host, <span class="keyword">int</span> port, InetAddress localAddress,</span></span></span><br><span class="line"><span class="function"><span class="params">            <span class="keyword">int</span> localPort, HttpConnectionParams params)</span> <span class="keyword">throws</span> IOException,</span></span><br><span class="line"><span class="function">            UnknownHostException, ConnectTimeoutException </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (params == <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">"Parameters may not be null"</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">int</span> timeout = params.getConnectionTimeout();</span><br><span class="line">        SocketFactory socketfactory = getSSLContext().getSocketFactory();</span><br><span class="line">        <span class="keyword">if</span> (timeout == <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> socketfactory.createSocket(host, port, localAddress, localPort);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            Socket socket = socketfactory.createSocket();</span><br><span class="line">            SocketAddress localaddr = <span class="keyword">new</span> InetSocketAddress(localAddress, localPort);</span><br><span class="line">            SocketAddress remoteaddr = <span class="keyword">new</span> InetSocketAddress(host, port);</span><br><span class="line">            socket.bind(localaddr);</span><br><span class="line">            socket.connect(remoteaddr, timeout);</span><br><span class="line">            <span class="keyword">return</span> socket;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//自定义私有类</span></span><br><span class="line">    <span class="class"><span class="keyword">class</span> <span class="title">TrustAnyTrustManager</span> <span class="keyword">implements</span> <span class="title">X509TrustManager</span> </span>&#123;</span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">checkClientTrusted</span><span class="params">(X509Certificate[] chain, String authType)</span> <span class="keyword">throws</span> CertificateException </span>&#123;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">checkServerTrusted</span><span class="params">(X509Certificate[] chain, String authType)</span> <span class="keyword">throws</span> CertificateException </span>&#123;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">public</span> X509Certificate[] getAcceptedIssuers() &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">new</span> X509Certificate[]&#123;&#125;;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>HttpClient 使用中的坑：</p>
-<ol>
-<li><p>为什么 返回状态吗 为 200，但是 responebody = null ？<br>原因：在执行完 executeMethod 方法后，立即使用 getMethod.getResponseBodyAsString() 得到的是null，<br>通过在 executeMethod 后面打印出 返回体后在获取 返回内容，这时就能获取到了，添加 if (getresult == HttpStatus.SC_OK) 判断条件后也能获取到，说明 返回值内容不是立即写入的，有延迟。<br>解决方案： 添加 是否成功的判断。</p>
-</li>
-<li><p>在进行请求的发生时，经常会遇到构建url参数时没有添加协议头:http://,这样会抛状态异常。</p>
-</li>
-<li>new HttpGet(url) 时出现 java.net.URISyntaxException 错误？<br>原因：url 中涉及了特殊字符，如‘｜’‘&amp;’等。所以不能直接用String代替URI来访问。必须采用%0xXX方式来替代特殊字符。但这种办法不直观。所以只能先把String转成URL，再能过URL生成URI的方法来解决问题.</li>
-</ol>
-<p>解决方案①：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">URL url = <span class="keyword">new</span> URL(strUrl);</span><br><span class="line">URI  uri = <span class="keyword">new</span> URI(url.getProtocol(),<span class="keyword">null</span>, url.getHost(),url.getPort(), url.getPath(), url.getQuery(), <span class="keyword">null</span>);</span><br><span class="line">HttpClient client    = <span class="keyword">new</span> DefaultHttpClient();</span><br><span class="line">HttpGet httpget = <span class="keyword">new</span> HttpGet(uri);</span><br></pre></td></tr></table></figure>
-<p>有时候会越到 把http://头也给替换掉了，这样就会引发其它异常，所以还有一种比较保险的做法是使用queryString构建参数部分:</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">String url = <span class="string">"http://**.**.com/user/deployPackInfoDetail.htm"</span>;</span><br><span class="line">       String queryString = <span class="string">"buildPackageId="</span>+ buildPackageId;</span><br><span class="line">       GetMethod getMethod = <span class="keyword">new</span> GetMethod(url);</span><br><span class="line">       getMethod.setQueryString(queryString);</span><br></pre></td></tr></table></figure>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2018/11/09/Java/2013-07-04-httpclient/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-Java/2013-04-30-java-final-static" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/11/09/Java/2013-04-30-java-final-static/">Java基础 之 final 和 static</a>
-    </h1>
-  
-
-        
-        <a href="/2018/11/09/Java/2013-04-30-java-final-static/" class="archive-article-date">
-  	<time datetime="2018-11-09T13:48:02.812Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-11-09</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h3 id="final"><a href="#final" class="headerlink" title="final"></a>final</h3><h4 id="1-final变量："><a href="#1-final变量：" class="headerlink" title="1.final变量："></a>1.final变量：</h4><p>当你在类中定义变量时，在其前面加上final关键字，那便是说，这个变量一旦被初始化便不可改变，这里不可改变的意思对基本类型来说是其值不可变，而对于对象变量来说其引用不可再变。其初始化可以在两个地方，一是其定义处，也就是说在final变量定义时直接给其赋值，二是在构造函数中。这两个地方只能选其一，要么在定义时给值，要么在构造函数中给值，不能同时既在定义时给了值，又在构造函数中给另外的值。对象变量不可变是指向对象的地址引用不变，对象内部还是可以变化的。</p>
-<p>当函数参数为final类型时，你可以读取使用该参数，但是无法改变该参数的值。</p>
-<p>另外方法中的内部类在用到方法中的参变量时，此参变也必须声明为final才可使用</p>
-<h4 id="2-final方法"><a href="#2-final方法" class="headerlink" title="2.final方法"></a>2.final方法</h4><p>如果一个类不允许其子类覆盖某个方法，则可以把这个方法声明为final方法。<br>使用final方法的原因有二：<br>第一、把方法锁定，防止任何继承类修改它的意义和实现。<br>第二、高效。编译器在遇到调用final方法时候会转入内嵌机制，大大提高执行效率。</p>
-<h4 id="3-final类"><a href="#3-final类" class="headerlink" title="3.final类"></a>3.final类</h4><p>final类不能被继承，因此final类的成员方法没有机会被覆盖，默认都是final的。在设计类时候，如果这个类不需要有子类，类的实现细节不允许改变，并且确信这个类不会载被扩展，那么就设计为final类。</p>
-<h4 id="4-final-方法变量"><a href="#4-final-方法变量" class="headerlink" title="4.final 方法变量"></a>4.final 方法变量</h4><p>为什么需要在方法变量前添加final，使用场景是什么？参考：《Java基础 之 方法参数传递》</p>
-<h3 id="static"><a href="#static" class="headerlink" title="static"></a>static</h3><p>被static修饰的成员变量和成员方法独立于该类的任何对象。也就是说，它不依赖类特定的实例，被类的所有实例共享。只要这个类被加载，Java虚拟机就能根据类名在运行时数据区的方法区内找到他们。因此，static对象可以在它的任何对象创建之前访问，无需引用任何对象。<br>static变量前可以有private修饰，表示这个变量可以在类的静态代码块中，或者类的其他静态成员方法中使用（当然也可以在非静态成员方法中使用–废话），但是不能在其他类中通过类名来直接引用，这一点很重要。实际上你需要搞明白，private是访问权限限定，static表示不要实例化就可以使用</p>
-<p>用static修饰的代码块表示静态代码块，当Java虚拟机（JVM）加载类时，就会执行该代码块</p>
-<h4 id="1-static变量"><a href="#1-static变量" class="headerlink" title="1.static变量"></a>1.static变量</h4><p>按照是否静态的对类成员变量进行分类可分两种：一种是被static修饰的变量，叫静态变量或类变量；另一种是没有被static修饰的变量，叫实例变量。两者的区别是：<br>对于静态变量在内存中只有一个拷贝（节省内存），JVM只为静态分配一次内存，在加载类的过程中完成静态变量的内存分配，可用类名直接访问（方便），当然也可以通过对象来访问（但是这是不推荐的）。对于实例变量，没创建一个实例，就会为实例变量分配一次内存，实例变量可以在内存中有多个拷贝，互不影响（灵活）。</p>
-<h4 id="2-static方法"><a href="#2-static方法" class="headerlink" title="2.static方法"></a>2.static方法</h4><p>静态方法可以直接通过类名调用，任何的实例也都可以调用，因此静态方法中不能用this和super关键字，不能直接访问所属类的实例变量和实例方法(就是不带static的成员变量和成员成员方法)，只能访问所属类的静态成员变量和成员方法。因为static方法独立于任何实例，因此static方法必须被实现，而不能是抽象的abstract。</p>
-<h4 id="3-static代码块"><a href="#3-static代码块" class="headerlink" title="3.static代码块"></a>3.static代码块</h4><p>static代码块也叫静态代码块，是在类中独立于类成员的static语句块，可以有多个，位置可以随便放，它不在任何的方法体内，JVM加载类时会执行这些静态的代码块，如果static代码块有多个，JVM将按照它们在类中出现的先后顺序依次执行它们，每个代码块只会被执行一次。</p>
-<h4 id="4、static和final一块用表示什么"><a href="#4、static和final一块用表示什么" class="headerlink" title="4、static和final一块用表示什么"></a>4、static和final一块用表示什么</h4><p>static final用来修饰成员变量和成员方法，可简单理解为“全局常量”！<br>对于变量，表示一旦给值就不可修改，并且通过类名可以访问。<br>对于方法，表示不可覆盖，并且可以通过类名直接访问。</p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2018/11/09/Java/2013-04-30-java-final-static/">展开全文 >></a>
+          <a class="article-more-a" href="/2016/01/03/Think/2016-01-03-2016-my-success-and-fail/">展开全文 >></a>
         </p>
       
 
