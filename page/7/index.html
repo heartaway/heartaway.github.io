@@ -727,6 +727,85 @@ Lcom/java/demo/serializable/SerializableTest;
 
 
   
+    <article id="post-Java/2015-06-02-java-singleton-four-method" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/11/09/Java/2015-06-02-java-singleton-four-method/">Java 中的单例模式</a>
+    </h1>
+  
+
+        
+        <a href="/2018/11/09/Java/2015-06-02-java-singleton-four-method/" class="archive-article-date">
+  	<time datetime="2018-11-09T13:48:02.814Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-11-09</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h4 id="方案一：非延迟加载单例类"><a href="#方案一：非延迟加载单例类" class="headerlink" title="方案一：非延迟加载单例类"></a>方案一：非延迟加载单例类</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Singleton</span> </span>&#123;  </span><br><span class="line">　　<span class="function"><span class="keyword">private</span> <span class="title">Singleton</span><span class="params">()</span></span>&#123;&#125;  </span><br><span class="line">　　<span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Singleton instance = <span class="keyword">new</span> Singleton();  </span><br><span class="line">　　<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Singleton <span class="title">getInstance</span><span class="params">()</span> </span>&#123;</span><br><span class="line">　　　　<span class="keyword">return</span> instance; 　　</span><br><span class="line">　　&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="方案二：简单的同步延迟加载"><a href="#方案二：简单的同步延迟加载" class="headerlink" title="方案二：简单的同步延迟加载"></a>方案二：简单的同步延迟加载</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Singleton</span> </span>&#123;   </span><br><span class="line">　　<span class="keyword">private</span> <span class="keyword">static</span> Singleton instance = <span class="keyword">null</span>;  </span><br><span class="line">　　<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">synchronized</span> Singleton <span class="title">getInstance</span><span class="params">()</span> </span>&#123;</span><br><span class="line">　　　　<span class="keyword">if</span> (instance == <span class="keyword">null</span>)</span><br><span class="line">　　　　　　instance ＝ <span class="keyword">new</span> Singleton();</span><br><span class="line">　　　　<span class="keyword">return</span> instance; 　　</span><br><span class="line">　　&#125;   </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="方案三：双重检查成例延迟加载"><a href="#方案三：双重检查成例延迟加载" class="headerlink" title="方案三：双重检查成例延迟加载"></a>方案三：双重检查成例延迟加载</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Singleton</span> </span>&#123;   </span><br><span class="line">　　<span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">volatile</span> Singleton instance = <span class="keyword">null</span>;  </span><br><span class="line">　　<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Singleton <span class="title">getInstance</span><span class="params">()</span> </span>&#123;</span><br><span class="line">　　　　<span class="keyword">if</span> (instance == <span class="keyword">null</span>) &#123;</span><br><span class="line">　　　　　　　　<span class="keyword">synchronized</span> (Singleton.class) &#123;</span><br><span class="line">　　　　　　　　　　　　<span class="keyword">if</span> (instance == <span class="keyword">null</span>) &#123;</span><br><span class="line">　　　　　　　　　　　　　　　　instance ＝ <span class="keyword">new</span> Singleton();</span><br><span class="line">　　　　　　　　　　　　&#125;</span><br><span class="line">　　　　　　　　&#125;</span><br><span class="line">　　　　&#125;</span><br><span class="line">　　　　<span class="keyword">return</span> instance; 　　</span><br><span class="line">　　&#125;   </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>为什么不将 synchronized 关键字加载静态方法上呢？原因是，如果加载方法上，每次获取都会加锁，效率降低了很多。如果加载内部为空的方法里面，则只是在初始化的时候加锁一次。在可能的情况下,一般尽量将要同步的代码最小化, 这样可以达到线程的阻塞最小化。</p>
+<h4 id="方法四：类加载器延迟加载"><a href="#方法四：类加载器延迟加载" class="headerlink" title="方法四：类加载器延迟加载"></a>方法四：类加载器延迟加载</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Singleton</span> </span>&#123;   </span><br><span class="line">　　<span class="keyword">private</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Holder</span> </span>&#123;</span><br><span class="line">　　  <span class="keyword">static</span> <span class="keyword">final</span> Singleton instance = <span class="keyword">new</span> Singleton();</span><br><span class="line">　　&#125;  </span><br><span class="line"></span><br><span class="line">　　<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Singleton <span class="title">getInstance</span><span class="params">()</span> </span>&#123;</span><br><span class="line">　　　　<span class="keyword">return</span> Holder.instance; 　　</span><br><span class="line">　　&#125;   </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>推荐方式四，利用内部类初始化时才进行单例类的初始化，实现了延迟加载，而且防止了并发，且避免使用锁的开销。</p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2018/11/09/Java/2015-06-02-java-singleton-four-method/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
     <article id="post-Java/2015-03-26-java-mem-visualization" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
   <div class="article-inner">
     
@@ -828,85 +907,6 @@ Lcom/java/demo/serializable/SerializableTest;
       
         <p class="article-more-link">
           <a class="article-more-a" href="/2018/11/09/Java/2015-03-26-java-mem-visualization/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-Java/2015-06-02-java-singleton-four-method" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/11/09/Java/2015-06-02-java-singleton-four-method/">Java 中的单例模式</a>
-    </h1>
-  
-
-        
-        <a href="/2018/11/09/Java/2015-06-02-java-singleton-four-method/" class="archive-article-date">
-  	<time datetime="2018-11-09T13:48:02.814Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-11-09</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h4 id="方案一：非延迟加载单例类"><a href="#方案一：非延迟加载单例类" class="headerlink" title="方案一：非延迟加载单例类"></a>方案一：非延迟加载单例类</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Singleton</span> </span>&#123;  </span><br><span class="line">　　<span class="function"><span class="keyword">private</span> <span class="title">Singleton</span><span class="params">()</span></span>&#123;&#125;  </span><br><span class="line">　　<span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Singleton instance = <span class="keyword">new</span> Singleton();  </span><br><span class="line">　　<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Singleton <span class="title">getInstance</span><span class="params">()</span> </span>&#123;</span><br><span class="line">　　　　<span class="keyword">return</span> instance; 　　</span><br><span class="line">　　&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h4 id="方案二：简单的同步延迟加载"><a href="#方案二：简单的同步延迟加载" class="headerlink" title="方案二：简单的同步延迟加载"></a>方案二：简单的同步延迟加载</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Singleton</span> </span>&#123;   </span><br><span class="line">　　<span class="keyword">private</span> <span class="keyword">static</span> Singleton instance = <span class="keyword">null</span>;  </span><br><span class="line">　　<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">synchronized</span> Singleton <span class="title">getInstance</span><span class="params">()</span> </span>&#123;</span><br><span class="line">　　　　<span class="keyword">if</span> (instance == <span class="keyword">null</span>)</span><br><span class="line">　　　　　　instance ＝ <span class="keyword">new</span> Singleton();</span><br><span class="line">　　　　<span class="keyword">return</span> instance; 　　</span><br><span class="line">　　&#125;   </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h4 id="方案三：双重检查成例延迟加载"><a href="#方案三：双重检查成例延迟加载" class="headerlink" title="方案三：双重检查成例延迟加载"></a>方案三：双重检查成例延迟加载</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Singleton</span> </span>&#123;   </span><br><span class="line">　　<span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">volatile</span> Singleton instance = <span class="keyword">null</span>;  </span><br><span class="line">　　<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Singleton <span class="title">getInstance</span><span class="params">()</span> </span>&#123;</span><br><span class="line">　　　　<span class="keyword">if</span> (instance == <span class="keyword">null</span>) &#123;</span><br><span class="line">　　　　　　　　<span class="keyword">synchronized</span> (Singleton.class) &#123;</span><br><span class="line">　　　　　　　　　　　　<span class="keyword">if</span> (instance == <span class="keyword">null</span>) &#123;</span><br><span class="line">　　　　　　　　　　　　　　　　instance ＝ <span class="keyword">new</span> Singleton();</span><br><span class="line">　　　　　　　　　　　　&#125;</span><br><span class="line">　　　　　　　　&#125;</span><br><span class="line">　　　　&#125;</span><br><span class="line">　　　　<span class="keyword">return</span> instance; 　　</span><br><span class="line">　　&#125;   </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>为什么不将 synchronized 关键字加载静态方法上呢？原因是，如果加载方法上，每次获取都会加锁，效率降低了很多。如果加载内部为空的方法里面，则只是在初始化的时候加锁一次。在可能的情况下,一般尽量将要同步的代码最小化, 这样可以达到线程的阻塞最小化。</p>
-<h4 id="方法四：类加载器延迟加载"><a href="#方法四：类加载器延迟加载" class="headerlink" title="方法四：类加载器延迟加载"></a>方法四：类加载器延迟加载</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Singleton</span> </span>&#123;   </span><br><span class="line">　　<span class="keyword">private</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Holder</span> </span>&#123;</span><br><span class="line">　　  <span class="keyword">static</span> <span class="keyword">final</span> Singleton instance = <span class="keyword">new</span> Singleton();</span><br><span class="line">　　&#125;  </span><br><span class="line"></span><br><span class="line">　　<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Singleton <span class="title">getInstance</span><span class="params">()</span> </span>&#123;</span><br><span class="line">　　　　<span class="keyword">return</span> Holder.instance; 　　</span><br><span class="line">　　&#125;   </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>推荐方式四，利用内部类初始化时才进行单例类的初始化，实现了延迟加载，而且防止了并发，且避免使用锁的开销。</p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2018/11/09/Java/2015-06-02-java-singleton-four-method/">展开全文 >></a>
         </p>
       
 
@@ -1188,19 +1188,19 @@ Lcom/java/demo/serializable/SerializableTest;
 
 
   
-    <article id="post-Java/2013-07-03-http" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
+    <article id="post-Java/2013-04-30-java-final-static" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
   <div class="article-inner">
     
       <header class="article-header">
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2018/11/09/Java/2013-07-03-http/">HTTP学习笔记（一）之初探</a>
+      <a class="article-title" href="/2018/11/09/Java/2013-04-30-java-final-static/">Java基础 之 final 和 static</a>
     </h1>
   
 
         
-        <a href="/2018/11/09/Java/2013-07-03-http/" class="archive-article-date">
+        <a href="/2018/11/09/Java/2013-04-30-java-final-static/" class="archive-article-date">
   	<time datetime="2018-11-09T13:48:02.812Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-11-09</time>
 </a>
         
@@ -1208,27 +1208,18 @@ Lcom/java/demo/serializable/SerializableTest;
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h4 id="http概览"><a href="#http概览" class="headerlink" title="http概览"></a>http概览</h4><p>HTTP协议（HyperText Transfer Protocol，超文本传输协议）是用于从WWW服务器传输超文本到本地浏览器的传送协议。它可以使浏览器更加高效，使网络传输减少。它不仅保证计算机正确快速地传输超文本文档，还确定传输文档中的哪一部分，以及哪部分内容首先显示(如文本先于图形)等。</p>
-<h4 id="http特征"><a href="#http特征" class="headerlink" title="http特征"></a>http特征</h4><p>http是应用层协议，由请求和响应构成，支持客户/服务器模式。</p>
-<p>http是一个无状态的协议（每次发出的请求都是独立的，和上次的请求是没有关系的，所以如果需要通过http进行模拟登陆，就需要传递登录cookie）。</p>
-<p>无连接协议（每次连接只处理一个请求。服务器处理完客户的请求，并收到客户的应答后，即断开连接）。</p>
-<h4 id="http服务器"><a href="#http服务器" class="headerlink" title="http服务器"></a>http服务器</h4><p>Web服务器使用的基本都是http协议，所以web服务器也被称为是http服务器。</p>
-<h4 id="http服务器-与-app-服务器-的区别："><a href="#http服务器-与-app-服务器-的区别：" class="headerlink" title="http服务器 与 app 服务器 的区别："></a>http服务器 与 app 服务器 的区别：</h4><p>Web服务器的基本功能就是提供Web信息浏览服务。它只需支持HTTP协议、HTML文档格式及URL。与客户端的网络浏览器配合。</p>
-<p>应用程序服务器(简称应用服务器)，我们先看一下微软对它的定义：”我们把应用程序服务器定义为“作为服务器执行共享业务应用程序的底层的系统软件”。</p>
-<p>通俗的讲，Web服务器传送(serves)页面使浏览器可以浏览，然而应用程序服务器提供的是客户端应用程序可以调用(call)的方法(methods)。确切一点，你可以说:Web服务器专门处理HTTP请求(request)，但是应用程序服务器是通过很多协议来为应用程序提供(serves)商业逻辑 (business logic)。</p>
-<p>Apache是纯粹的web服务器，而Tomcat和IIS因为具有了解释执行服务器端代码的能力，可以称作为轻量级应用服务器或带有服务器功能的Web服务器。</p>
-<p>详细可参考：<a href="http://blog.csdn.net/gideal_wang/article/details/4442525" target="_blank" rel="noopener">http://blog.csdn.net/gideal_wang/article/details/4442525</a></p>
-<h4 id="一个http请求过程："><a href="#一个http请求过程：" class="headerlink" title="一个http请求过程："></a>一个http请求过程：</h4><blockquote>
-<p>用户在浏览器中输入一个URL，浏览器首先回去查host文件，如果此域名有对应的ip，如果没有就会根据网络连接里面的DNS地址去查选此URL对于的IP地址，再根据这个IP地址和默认80端口与远程服务器建立socket连接，然后浏览器根据这个URL组装成一个get类型的HTTP请求头，通过outputStream.write 发送到目标服务器，服务器等待inputStream.read返回数据，最后断开连接。</p>
-</blockquote>
-<p>一张HTTP请求过程图示：</p>
-<p>http 请求头 和 相应头的组成：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">Request Header:</span><br><span class="line">Request URL:http://www.taobao.com/</span><br><span class="line">Request Method:GET</span><br><span class="line">Status Code:200 OK200 OK</span><br><span class="line">Request Headersview source</span><br><span class="line">Accept:text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8</span><br><span class="line">Accept-Encoding:gzip,deflate,sdch</span><br><span class="line">Accept-Language:zh-CN,zh;q=0.8</span><br><span class="line">Cache-Control:max-age=0</span><br><span class="line">Connection:keep-alive</span><br><span class="line">Cookie:miid=.....</span><br><span class="line">Host:www.taobao.com</span><br><span class="line">User-Agent:Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/28.0.1469.0 Safari/537.36</span><br><span class="line"></span><br><span class="line">Respone Header:</span><br><span class="line">Cache-Control:max-age=3600</span><br><span class="line">Connection:keep-alive</span><br><span class="line">Content-Encoding:gzip</span><br><span class="line">Content-Type:text/html; charset=gbk</span><br><span class="line">Date:Wed, 03 Jul 2013 02:03:28 GMT</span><br><span class="line">Expires:Wed, 03 Jul 2013 03:03:28 GMT</span><br><span class="line">Server:Tengine</span><br><span class="line">Transfer-Encoding:chunked</span><br><span class="line">Vary:Accept-Encoding</span><br></pre></td></tr></table></figure>
-<h4 id="http-与-TCP-关系："><a href="#http-与-TCP-关系：" class="headerlink" title="http  与 TCP 关系："></a>http  与 TCP 关系：</h4><p>参考之前写的一片文章<a href="http://heartaway.cn/2013/05/02/websocket/">《Websocket 探究》</a></p>
-<h4 id="http-与socket关系："><a href="#http-与socket关系：" class="headerlink" title="http 与socket关系："></a>http 与socket关系：</h4><p>首先说一下什么是socket，Socket是应用层与TCP/IP协议族通信的中间软件抽象层，它是一组接口，而不是协议。在设计模式中，Socket其实就是一个门面模式，它把复杂的TCP/IP协议族隐藏在Socket接口后面，对用户来说，一组简单的接口就是全部，让Socket去组织数据，以符合指定的协议。Socket 可以支持不同的传输层协议（TCP 或UDP ）。</p>
-<p>http连接：是基于TCP协议之上的协议，是短连接；</p>
-<p>socket连接：socket连接就是所谓的长连接，理论上客户端和服务器端一旦建立起连接将不会主动断掉，但会由于网络因素断开，所以经常使用轮询心跳来保持连接；</p>
-<p>HTTP 是基于Socket 通信的子协议, Socket 收发信息自由, 协议都可由使用者定义。 HTTP 在Socket 基础上做了协议规范, 通信只能按照特定的格式去做, 用户可在HTTP 上做自己的子协议, 如网页浏览,webservice 等.</p>
+        <h3 id="final"><a href="#final" class="headerlink" title="final"></a>final</h3><h4 id="1-final变量："><a href="#1-final变量：" class="headerlink" title="1.final变量："></a>1.final变量：</h4><p>当你在类中定义变量时，在其前面加上final关键字，那便是说，这个变量一旦被初始化便不可改变，这里不可改变的意思对基本类型来说是其值不可变，而对于对象变量来说其引用不可再变。其初始化可以在两个地方，一是其定义处，也就是说在final变量定义时直接给其赋值，二是在构造函数中。这两个地方只能选其一，要么在定义时给值，要么在构造函数中给值，不能同时既在定义时给了值，又在构造函数中给另外的值。对象变量不可变是指向对象的地址引用不变，对象内部还是可以变化的。</p>
+<p>当函数参数为final类型时，你可以读取使用该参数，但是无法改变该参数的值。</p>
+<p>另外方法中的内部类在用到方法中的参变量时，此参变也必须声明为final才可使用</p>
+<h4 id="2-final方法"><a href="#2-final方法" class="headerlink" title="2.final方法"></a>2.final方法</h4><p>如果一个类不允许其子类覆盖某个方法，则可以把这个方法声明为final方法。<br>使用final方法的原因有二：<br>第一、把方法锁定，防止任何继承类修改它的意义和实现。<br>第二、高效。编译器在遇到调用final方法时候会转入内嵌机制，大大提高执行效率。</p>
+<h4 id="3-final类"><a href="#3-final类" class="headerlink" title="3.final类"></a>3.final类</h4><p>final类不能被继承，因此final类的成员方法没有机会被覆盖，默认都是final的。在设计类时候，如果这个类不需要有子类，类的实现细节不允许改变，并且确信这个类不会载被扩展，那么就设计为final类。</p>
+<h4 id="4-final-方法变量"><a href="#4-final-方法变量" class="headerlink" title="4.final 方法变量"></a>4.final 方法变量</h4><p>为什么需要在方法变量前添加final，使用场景是什么？参考：《Java基础 之 方法参数传递》</p>
+<h3 id="static"><a href="#static" class="headerlink" title="static"></a>static</h3><p>被static修饰的成员变量和成员方法独立于该类的任何对象。也就是说，它不依赖类特定的实例，被类的所有实例共享。只要这个类被加载，Java虚拟机就能根据类名在运行时数据区的方法区内找到他们。因此，static对象可以在它的任何对象创建之前访问，无需引用任何对象。<br>static变量前可以有private修饰，表示这个变量可以在类的静态代码块中，或者类的其他静态成员方法中使用（当然也可以在非静态成员方法中使用–废话），但是不能在其他类中通过类名来直接引用，这一点很重要。实际上你需要搞明白，private是访问权限限定，static表示不要实例化就可以使用</p>
+<p>用static修饰的代码块表示静态代码块，当Java虚拟机（JVM）加载类时，就会执行该代码块</p>
+<h4 id="1-static变量"><a href="#1-static变量" class="headerlink" title="1.static变量"></a>1.static变量</h4><p>按照是否静态的对类成员变量进行分类可分两种：一种是被static修饰的变量，叫静态变量或类变量；另一种是没有被static修饰的变量，叫实例变量。两者的区别是：<br>对于静态变量在内存中只有一个拷贝（节省内存），JVM只为静态分配一次内存，在加载类的过程中完成静态变量的内存分配，可用类名直接访问（方便），当然也可以通过对象来访问（但是这是不推荐的）。对于实例变量，没创建一个实例，就会为实例变量分配一次内存，实例变量可以在内存中有多个拷贝，互不影响（灵活）。</p>
+<h4 id="2-static方法"><a href="#2-static方法" class="headerlink" title="2.static方法"></a>2.static方法</h4><p>静态方法可以直接通过类名调用，任何的实例也都可以调用，因此静态方法中不能用this和super关键字，不能直接访问所属类的实例变量和实例方法(就是不带static的成员变量和成员成员方法)，只能访问所属类的静态成员变量和成员方法。因为static方法独立于任何实例，因此static方法必须被实现，而不能是抽象的abstract。</p>
+<h4 id="3-static代码块"><a href="#3-static代码块" class="headerlink" title="3.static代码块"></a>3.static代码块</h4><p>static代码块也叫静态代码块，是在类中独立于类成员的static语句块，可以有多个，位置可以随便放，它不在任何的方法体内，JVM加载类时会执行这些静态的代码块，如果static代码块有多个，JVM将按照它们在类中出现的先后顺序依次执行它们，每个代码块只会被执行一次。</p>
+<h4 id="4、static和final一块用表示什么"><a href="#4、static和final一块用表示什么" class="headerlink" title="4、static和final一块用表示什么"></a>4、static和final一块用表示什么</h4><p>static final用来修饰成员变量和成员方法，可简单理解为“全局常量”！<br>对于变量，表示一旦给值就不可修改，并且通过类名可以访问。<br>对于方法，表示不可覆盖，并且可以通过类名直接访问。</p>
 
       
 
@@ -1252,7 +1243,7 @@ Lcom/java/demo/serializable/SerializableTest;
 
       
         <p class="article-more-link">
-          <a class="article-more-a" href="/2018/11/09/Java/2013-07-03-http/">展开全文 >></a>
+          <a class="article-more-a" href="/2018/11/09/Java/2013-04-30-java-final-static/">展开全文 >></a>
         </p>
       
 

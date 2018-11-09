@@ -1643,105 +1643,6 @@
 
 
   
-    <article id="post-Program/2017-03-16-keycenter" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/11/09/Program/2017-03-16-keycenter/">KeyCenter的作用与设计</a>
-    </h1>
-  
-
-        
-        <a href="/2018/11/09/Program/2017-03-16-keycenter/" class="archive-article-date">
-  	<time datetime="2018-11-09T13:48:02.849Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-11-09</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>在我们一般的系统交互中，对数据加密传输的场景必不可少，如果我们简单的把秘钥硬编码在代码中、放在配置文件中或者统一配置中心中，都不安全，很容易导致秘钥的泄露；那么有没有一个像保险柜一样的安全设备来帮我们出秘钥，并且提供明文加密和密文解密的功能呢？KenCenter应用而生。</p>
-<h3 id="KeyCenter中的运行方式："><a href="#KeyCenter中的运行方式：" class="headerlink" title="KeyCenter中的运行方式："></a>KeyCenter中的运行方式：</h3><p>设计的领域模型：应用、秘钥、服务；<br>（1）创建应用；用于空间隔离。<br>（2）在应用下创建秘钥；算法支持对称加密（加密解密）、非对称加密（签名验签或RSA的加解密）、哈希类型（签名验签），我们在创建秘钥的时候，需要给这个秘钥起一个应用下唯一的别名，这个别名用于与秘钥进行关联，别名泄露并不会给系统带来风险；<br>（3）我们可以使用KeyCenter提供的服务接口，对明文进行加密，或者对密文进行解密。</p>
-<p>对称加密实例：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">String ciphertext<span class="comment">/**密文**/</span> = cryptograph.encrypt(<span class="string">"待加密的明文"</span>, <span class="string">"密钥别名"</span>);</span><br><span class="line">String decryptedStr<span class="comment">/**解密的明文**/</span> = cryptograph.decrypt(<span class="string">"待解密的密文"</span>, <span class="string">"密钥别名"</span>);</span><br></pre></td></tr></table></figure>
-<p>加解密的过程就想到于我们把信息送到了一个不为外认知的情报局，这个情报局根据我指定的秘钥别名，进行数据加解密操作，具体的操作对外部完全是黑盒，没有外人能进入到者情报局，情报局里面的机密数据也是不允许从情报局中携带出来。</p>
-<p>疑问：<br>（1）我设置的秘钥，在KeyCenter中是如何存储的？<br>如果是明文存储，那么能看到KeyCenter数据库的人就能获取到我们的秘钥信息了，KeyCenter的解决方案是先对密钥进行多重加密，然后存在数据库里；我们即使能看到数据库里的内容，看到的也只是加密后的秘钥，然后问题来了，在对密钥进行加密时，又需要另外的密钥。即使是多重加密，最终肯定还会存在一个根密钥（root key）。<br>（2）根密钥怎么安全存放呢？有人拿到根密钥，不就可以将所有密钥解密出来吗？<br>解决方案：加密机（或称为密码机），提供硬件级别的密钥管理和加密计算。</p>
-<h3 id="KeyCenter部署方式："><a href="#KeyCenter部署方式：" class="headerlink" title="KeyCenter部署方式："></a>KeyCenter部署方式：</h3><p>目前面向业务系统的KeyCenter应用，采用的是中心化部署方式，没有进行单元化部署，原因是不希望密钥大规模同步到另外一个机房，增加安全风险，另外，keycenter之上还有一层物理加密机，这个只能中心部署。<br>中心化部署的KeyCenter具有单点风险，其他单元访问KeyCenter这是跨单元访问，如果KeyCenter挂了怎么办？目前采用的容灾策略是，牺牲掉一定的安全性，把密钥缓存在业务系统内存中，只要业务系统不重启，密钥就不会丢失；这也给KeyCenter赢得了一定的故障恢复时间。</p>
-<h3 id="利用SSL-KeyCenter存储https的私钥"><a href="#利用SSL-KeyCenter存储https的私钥" class="headerlink" title="利用SSL-KeyCenter存储https的私钥"></a>利用SSL-KeyCenter存储https的私钥</h3><p>信息明文在网络中裸奔的年代在组件过去，越来越多的企业接入HTTPS，让数据传输变得更安全。在HTTPS进行SSL的过程中，我们首先会使用非对称加密来传输客户端中的random随机数用于生成会话秘钥的一部分，服务端会保存私钥信息，如果私钥信息泄露，会给通信安全带来很大的威胁，所以很有必要保障私钥的安全；其次，如果一个集团中存在很多应用上了HTTPS，那么可信证书的私钥也就需要一个系统来进行统一管理，使用KeyCenter再合适不过了，但是在阿里内部，存储证书私钥的系统叫做SSL-KeyCenter，与解决业务密钥的KeyCenter是两个系统，我们很容易弄混淆。</p>
-<p>测试发现，HTTPS的握手性能，很大程度消耗是在私钥使用的方面。<br>具体的消耗，需要看加密套件的配置，对AES256-SHA256，这个比例在80%以上，而对ECDHE-AES256-SHA256，这个比例大约是40%。<br>所以将其独立出来以后，单独在keycenter上使用SSL加速卡，大大提升了SSL加速卡的利用率，同时也大大提升了系统整体服务能力。</p>
-<p>为了让证书的私钥等统一管理到SSL-KeyCenter中，并且提供证书整个生命周期的管理，我们还需要另外一个系统Subway来做这些事情。</p>
-<p>subway的工作职责：</p>
-<ul>
-<li>证书管理：证书的申请、有效期管理、配置、签发、证书私钥自动推送KeyCenter集群,部分证书可供下载、证书过期可自动触发替换；</li>
-<li>KeyCenter集群的管控；</li>
-<li>对统一接入层的集群管控(如果存在)；</li>
-</ul>
-<h3 id="异地多活，SSL-KeyCenter部署策略"><a href="#异地多活，SSL-KeyCenter部署策略" class="headerlink" title="异地多活，SSL-KeyCenter部署策略"></a>异地多活，SSL-KeyCenter部署策略</h3><p>由于KeyCenter中保存了证书的私钥、系统应用的密钥，如果KeyCenter挂了，那么首先通过HTTPS访问来的请求就无法正常解密客户端发来的密文，势必会带来网站的不可用，所以保证KeyCenter的高可用就变的至关重要。</p>
-<p>在一些大型公司中，为了提高容灾能力，同城容灾，异地容灾，异地多活已经成为标配，那么KeyCenter会在各个单元机房中进行集群部署。</p>
-<p>Keycenter容灾策略主要有以下两个点：</p>
-<ol>
-<li>对外部请求而言，可以把Keycenter自身使用域名在ADNS上执行流量调度切换；</li>
-<li>对生产网而言，只允许访问同一IDC内Keycenter集群的内部VIP，不产生跨机房调用，如果某一个IDC出现故障，只需要切走Aserver流量即可。</li>
-</ol>
-<p>SSL-KeyCenter在阿里的单个IDC中的部署结构：<br><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/857f6dba0cf5e6e3a821eae46d1c0d86.png" alt=""></p>
-<p>SSL-KeyCenter在多机房下的部署：<br><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/832d9f9b7e39289800160087996d8be0.png" alt=""><br>IDC1中访问KeyCenter目前只能在机房内访问，不能跨机房调用，当IDC1中的KeyCenter全部挂了，则直接从统一接入层中切走整个机房的流量。<br>疑问：那为什么KeyCenter为什么不能像一般App那样，单机房内服务不可用时，允许跨机房调用呢？<br>原因：没时间实现，后续会通过VIPServer来动态获取服务机器列表，这样如果单元内服务不可用，就可以允许跨单元调用了。</p>
-<p>备注：文章中部分内容非原创，整理资源来源于ATA。</p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Program//" class="article-tag-list-link color3">Program</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2018/11/09/Program/2017-03-16-keycenter/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
     <article id="post-Program/2016-08-07-product-puttag-error" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
   <div class="article-inner">
     
@@ -1814,6 +1715,105 @@
       
         <p class="article-more-link">
           <a class="article-more-a" href="/2018/11/09/Program/2016-08-07-product-puttag-error/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-Program/2017-03-16-keycenter" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/11/09/Program/2017-03-16-keycenter/">KeyCenter的作用与设计</a>
+    </h1>
+  
+
+        
+        <a href="/2018/11/09/Program/2017-03-16-keycenter/" class="archive-article-date">
+  	<time datetime="2018-11-09T13:48:02.849Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-11-09</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>在我们一般的系统交互中，对数据加密传输的场景必不可少，如果我们简单的把秘钥硬编码在代码中、放在配置文件中或者统一配置中心中，都不安全，很容易导致秘钥的泄露；那么有没有一个像保险柜一样的安全设备来帮我们出秘钥，并且提供明文加密和密文解密的功能呢？KenCenter应用而生。</p>
+<h3 id="KeyCenter中的运行方式："><a href="#KeyCenter中的运行方式：" class="headerlink" title="KeyCenter中的运行方式："></a>KeyCenter中的运行方式：</h3><p>设计的领域模型：应用、秘钥、服务；<br>（1）创建应用；用于空间隔离。<br>（2）在应用下创建秘钥；算法支持对称加密（加密解密）、非对称加密（签名验签或RSA的加解密）、哈希类型（签名验签），我们在创建秘钥的时候，需要给这个秘钥起一个应用下唯一的别名，这个别名用于与秘钥进行关联，别名泄露并不会给系统带来风险；<br>（3）我们可以使用KeyCenter提供的服务接口，对明文进行加密，或者对密文进行解密。</p>
+<p>对称加密实例：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">String ciphertext<span class="comment">/**密文**/</span> = cryptograph.encrypt(<span class="string">"待加密的明文"</span>, <span class="string">"密钥别名"</span>);</span><br><span class="line">String decryptedStr<span class="comment">/**解密的明文**/</span> = cryptograph.decrypt(<span class="string">"待解密的密文"</span>, <span class="string">"密钥别名"</span>);</span><br></pre></td></tr></table></figure>
+<p>加解密的过程就想到于我们把信息送到了一个不为外认知的情报局，这个情报局根据我指定的秘钥别名，进行数据加解密操作，具体的操作对外部完全是黑盒，没有外人能进入到者情报局，情报局里面的机密数据也是不允许从情报局中携带出来。</p>
+<p>疑问：<br>（1）我设置的秘钥，在KeyCenter中是如何存储的？<br>如果是明文存储，那么能看到KeyCenter数据库的人就能获取到我们的秘钥信息了，KeyCenter的解决方案是先对密钥进行多重加密，然后存在数据库里；我们即使能看到数据库里的内容，看到的也只是加密后的秘钥，然后问题来了，在对密钥进行加密时，又需要另外的密钥。即使是多重加密，最终肯定还会存在一个根密钥（root key）。<br>（2）根密钥怎么安全存放呢？有人拿到根密钥，不就可以将所有密钥解密出来吗？<br>解决方案：加密机（或称为密码机），提供硬件级别的密钥管理和加密计算。</p>
+<h3 id="KeyCenter部署方式："><a href="#KeyCenter部署方式：" class="headerlink" title="KeyCenter部署方式："></a>KeyCenter部署方式：</h3><p>目前面向业务系统的KeyCenter应用，采用的是中心化部署方式，没有进行单元化部署，原因是不希望密钥大规模同步到另外一个机房，增加安全风险，另外，keycenter之上还有一层物理加密机，这个只能中心部署。<br>中心化部署的KeyCenter具有单点风险，其他单元访问KeyCenter这是跨单元访问，如果KeyCenter挂了怎么办？目前采用的容灾策略是，牺牲掉一定的安全性，把密钥缓存在业务系统内存中，只要业务系统不重启，密钥就不会丢失；这也给KeyCenter赢得了一定的故障恢复时间。</p>
+<h3 id="利用SSL-KeyCenter存储https的私钥"><a href="#利用SSL-KeyCenter存储https的私钥" class="headerlink" title="利用SSL-KeyCenter存储https的私钥"></a>利用SSL-KeyCenter存储https的私钥</h3><p>信息明文在网络中裸奔的年代在组件过去，越来越多的企业接入HTTPS，让数据传输变得更安全。在HTTPS进行SSL的过程中，我们首先会使用非对称加密来传输客户端中的random随机数用于生成会话秘钥的一部分，服务端会保存私钥信息，如果私钥信息泄露，会给通信安全带来很大的威胁，所以很有必要保障私钥的安全；其次，如果一个集团中存在很多应用上了HTTPS，那么可信证书的私钥也就需要一个系统来进行统一管理，使用KeyCenter再合适不过了，但是在阿里内部，存储证书私钥的系统叫做SSL-KeyCenter，与解决业务密钥的KeyCenter是两个系统，我们很容易弄混淆。</p>
+<p>测试发现，HTTPS的握手性能，很大程度消耗是在私钥使用的方面。<br>具体的消耗，需要看加密套件的配置，对AES256-SHA256，这个比例在80%以上，而对ECDHE-AES256-SHA256，这个比例大约是40%。<br>所以将其独立出来以后，单独在keycenter上使用SSL加速卡，大大提升了SSL加速卡的利用率，同时也大大提升了系统整体服务能力。</p>
+<p>为了让证书的私钥等统一管理到SSL-KeyCenter中，并且提供证书整个生命周期的管理，我们还需要另外一个系统Subway来做这些事情。</p>
+<p>subway的工作职责：</p>
+<ul>
+<li>证书管理：证书的申请、有效期管理、配置、签发、证书私钥自动推送KeyCenter集群,部分证书可供下载、证书过期可自动触发替换；</li>
+<li>KeyCenter集群的管控；</li>
+<li>对统一接入层的集群管控(如果存在)；</li>
+</ul>
+<h3 id="异地多活，SSL-KeyCenter部署策略"><a href="#异地多活，SSL-KeyCenter部署策略" class="headerlink" title="异地多活，SSL-KeyCenter部署策略"></a>异地多活，SSL-KeyCenter部署策略</h3><p>由于KeyCenter中保存了证书的私钥、系统应用的密钥，如果KeyCenter挂了，那么首先通过HTTPS访问来的请求就无法正常解密客户端发来的密文，势必会带来网站的不可用，所以保证KeyCenter的高可用就变的至关重要。</p>
+<p>在一些大型公司中，为了提高容灾能力，同城容灾，异地容灾，异地多活已经成为标配，那么KeyCenter会在各个单元机房中进行集群部署。</p>
+<p>Keycenter容灾策略主要有以下两个点：</p>
+<ol>
+<li>对外部请求而言，可以把Keycenter自身使用域名在ADNS上执行流量调度切换；</li>
+<li>对生产网而言，只允许访问同一IDC内Keycenter集群的内部VIP，不产生跨机房调用，如果某一个IDC出现故障，只需要切走Aserver流量即可。</li>
+</ol>
+<p>SSL-KeyCenter在阿里的单个IDC中的部署结构：<br><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/857f6dba0cf5e6e3a821eae46d1c0d86.png" alt=""></p>
+<p>SSL-KeyCenter在多机房下的部署：<br><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/832d9f9b7e39289800160087996d8be0.png" alt=""><br>IDC1中访问KeyCenter目前只能在机房内访问，不能跨机房调用，当IDC1中的KeyCenter全部挂了，则直接从统一接入层中切走整个机房的流量。<br>疑问：那为什么KeyCenter为什么不能像一般App那样，单机房内服务不可用时，允许跨机房调用呢？<br>原因：没时间实现，后续会通过VIPServer来动态获取服务机器列表，这样如果单元内服务不可用，就可以允许跨单元调用了。</p>
+<p>备注：文章中部分内容非原创，整理资源来源于ATA。</p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Program//" class="article-tag-list-link color3">Program</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2018/11/09/Program/2017-03-16-keycenter/">展开全文 >></a>
         </p>
       
 

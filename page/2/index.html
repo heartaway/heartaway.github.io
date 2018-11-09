@@ -631,6 +631,93 @@
 
 
   
+    <article id="post-Java/2017-10-20-message-string-byte" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/11/09/Java/2017-10-20-message-string-byte/">消息收发中的中文乱码</a>
+    </h1>
+  
+
+        
+        <a href="/2018/11/09/Java/2017-10-20-message-string-byte/" class="archive-article-date">
+  	<time datetime="2018-11-09T13:48:02.844Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-11-09</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <blockquote>
+<p>背景：<br>A发消息给B系统，A、B应用的编码均为UTF-8，但是B收到的消息出现中文乱码。</p>
+</blockquote>
+<p>A发送消息的方式：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">new</span> Message(TOPIC, TAG, <span class="keyword">null</span>,          (messageContent.toString()).getBytes())</span><br></pre></td></tr></table></figure>
+<p>这里消息接受二进制byte数据，我们把消息string转换为byte的时候，默认使用了getBytes()，未指定编码方式，getBytes()方法的注释如下：</p>
+<p>Encodes this {@code String} into a sequence of bytes using the<br> platform’s default charset, storing the result into a new byte array.</p>
+<p>也就是会使用平台默认编码，查看StringCoding.encode方法中的Charset.defaultCharset().name()方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">  * Returns the default charset of this Java virtual machine.</span></span><br><span class="line"><span class="comment">  *</span></span><br><span class="line"><span class="comment">  * &lt;p&gt; The default charset is determined during virtual-machine startup and</span></span><br><span class="line"><span class="comment">  * typically depends upon the locale and charset of the underlying</span></span><br><span class="line"><span class="comment">  * operating system.</span></span><br><span class="line"><span class="comment">  *</span></span><br><span class="line"><span class="comment">  * <span class="doctag">@return</span>  A charset object for the default charset</span></span><br><span class="line"><span class="comment">  *</span></span><br><span class="line"><span class="comment">  * <span class="doctag">@since</span> 1.5</span></span><br><span class="line"><span class="comment">  */</span></span><br><span class="line"> <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Charset <span class="title">defaultCharset</span><span class="params">()</span> </span>&#123;</span><br><span class="line">     <span class="keyword">if</span> (defaultCharset == <span class="keyword">null</span>) &#123;</span><br><span class="line">         <span class="keyword">synchronized</span> (Charset.class) &#123;</span><br><span class="line">             String csn = AccessController.doPrivileged(</span><br><span class="line">                 <span class="keyword">new</span> GetPropertyAction(<span class="string">"file.encoding"</span>));</span><br><span class="line">             Charset cs = lookup(csn);</span><br><span class="line">             <span class="keyword">if</span> (cs != <span class="keyword">null</span>)</span><br><span class="line">                 defaultCharset = cs;</span><br><span class="line">             <span class="keyword">else</span></span><br><span class="line">                 defaultCharset = forName(<span class="string">"UTF-8"</span>);</span><br><span class="line">         &#125;</span><br><span class="line">     &#125;</span><br><span class="line">     <span class="keyword">return</span> defaultCharset;</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+<p>注释的很清楚了，返回JVM默认的字符编码，如果在jvm启动参数中指定了-Dfile.encoding 编码，则优先使用此编码，如果未指定，则使用UTF-8编码；</p>
+<p>登录服务器查看启动参数，发现A应用进程中指定了-Dfile.encoding=GB18030</p>
+<p><img src="/images/posts/20171020/15084809508975.jpg" alt=""></p>
+<p>示意图如下：<br><img src="/images/posts/20171020/15084807485727.jpg" alt=""></p>
+<p>总结：<br>在进行string与byte转换的时候，最好使用getBytes(String charsetName)方法，明确指定字符编码方式，最好编写一个编码转换的工具类，统一类型转换时的编码方式。</p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2018/11/09/Java/2017-10-20-message-string-byte/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
     <article id="post-Java/2017-09-21-phantomjs-use" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
   <div class="article-inner">
     
@@ -694,93 +781,6 @@
       
         <p class="article-more-link">
           <a class="article-more-a" href="/2018/11/09/Java/2017-09-21-phantomjs-use/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-Java/2017-10-20-message-string-byte" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/11/09/Java/2017-10-20-message-string-byte/">消息收发中的中文乱码</a>
-    </h1>
-  
-
-        
-        <a href="/2018/11/09/Java/2017-10-20-message-string-byte/" class="archive-article-date">
-  	<time datetime="2018-11-09T13:48:02.844Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-11-09</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <blockquote>
-<p>背景：<br>A发消息给B系统，A、B应用的编码均为UTF-8，但是B收到的消息出现中文乱码。</p>
-</blockquote>
-<p>A发送消息的方式：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">new</span> Message(TOPIC, TAG, <span class="keyword">null</span>,          (messageContent.toString()).getBytes())</span><br></pre></td></tr></table></figure>
-<p>这里消息接受二进制byte数据，我们把消息string转换为byte的时候，默认使用了getBytes()，未指定编码方式，getBytes()方法的注释如下：</p>
-<p>Encodes this {@code String} into a sequence of bytes using the<br> platform’s default charset, storing the result into a new byte array.</p>
-<p>也就是会使用平台默认编码，查看StringCoding.encode方法中的Charset.defaultCharset().name()方法：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">  * Returns the default charset of this Java virtual machine.</span></span><br><span class="line"><span class="comment">  *</span></span><br><span class="line"><span class="comment">  * &lt;p&gt; The default charset is determined during virtual-machine startup and</span></span><br><span class="line"><span class="comment">  * typically depends upon the locale and charset of the underlying</span></span><br><span class="line"><span class="comment">  * operating system.</span></span><br><span class="line"><span class="comment">  *</span></span><br><span class="line"><span class="comment">  * <span class="doctag">@return</span>  A charset object for the default charset</span></span><br><span class="line"><span class="comment">  *</span></span><br><span class="line"><span class="comment">  * <span class="doctag">@since</span> 1.5</span></span><br><span class="line"><span class="comment">  */</span></span><br><span class="line"> <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Charset <span class="title">defaultCharset</span><span class="params">()</span> </span>&#123;</span><br><span class="line">     <span class="keyword">if</span> (defaultCharset == <span class="keyword">null</span>) &#123;</span><br><span class="line">         <span class="keyword">synchronized</span> (Charset.class) &#123;</span><br><span class="line">             String csn = AccessController.doPrivileged(</span><br><span class="line">                 <span class="keyword">new</span> GetPropertyAction(<span class="string">"file.encoding"</span>));</span><br><span class="line">             Charset cs = lookup(csn);</span><br><span class="line">             <span class="keyword">if</span> (cs != <span class="keyword">null</span>)</span><br><span class="line">                 defaultCharset = cs;</span><br><span class="line">             <span class="keyword">else</span></span><br><span class="line">                 defaultCharset = forName(<span class="string">"UTF-8"</span>);</span><br><span class="line">         &#125;</span><br><span class="line">     &#125;</span><br><span class="line">     <span class="keyword">return</span> defaultCharset;</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
-<p>注释的很清楚了，返回JVM默认的字符编码，如果在jvm启动参数中指定了-Dfile.encoding 编码，则优先使用此编码，如果未指定，则使用UTF-8编码；</p>
-<p>登录服务器查看启动参数，发现A应用进程中指定了-Dfile.encoding=GB18030</p>
-<p><img src="/images/posts/20171020/15084809508975.jpg" alt=""></p>
-<p>示意图如下：<br><img src="/images/posts/20171020/15084807485727.jpg" alt=""></p>
-<p>总结：<br>在进行string与byte转换的时候，最好使用getBytes(String charsetName)方法，明确指定字符编码方式，最好编写一个编码转换的工具类，统一类型转换时的编码方式。</p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2018/11/09/Java/2017-10-20-message-string-byte/">展开全文 >></a>
         </p>
       
 
