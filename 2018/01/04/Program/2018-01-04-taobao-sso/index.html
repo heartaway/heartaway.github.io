@@ -6,14 +6,14 @@
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <link rel="dns-prefetch" href="http://heartaway.cn">
-  <title>Taobao SSO 跨域登录过程解析 | Heartaway</title>
+  <title>Taobao SSO 跨域登录过程解析 | 心静志远</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="description" content="今年的双十一和双十二已经告一段落，你是否买到了你想要的宝贝呢？我们知道双十一是天猫的主场，双十二是淘宝的主场，你有没有注意到你在登录了淘宝后，访问天猫或者飞猪，你还是处于登录态的，但是我们知道cookie是不能跨域的，那么阿里是如何做到了多域名下的登录态同步呢？接下来我们通过抓包进行请求解析来了解这个过程。 基础知识： 如果忘了Cookie和Session的区别，那么建议你先回顾一下，可以参考：h">
 <meta name="keywords" content="SSO taobao 跨域 跨域登录">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Taobao SSO 跨域登录过程解析">
 <meta property="og:url" content="http://heartaway.cn/2018/01/04/Program/2018-01-04-taobao-sso/index.html">
-<meta property="og:site_name" content="Heartaway">
+<meta property="og:site_name" content="心静志远">
 <meta property="og:description" content="今年的双十一和双十二已经告一段落，你是否买到了你想要的宝贝呢？我们知道双十一是天猫的主场，双十二是淘宝的主场，你有没有注意到你在登录了淘宝后，访问天猫或者飞猪，你还是处于登录态的，但是我们知道cookie是不能跨域的，那么阿里是如何做到了多域名下的登录态同步呢？接下来我们通过抓包进行请求解析来了解这个过程。 基础知识： 如果忘了Cookie和Session的区别，那么建议你先回顾一下，可以参考：h">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/87d35687c06bdf7d01ea78c3aa1f8c7f.png">
@@ -26,7 +26,7 @@
 <meta name="twitter:description" content="今年的双十一和双十二已经告一段落，你是否买到了你想要的宝贝呢？我们知道双十一是天猫的主场，双十二是淘宝的主场，你有没有注意到你在登录了淘宝后，访问天猫或者飞猪，你还是处于登录态的，但是我们知道cookie是不能跨域的，那么阿里是如何做到了多域名下的登录态同步呢？接下来我们通过抓包进行请求解析来了解这个过程。 基础知识： 如果忘了Cookie和Session的区别，那么建议你先回顾一下，可以参考：h">
 <meta name="twitter:image" content="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/87d35687c06bdf7d01ea78c3aa1f8c7f.png">
   
-    <link rel="alternative" href="/atom.xml" title="Heartaway" type="application/atom+xml">
+    <link rel="alternative" href="/atom.xml" title="心静志远" type="application/atom+xml">
   
   
     <link rel="icon" href="/favicon.ico">
@@ -59,7 +59,7 @@
 		  <h1 class="header-author"><a href="/">心静志远</a></h1>
 		</hgroup>
 		
-		<p class="header-subtitle">技术会被淘汰，但思想会一直永存（多思考，多总结，多分享）；只有技术才是硬通货，看到技术背后的思想价值；</p>
+		<p class="header-subtitle">技术会被淘汰，但思想会一直永存 &lt;br/&gt;多思考，多总结，多分享 &lt;br/&gt; 技术才是硬通货，探求本质与思想</p>
 		
 
 		<nav class="header-menu">
@@ -115,7 +115,7 @@
 			  <h1 class="header-author js-header-author">心静志远</h1>
 			</hgroup>
 			
-			<p class="header-subtitle"><i class="icon icon-quo-left"></i>技术会被淘汰，但思想会一直永存（多思考，多总结，多分享）；只有技术才是硬通货，看到技术背后的思想价值；<i class="icon icon-quo-right"></i></p>
+			<p class="header-subtitle"><i class="icon icon-quo-left"></i>技术会被淘汰，但思想会一直永存 &lt;br/&gt;多思考，多总结，多分享 &lt;br/&gt; 技术才是硬通货，探求本质与思想<i class="icon icon-quo-right"></i></p>
 			
 			
 			

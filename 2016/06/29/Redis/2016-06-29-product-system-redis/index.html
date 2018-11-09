@@ -6,14 +6,14 @@
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <link rel="dns-prefetch" href="http://heartaway.cn">
-  <title>商品系统 之 Redis的使用 | Heartaway</title>
+  <title>商品系统 之 Redis的使用 | 心静志远</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="description" content="Redis在现在的电商系统中越来越多的被使用作为缓存体系，掌握基本的Redis的使用还是非常有必要的。 Jedis 客户端初始化： 你是如何初始化Jedis的？使用Spring Bean 或者 静态工具类？项目中有人使用在类的静态初始化块中初始化Jedis连接，有没有捕获异常，导致Jedis初始化失败后，整个类就无法进行加载，进而报ClassNotDefFound的错误，所以我们在初始化Jedi">
 <meta name="keywords" content="redis product 商品系统">
 <meta property="og:type" content="article">
 <meta property="og:title" content="商品系统 之 Redis的使用">
 <meta property="og:url" content="http://heartaway.cn/2016/06/29/Redis/2016-06-29-product-system-redis/index.html">
-<meta property="og:site_name" content="Heartaway">
+<meta property="og:site_name" content="心静志远">
 <meta property="og:description" content="Redis在现在的电商系统中越来越多的被使用作为缓存体系，掌握基本的Redis的使用还是非常有必要的。 Jedis 客户端初始化： 你是如何初始化Jedis的？使用Spring Bean 或者 静态工具类？项目中有人使用在类的静态初始化块中初始化Jedis连接，有没有捕获异常，导致Jedis初始化失败后，整个类就无法进行加载，进而报ClassNotDefFound的错误，所以我们在初始化Jedi">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="https://gw.alipayobjects.com/zos/skylark/bddb8985-d638-41b8-8a3f-f57eeda4c8c9/2018/png/6bd4929a-22b7-4dd9-a7b6-6fe36cefb957.png">
@@ -23,7 +23,7 @@
 <meta name="twitter:description" content="Redis在现在的电商系统中越来越多的被使用作为缓存体系，掌握基本的Redis的使用还是非常有必要的。 Jedis 客户端初始化： 你是如何初始化Jedis的？使用Spring Bean 或者 静态工具类？项目中有人使用在类的静态初始化块中初始化Jedis连接，有没有捕获异常，导致Jedis初始化失败后，整个类就无法进行加载，进而报ClassNotDefFound的错误，所以我们在初始化Jedi">
 <meta name="twitter:image" content="https://gw.alipayobjects.com/zos/skylark/bddb8985-d638-41b8-8a3f-f57eeda4c8c9/2018/png/6bd4929a-22b7-4dd9-a7b6-6fe36cefb957.png">
   
-    <link rel="alternative" href="/atom.xml" title="Heartaway" type="application/atom+xml">
+    <link rel="alternative" href="/atom.xml" title="心静志远" type="application/atom+xml">
   
   
     <link rel="icon" href="/favicon.ico">
@@ -56,7 +56,7 @@
 		  <h1 class="header-author"><a href="/">心静志远</a></h1>
 		</hgroup>
 		
-		<p class="header-subtitle">技术会被淘汰，但思想会一直永存（多思考，多总结，多分享）；只有技术才是硬通货，看到技术背后的思想价值；</p>
+		<p class="header-subtitle">技术会被淘汰，但思想会一直永存 &lt;br/&gt;多思考，多总结，多分享 &lt;br/&gt; 技术才是硬通货，探求本质与思想</p>
 		
 
 		<nav class="header-menu">
@@ -112,7 +112,7 @@
 			  <h1 class="header-author js-header-author">心静志远</h1>
 			</hgroup>
 			
-			<p class="header-subtitle"><i class="icon icon-quo-left"></i>技术会被淘汰，但思想会一直永存（多思考，多总结，多分享）；只有技术才是硬通货，看到技术背后的思想价值；<i class="icon icon-quo-right"></i></p>
+			<p class="header-subtitle"><i class="icon icon-quo-left"></i>技术会被淘汰，但思想会一直永存 &lt;br/&gt;多思考，多总结，多分享 &lt;br/&gt; 技术才是硬通货，探求本质与思想<i class="icon icon-quo-right"></i></p>
 			
 			
 			

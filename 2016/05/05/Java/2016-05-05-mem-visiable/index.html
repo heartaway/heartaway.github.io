@@ -6,14 +6,14 @@
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <link rel="dns-prefetch" href="http://heartaway.cn">
-  <title>JVM内存可见性之use Or read-load-use | Heartaway</title>
+  <title>JVM内存可见性之use Or read-load-use | 心静志远</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="description" content="问题描述：如果两个线程都对静态共享变量shareVar有引用，其中一个线程1使用 shareVar，另外一个线程2对shareVar进行修改，那么线程1是否能够理解拿到修改后的值呢？   代码描述： 12345678910111213141516171819202122232425262728293031323334353637public class StaticVarVisibility &amp;">
 <meta name="keywords" content="jvm 内存可见性">
 <meta property="og:type" content="article">
 <meta property="og:title" content="JVM内存可见性之use Or read-load-use">
 <meta property="og:url" content="http://heartaway.cn/2016/05/05/Java/2016-05-05-mem-visiable/index.html">
-<meta property="og:site_name" content="Heartaway">
+<meta property="og:site_name" content="心静志远">
 <meta property="og:description" content="问题描述：如果两个线程都对静态共享变量shareVar有引用，其中一个线程1使用 shareVar，另外一个线程2对shareVar进行修改，那么线程1是否能够理解拿到修改后的值呢？   代码描述： 12345678910111213141516171819202122232425262728293031323334353637public class StaticVarVisibility &amp;">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/85bf0b2656136362bbe81ace0ae8c981.png?zoom=2">
@@ -23,7 +23,7 @@
 <meta name="twitter:description" content="问题描述：如果两个线程都对静态共享变量shareVar有引用，其中一个线程1使用 shareVar，另外一个线程2对shareVar进行修改，那么线程1是否能够理解拿到修改后的值呢？   代码描述： 12345678910111213141516171819202122232425262728293031323334353637public class StaticVarVisibility &amp;">
 <meta name="twitter:image" content="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/85bf0b2656136362bbe81ace0ae8c981.png?zoom=2">
   
-    <link rel="alternative" href="/atom.xml" title="Heartaway" type="application/atom+xml">
+    <link rel="alternative" href="/atom.xml" title="心静志远" type="application/atom+xml">
   
   
     <link rel="icon" href="/favicon.ico">
@@ -56,7 +56,7 @@
 		  <h1 class="header-author"><a href="/">心静志远</a></h1>
 		</hgroup>
 		
-		<p class="header-subtitle">技术会被淘汰，但思想会一直永存（多思考，多总结，多分享）；只有技术才是硬通货，看到技术背后的思想价值；</p>
+		<p class="header-subtitle">技术会被淘汰，但思想会一直永存 &lt;br/&gt;多思考，多总结，多分享 &lt;br/&gt; 技术才是硬通货，探求本质与思想</p>
 		
 
 		<nav class="header-menu">
@@ -112,7 +112,7 @@
 			  <h1 class="header-author js-header-author">心静志远</h1>
 			</hgroup>
 			
-			<p class="header-subtitle"><i class="icon icon-quo-left"></i>技术会被淘汰，但思想会一直永存（多思考，多总结，多分享）；只有技术才是硬通货，看到技术背后的思想价值；<i class="icon icon-quo-right"></i></p>
+			<p class="header-subtitle"><i class="icon icon-quo-left"></i>技术会被淘汰，但思想会一直永存 &lt;br/&gt;多思考，多总结，多分享 &lt;br/&gt; 技术才是硬通货，探求本质与思想<i class="icon icon-quo-right"></i></p>
 			
 			
 			

@@ -6,14 +6,14 @@
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <link rel="dns-prefetch" href="http://heartaway.cn">
-  <title>Java split 引发的坑 | Heartaway</title>
+  <title>Java split 引发的坑 | 心静志远</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="description" content="我们在代码编写中会进程需要使用数据截断处理，比如 30.23 我们期望获取整数部分，按照“.”进行分割； 可能的代码示例： 1&quot;30.23&quot;.split(&quot;.&quot;)[0] 如果我们这么写，那结果一定不是我们期望的，查看string 类中的split方法： 我们看到，它接收的参数 正则表达式，恰好点是正则表达式的特殊字符，命中  1&amp;quot;.$|()[&amp;#123;^?*+\\&amp;quot;.inde">
 <meta name="keywords" content="split">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Java split 引发的坑">
 <meta property="og:url" content="http://heartaway.cn/2017/07/03/Java/2017-07-03-string-split/index.html">
-<meta property="og:site_name" content="Heartaway">
+<meta property="og:site_name" content="心静志远">
 <meta property="og:description" content="我们在代码编写中会进程需要使用数据截断处理，比如 30.23 我们期望获取整数部分，按照“.”进行分割； 可能的代码示例： 1&quot;30.23&quot;.split(&quot;.&quot;)[0] 如果我们这么写，那结果一定不是我们期望的，查看string 类中的split方法： 我们看到，它接收的参数 正则表达式，恰好点是正则表达式的特殊字符，命中  1&amp;quot;.$|()[&amp;#123;^?*+\\&amp;quot;.inde">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://heartaway.cn/images/posts/20170703/14990720990548.jpg">
@@ -23,7 +23,7 @@
 <meta name="twitter:description" content="我们在代码编写中会进程需要使用数据截断处理，比如 30.23 我们期望获取整数部分，按照“.”进行分割； 可能的代码示例： 1&quot;30.23&quot;.split(&quot;.&quot;)[0] 如果我们这么写，那结果一定不是我们期望的，查看string 类中的split方法： 我们看到，它接收的参数 正则表达式，恰好点是正则表达式的特殊字符，命中  1&amp;quot;.$|()[&amp;#123;^?*+\\&amp;quot;.inde">
 <meta name="twitter:image" content="http://heartaway.cn/images/posts/20170703/14990720990548.jpg">
   
-    <link rel="alternative" href="/atom.xml" title="Heartaway" type="application/atom+xml">
+    <link rel="alternative" href="/atom.xml" title="心静志远" type="application/atom+xml">
   
   
     <link rel="icon" href="/favicon.ico">
@@ -56,7 +56,7 @@
 		  <h1 class="header-author"><a href="/">心静志远</a></h1>
 		</hgroup>
 		
-		<p class="header-subtitle">技术会被淘汰，但思想会一直永存（多思考，多总结，多分享）；只有技术才是硬通货，看到技术背后的思想价值；</p>
+		<p class="header-subtitle">技术会被淘汰，但思想会一直永存 &lt;br/&gt;多思考，多总结，多分享 &lt;br/&gt; 技术才是硬通货，探求本质与思想</p>
 		
 
 		<nav class="header-menu">
@@ -112,7 +112,7 @@
 			  <h1 class="header-author js-header-author">心静志远</h1>
 			</hgroup>
 			
-			<p class="header-subtitle"><i class="icon icon-quo-left"></i>技术会被淘汰，但思想会一直永存（多思考，多总结，多分享）；只有技术才是硬通货，看到技术背后的思想价值；<i class="icon icon-quo-right"></i></p>
+			<p class="header-subtitle"><i class="icon icon-quo-left"></i>技术会被淘汰，但思想会一直永存 &lt;br/&gt;多思考，多总结，多分享 &lt;br/&gt; 技术才是硬通货，探求本质与思想<i class="icon icon-quo-right"></i></p>
 			
 			
 			

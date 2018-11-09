@@ -6,14 +6,14 @@
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <link rel="dns-prefetch" href="http://heartaway.cn">
-  <title>Mysql MAX/MIN vs ORDER BY and LIMIT | Heartaway</title>
+  <title>Mysql MAX/MIN vs ORDER BY and LIMIT | 心静志远</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="description" content="我们在进行数据库的TOP N 操作时，又两种选择，一种使用内置的函数MAX/MIN，另外一种是采用 ORDER BY  和 LIMIT的组合，那么在什么情况下使用那种策略呢，哪种效率会更高一些呢？ 在最坏的情况下，如果你正在寻找在一个无索引的字段，使用min()需要全表扫描。使用order by + limit 要求一个排序后的文件。如果碰到一个大表，性能差异会非常大。在我本机上测试了一个1060">
 <meta name="keywords" content="Max Order By Limit">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Mysql MAX&#x2F;MIN vs ORDER BY and LIMIT">
 <meta property="og:url" content="http://heartaway.cn/2017/07/04/Java/2017-07-04-mysql-max-orderby-limit/index.html">
-<meta property="og:site_name" content="Heartaway">
+<meta property="og:site_name" content="心静志远">
 <meta property="og:description" content="我们在进行数据库的TOP N 操作时，又两种选择，一种使用内置的函数MAX/MIN，另外一种是采用 ORDER BY  和 LIMIT的组合，那么在什么情况下使用那种策略呢，哪种效率会更高一些呢？ 在最坏的情况下，如果你正在寻找在一个无索引的字段，使用min()需要全表扫描。使用order by + limit 要求一个排序后的文件。如果碰到一个大表，性能差异会非常大。在我本机上测试了一个1060">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:updated_time" content="2018-11-09T14:23:40.519Z">
@@ -21,7 +21,7 @@
 <meta name="twitter:title" content="Mysql MAX&#x2F;MIN vs ORDER BY and LIMIT">
 <meta name="twitter:description" content="我们在进行数据库的TOP N 操作时，又两种选择，一种使用内置的函数MAX/MIN，另外一种是采用 ORDER BY  和 LIMIT的组合，那么在什么情况下使用那种策略呢，哪种效率会更高一些呢？ 在最坏的情况下，如果你正在寻找在一个无索引的字段，使用min()需要全表扫描。使用order by + limit 要求一个排序后的文件。如果碰到一个大表，性能差异会非常大。在我本机上测试了一个1060">
   
-    <link rel="alternative" href="/atom.xml" title="Heartaway" type="application/atom+xml">
+    <link rel="alternative" href="/atom.xml" title="心静志远" type="application/atom+xml">
   
   
     <link rel="icon" href="/favicon.ico">
@@ -54,7 +54,7 @@
 		  <h1 class="header-author"><a href="/">心静志远</a></h1>
 		</hgroup>
 		
-		<p class="header-subtitle">技术会被淘汰，但思想会一直永存（多思考，多总结，多分享）；只有技术才是硬通货，看到技术背后的思想价值；</p>
+		<p class="header-subtitle">技术会被淘汰，但思想会一直永存 &lt;br/&gt;多思考，多总结，多分享 &lt;br/&gt; 技术才是硬通货，探求本质与思想</p>
 		
 
 		<nav class="header-menu">
@@ -110,7 +110,7 @@
 			  <h1 class="header-author js-header-author">心静志远</h1>
 			</hgroup>
 			
-			<p class="header-subtitle"><i class="icon icon-quo-left"></i>技术会被淘汰，但思想会一直永存（多思考，多总结，多分享）；只有技术才是硬通货，看到技术背后的思想价值；<i class="icon icon-quo-right"></i></p>
+			<p class="header-subtitle"><i class="icon icon-quo-left"></i>技术会被淘汰，但思想会一直永存 &lt;br/&gt;多思考，多总结，多分享 &lt;br/&gt; 技术才是硬通货，探求本质与思想<i class="icon icon-quo-right"></i></p>
 			
 			
 			

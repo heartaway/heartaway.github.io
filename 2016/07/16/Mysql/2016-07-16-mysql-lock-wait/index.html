@@ -6,14 +6,14 @@
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <link rel="dns-prefetch" href="http://heartaway.cn">
-  <title>Lock wait timeout exceeded; try restarting transaction | Heartaway</title>
+  <title>Lock wait timeout exceeded; try restarting transaction | 心静志远</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="description" content="排查过程：查看数据库 INNODB_LOCKS，未发现有死锁的记录。查看 SHOW PROCESSLIST;  也未见异常进程；通过Mysql的控制台，查询慢日志，也未找到有关此表的Mysql慢日志信息。查询Mysql默认的所等待超时时间：show variables like ‘innodb_lock_wait_timeout’;Variable_name">
 <meta name="keywords" content="mysql lock wait 锁 锁等待">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Lock wait timeout exceeded; try restarting transaction">
 <meta property="og:url" content="http://heartaway.cn/2016/07/16/Mysql/2016-07-16-mysql-lock-wait/index.html">
-<meta property="og:site_name" content="Heartaway">
+<meta property="og:site_name" content="心静志远">
 <meta property="og:description" content="排查过程：查看数据库 INNODB_LOCKS，未发现有死锁的记录。查看 SHOW PROCESSLIST;  也未见异常进程；通过Mysql的控制台，查询慢日志，也未找到有关此表的Mysql慢日志信息。查询Mysql默认的所等待超时时间：show variables like ‘innodb_lock_wait_timeout’;Variable_name">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/c853d26a0835a5f6499783c87fca2294.png">
@@ -24,7 +24,7 @@
 <meta name="twitter:description" content="排查过程：查看数据库 INNODB_LOCKS，未发现有死锁的记录。查看 SHOW PROCESSLIST;  也未见异常进程；通过Mysql的控制台，查询慢日志，也未找到有关此表的Mysql慢日志信息。查询Mysql默认的所等待超时时间：show variables like ‘innodb_lock_wait_timeout’;Variable_name">
 <meta name="twitter:image" content="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/c853d26a0835a5f6499783c87fca2294.png">
   
-    <link rel="alternative" href="/atom.xml" title="Heartaway" type="application/atom+xml">
+    <link rel="alternative" href="/atom.xml" title="心静志远" type="application/atom+xml">
   
   
     <link rel="icon" href="/favicon.ico">
@@ -57,7 +57,7 @@
 		  <h1 class="header-author"><a href="/">心静志远</a></h1>
 		</hgroup>
 		
-		<p class="header-subtitle">技术会被淘汰，但思想会一直永存（多思考，多总结，多分享）；只有技术才是硬通货，看到技术背后的思想价值；</p>
+		<p class="header-subtitle">技术会被淘汰，但思想会一直永存 &lt;br/&gt;多思考，多总结，多分享 &lt;br/&gt; 技术才是硬通货，探求本质与思想</p>
 		
 
 		<nav class="header-menu">
@@ -113,7 +113,7 @@
 			  <h1 class="header-author js-header-author">心静志远</h1>
 			</hgroup>
 			
-			<p class="header-subtitle"><i class="icon icon-quo-left"></i>技术会被淘汰，但思想会一直永存（多思考，多总结，多分享）；只有技术才是硬通货，看到技术背后的思想价值；<i class="icon icon-quo-right"></i></p>
+			<p class="header-subtitle"><i class="icon icon-quo-left"></i>技术会被淘汰，但思想会一直永存 &lt;br/&gt;多思考，多总结，多分享 &lt;br/&gt; 技术才是硬通货，探求本质与思想<i class="icon icon-quo-right"></i></p>
 			
 			
 			

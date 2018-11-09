@@ -6,14 +6,14 @@
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <link rel="dns-prefetch" href="http://heartaway.cn">
-  <title>Task混用ThreadPool导致无限等待 | Heartaway</title>
+  <title>Task混用ThreadPool导致无限等待 | 心静志远</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="description" content="现象：生产环境商品打标异步任务提交任务后，任务没有被执行；查看日志，没有异常日志抛出。 初步猜测：可能是队列出现了饱和或者死锁，但是如果出现了饱和，我们设置的线程池设置的饱和策略是通过主线程去执行，为什么主线程也没有执行呢？ 具体分析：我定义了一个线程池Pool-Z，core_size=5,max_size=20,queue_size=1000，第一个任务A提交后，占用一个线程，那么这个任务A又会">
 <meta name="keywords" content="task threadpool">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Task混用ThreadPool导致无限等待">
 <meta property="og:url" content="http://heartaway.cn/2016/08/17/Java/2016-08-17-task-threadpool/index.html">
-<meta property="og:site_name" content="Heartaway">
+<meta property="og:site_name" content="心静志远">
 <meta property="og:description" content="现象：生产环境商品打标异步任务提交任务后，任务没有被执行；查看日志，没有异常日志抛出。 初步猜测：可能是队列出现了饱和或者死锁，但是如果出现了饱和，我们设置的线程池设置的饱和策略是通过主线程去执行，为什么主线程也没有执行呢？ 具体分析：我定义了一个线程池Pool-Z，core_size=5,max_size=20,queue_size=1000，第一个任务A提交后，占用一个线程，那么这个任务A又会">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:updated_time" content="2018-11-09T14:22:55.346Z">
@@ -21,7 +21,7 @@
 <meta name="twitter:title" content="Task混用ThreadPool导致无限等待">
 <meta name="twitter:description" content="现象：生产环境商品打标异步任务提交任务后，任务没有被执行；查看日志，没有异常日志抛出。 初步猜测：可能是队列出现了饱和或者死锁，但是如果出现了饱和，我们设置的线程池设置的饱和策略是通过主线程去执行，为什么主线程也没有执行呢？ 具体分析：我定义了一个线程池Pool-Z，core_size=5,max_size=20,queue_size=1000，第一个任务A提交后，占用一个线程，那么这个任务A又会">
   
-    <link rel="alternative" href="/atom.xml" title="Heartaway" type="application/atom+xml">
+    <link rel="alternative" href="/atom.xml" title="心静志远" type="application/atom+xml">
   
   
     <link rel="icon" href="/favicon.ico">
@@ -54,7 +54,7 @@
 		  <h1 class="header-author"><a href="/">心静志远</a></h1>
 		</hgroup>
 		
-		<p class="header-subtitle">技术会被淘汰，但思想会一直永存（多思考，多总结，多分享）；只有技术才是硬通货，看到技术背后的思想价值；</p>
+		<p class="header-subtitle">技术会被淘汰，但思想会一直永存 &lt;br/&gt;多思考，多总结，多分享 &lt;br/&gt; 技术才是硬通货，探求本质与思想</p>
 		
 
 		<nav class="header-menu">
@@ -110,7 +110,7 @@
 			  <h1 class="header-author js-header-author">心静志远</h1>
 			</hgroup>
 			
-			<p class="header-subtitle"><i class="icon icon-quo-left"></i>技术会被淘汰，但思想会一直永存（多思考，多总结，多分享）；只有技术才是硬通货，看到技术背后的思想价值；<i class="icon icon-quo-right"></i></p>
+			<p class="header-subtitle"><i class="icon icon-quo-left"></i>技术会被淘汰，但思想会一直永存 &lt;br/&gt;多思考，多总结，多分享 &lt;br/&gt; 技术才是硬通货，探求本质与思想<i class="icon icon-quo-right"></i></p>
 			
 			
 			

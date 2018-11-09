@@ -6,14 +6,14 @@
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <link rel="dns-prefetch" href="http://heartaway.cn">
-  <title>为什么SimpleDateFormat 不是线程安全 | Heartaway</title>
+  <title>为什么SimpleDateFormat 不是线程安全 | 心静志远</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="description" content="查看SimpleDateFormat类的说明，在最后一条已经明确说明了此类非线程安全，建议为每一个线程创建一个单独的实例，如果多线程共享实例，务必保证同步性；  要知道为什么不是线程安全的，首先我们需要知道SimpleDateFormat的作用和工作原理。 SimpleDateFormat继承了DateFormat,在DateFormat中定义了一个protected属性的 Calendar类的对">
 <meta name="keywords" content="simpleDateFormat 线程安全">
 <meta property="og:type" content="article">
 <meta property="og:title" content="为什么SimpleDateFormat 不是线程安全">
 <meta property="og:url" content="http://heartaway.cn/2016/03/10/Java/2016-03-10-simpledateformat/index.html">
-<meta property="og:site_name" content="Heartaway">
+<meta property="og:site_name" content="心静志远">
 <meta property="og:description" content="查看SimpleDateFormat类的说明，在最后一条已经明确说明了此类非线程安全，建议为每一个线程创建一个单独的实例，如果多线程共享实例，务必保证同步性；  要知道为什么不是线程安全的，首先我们需要知道SimpleDateFormat的作用和工作原理。 SimpleDateFormat继承了DateFormat,在DateFormat中定义了一个protected属性的 Calendar类的对">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://heartaway.cn/images/posts/20160310/7BCC9F9B-0535-48BC-B247-3A13DFC9C60E.png">
@@ -25,7 +25,7 @@
 <meta name="twitter:description" content="查看SimpleDateFormat类的说明，在最后一条已经明确说明了此类非线程安全，建议为每一个线程创建一个单独的实例，如果多线程共享实例，务必保证同步性；  要知道为什么不是线程安全的，首先我们需要知道SimpleDateFormat的作用和工作原理。 SimpleDateFormat继承了DateFormat,在DateFormat中定义了一个protected属性的 Calendar类的对">
 <meta name="twitter:image" content="http://heartaway.cn/images/posts/20160310/7BCC9F9B-0535-48BC-B247-3A13DFC9C60E.png">
   
-    <link rel="alternative" href="/atom.xml" title="Heartaway" type="application/atom+xml">
+    <link rel="alternative" href="/atom.xml" title="心静志远" type="application/atom+xml">
   
   
     <link rel="icon" href="/favicon.ico">
@@ -58,7 +58,7 @@
 		  <h1 class="header-author"><a href="/">心静志远</a></h1>
 		</hgroup>
 		
-		<p class="header-subtitle">技术会被淘汰，但思想会一直永存（多思考，多总结，多分享）；只有技术才是硬通货，看到技术背后的思想价值；</p>
+		<p class="header-subtitle">技术会被淘汰，但思想会一直永存 &lt;br/&gt;多思考，多总结，多分享 &lt;br/&gt; 技术才是硬通货，探求本质与思想</p>
 		
 
 		<nav class="header-menu">
@@ -114,7 +114,7 @@
 			  <h1 class="header-author js-header-author">心静志远</h1>
 			</hgroup>
 			
-			<p class="header-subtitle"><i class="icon icon-quo-left"></i>技术会被淘汰，但思想会一直永存（多思考，多总结，多分享）；只有技术才是硬通货，看到技术背后的思想价值；<i class="icon icon-quo-right"></i></p>
+			<p class="header-subtitle"><i class="icon icon-quo-left"></i>技术会被淘汰，但思想会一直永存 &lt;br/&gt;多思考，多总结，多分享 &lt;br/&gt; 技术才是硬通货，探求本质与思想<i class="icon icon-quo-right"></i></p>
 			
 			
 			

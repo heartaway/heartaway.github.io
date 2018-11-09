@@ -6,14 +6,14 @@
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <link rel="dns-prefetch" href="http://heartaway.cn">
-  <title>CAS 操作的实现原理 | Heartaway</title>
+  <title>CAS 操作的实现原理 | 心静志远</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="description" content="CAS原子操作原理：1. 在x86 平台上，CPU提供了在指令执行期间对总线加锁的手段（多处理器）CPU芯片上有一条引线#HLOCK pin，如果汇编语言的程序中在一条指令前面加上前缀”LOCK”，经过汇编以后的机器代码就使CPU在执行这条指令的时候把#HLOCK pin的电位拉低，持续到这条指令结束时放开，从而把总线锁住，这样同一总线上别的CPU就暂时不能通过总线访问内存了，保证了这条指令在多处">
 <meta name="keywords" content="cas">
 <meta property="og:type" content="article">
 <meta property="og:title" content="CAS 操作的实现原理">
 <meta property="og:url" content="http://heartaway.cn/2016/07/07/Java/2016-07-07-cas-work/index.html">
-<meta property="og:site_name" content="Heartaway">
+<meta property="og:site_name" content="心静志远">
 <meta property="og:description" content="CAS原子操作原理：1. 在x86 平台上，CPU提供了在指令执行期间对总线加锁的手段（多处理器）CPU芯片上有一条引线#HLOCK pin，如果汇编语言的程序中在一条指令前面加上前缀”LOCK”，经过汇编以后的机器代码就使CPU在执行这条指令的时候把#HLOCK pin的电位拉低，持续到这条指令结束时放开，从而把总线锁住，这样同一总线上别的CPU就暂时不能通过总线访问内存了，保证了这条指令在多处">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/731405bbc5b0122b43c21a44dddcbedc.png">
@@ -23,7 +23,7 @@
 <meta name="twitter:description" content="CAS原子操作原理：1. 在x86 平台上，CPU提供了在指令执行期间对总线加锁的手段（多处理器）CPU芯片上有一条引线#HLOCK pin，如果汇编语言的程序中在一条指令前面加上前缀”LOCK”，经过汇编以后的机器代码就使CPU在执行这条指令的时候把#HLOCK pin的电位拉低，持续到这条指令结束时放开，从而把总线锁住，这样同一总线上别的CPU就暂时不能通过总线访问内存了，保证了这条指令在多处">
 <meta name="twitter:image" content="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/731405bbc5b0122b43c21a44dddcbedc.png">
   
-    <link rel="alternative" href="/atom.xml" title="Heartaway" type="application/atom+xml">
+    <link rel="alternative" href="/atom.xml" title="心静志远" type="application/atom+xml">
   
   
     <link rel="icon" href="/favicon.ico">
@@ -56,7 +56,7 @@
 		  <h1 class="header-author"><a href="/">心静志远</a></h1>
 		</hgroup>
 		
-		<p class="header-subtitle">技术会被淘汰，但思想会一直永存（多思考，多总结，多分享）；只有技术才是硬通货，看到技术背后的思想价值；</p>
+		<p class="header-subtitle">技术会被淘汰，但思想会一直永存 &lt;br/&gt;多思考，多总结，多分享 &lt;br/&gt; 技术才是硬通货，探求本质与思想</p>
 		
 
 		<nav class="header-menu">
@@ -112,7 +112,7 @@
 			  <h1 class="header-author js-header-author">心静志远</h1>
 			</hgroup>
 			
-			<p class="header-subtitle"><i class="icon icon-quo-left"></i>技术会被淘汰，但思想会一直永存（多思考，多总结，多分享）；只有技术才是硬通货，看到技术背后的思想价值；<i class="icon icon-quo-right"></i></p>
+			<p class="header-subtitle"><i class="icon icon-quo-left"></i>技术会被淘汰，但思想会一直永存 &lt;br/&gt;多思考，多总结，多分享 &lt;br/&gt; 技术才是硬通货，探求本质与思想<i class="icon icon-quo-right"></i></p>
 			
 			
 			

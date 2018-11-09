@@ -6,14 +6,14 @@
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <link rel="dns-prefetch" href="http://heartaway.cn">
-  <title>怎么编写用户注册/登录服务 | Heartaway</title>
+  <title>怎么编写用户注册/登录服务 | 心静志远</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="description" content="看似简单的注册登录功能，如果想考虑完善，并且做到极致体验和良好的安全性，并不是一件容易的事情。本篇文章就结合我们公司的登录体系来分析一下怎么去做好一个用户注册与登录功能。 密码设置与传输：用户在注册的时候最好对密码的强度做验证，防止弱密码。其次切记不能将密码明文传输，一般的做法是前对对密码做一次Md5加密，后端再做一次Md5加密然后出到DB中。 请求参数签名与验签：现在主流的开发模式是前后端分离，">
 <meta name="keywords" content="Login Regist 登录 注册">
 <meta property="og:type" content="article">
 <meta property="og:title" content="怎么编写用户注册&#x2F;登录服务">
 <meta property="og:url" content="http://heartaway.cn/2016/05/09/Program/2016-05-09-user-login-and-regist/index.html">
-<meta property="og:site_name" content="Heartaway">
+<meta property="og:site_name" content="心静志远">
 <meta property="og:description" content="看似简单的注册登录功能，如果想考虑完善，并且做到极致体验和良好的安全性，并不是一件容易的事情。本篇文章就结合我们公司的登录体系来分析一下怎么去做好一个用户注册与登录功能。 密码设置与传输：用户在注册的时候最好对密码的强度做验证，防止弱密码。其次切记不能将密码明文传输，一般的做法是前对对密码做一次Md5加密，后端再做一次Md5加密然后出到DB中。 请求参数签名与验签：现在主流的开发模式是前后端分离，">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://heartaway.cn/images/posts/20160509/js-url-param-sign.png">
@@ -26,7 +26,7 @@
 <meta name="twitter:description" content="看似简单的注册登录功能，如果想考虑完善，并且做到极致体验和良好的安全性，并不是一件容易的事情。本篇文章就结合我们公司的登录体系来分析一下怎么去做好一个用户注册与登录功能。 密码设置与传输：用户在注册的时候最好对密码的强度做验证，防止弱密码。其次切记不能将密码明文传输，一般的做法是前对对密码做一次Md5加密，后端再做一次Md5加密然后出到DB中。 请求参数签名与验签：现在主流的开发模式是前后端分离，">
 <meta name="twitter:image" content="http://heartaway.cn/images/posts/20160509/js-url-param-sign.png">
   
-    <link rel="alternative" href="/atom.xml" title="Heartaway" type="application/atom+xml">
+    <link rel="alternative" href="/atom.xml" title="心静志远" type="application/atom+xml">
   
   
     <link rel="icon" href="/favicon.ico">
@@ -59,7 +59,7 @@
 		  <h1 class="header-author"><a href="/">心静志远</a></h1>
 		</hgroup>
 		
-		<p class="header-subtitle">技术会被淘汰，但思想会一直永存（多思考，多总结，多分享）；只有技术才是硬通货，看到技术背后的思想价值；</p>
+		<p class="header-subtitle">技术会被淘汰，但思想会一直永存 &lt;br/&gt;多思考，多总结，多分享 &lt;br/&gt; 技术才是硬通货，探求本质与思想</p>
 		
 
 		<nav class="header-menu">
@@ -115,7 +115,7 @@
 			  <h1 class="header-author js-header-author">心静志远</h1>
 			</hgroup>
 			
-			<p class="header-subtitle"><i class="icon icon-quo-left"></i>技术会被淘汰，但思想会一直永存（多思考，多总结，多分享）；只有技术才是硬通货，看到技术背后的思想价值；<i class="icon icon-quo-right"></i></p>
+			<p class="header-subtitle"><i class="icon icon-quo-left"></i>技术会被淘汰，但思想会一直永存 &lt;br/&gt;多思考，多总结，多分享 &lt;br/&gt; 技术才是硬通货，探求本质与思想<i class="icon icon-quo-right"></i></p>
 			
 			
 			

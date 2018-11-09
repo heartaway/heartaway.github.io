@@ -6,14 +6,14 @@
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <link rel="dns-prefetch" href="http://heartaway.cn">
-  <title>Wireshark监控分析Https的交互过程 | Heartaway</title>
+  <title>Wireshark监控分析Https的交互过程 | 心静志远</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="description" content="首先介绍一下Https在Client与Server之间的理论交互过程： 试想，我们期望在网络中传输的数据是被加密的，并且这个数据包在客户端和服务器端都能进行加密和解密，那么需要对称加密算法，客户端和服务端都需要有一个加解密Key（对称加密），对数据包进行加解密，那么这个Key如何产生并在在网络中安全的传递呢？假设这秘钥是有服务端产生，分配给客户端，为了保证安全，需要在派送Key的过程中进行加密，那">
 <meta name="keywords" content="https Wireshark">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Wireshark监控分析Https的交互过程">
 <meta property="og:url" content="http://heartaway.cn/2016/06/06/Basic/2016-06-06-https-with-wireshark/index.html">
-<meta property="og:site_name" content="Heartaway">
+<meta property="og:site_name" content="心静志远">
 <meta property="og:description" content="首先介绍一下Https在Client与Server之间的理论交互过程： 试想，我们期望在网络中传输的数据是被加密的，并且这个数据包在客户端和服务器端都能进行加密和解密，那么需要对称加密算法，客户端和服务端都需要有一个加解密Key（对称加密），对数据包进行加解密，那么这个Key如何产生并在在网络中安全的传递呢？假设这秘钥是有服务端产生，分配给客户端，为了保证安全，需要在派送Key的过程中进行加密，那">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/fbcfb4b7d254a68b4e39ddbeef776927.png">
@@ -40,7 +40,7 @@
 <meta name="twitter:description" content="首先介绍一下Https在Client与Server之间的理论交互过程： 试想，我们期望在网络中传输的数据是被加密的，并且这个数据包在客户端和服务器端都能进行加密和解密，那么需要对称加密算法，客户端和服务端都需要有一个加解密Key（对称加密），对数据包进行加解密，那么这个Key如何产生并在在网络中安全的传递呢？假设这秘钥是有服务端产生，分配给客户端，为了保证安全，需要在派送Key的过程中进行加密，那">
 <meta name="twitter:image" content="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/fbcfb4b7d254a68b4e39ddbeef776927.png">
   
-    <link rel="alternative" href="/atom.xml" title="Heartaway" type="application/atom+xml">
+    <link rel="alternative" href="/atom.xml" title="心静志远" type="application/atom+xml">
   
   
     <link rel="icon" href="/favicon.ico">
@@ -73,7 +73,7 @@
 		  <h1 class="header-author"><a href="/">心静志远</a></h1>
 		</hgroup>
 		
-		<p class="header-subtitle">技术会被淘汰，但思想会一直永存（多思考，多总结，多分享）；只有技术才是硬通货，看到技术背后的思想价值；</p>
+		<p class="header-subtitle">技术会被淘汰，但思想会一直永存 &lt;br/&gt;多思考，多总结，多分享 &lt;br/&gt; 技术才是硬通货，探求本质与思想</p>
 		
 
 		<nav class="header-menu">
@@ -129,7 +129,7 @@
 			  <h1 class="header-author js-header-author">心静志远</h1>
 			</hgroup>
 			
-			<p class="header-subtitle"><i class="icon icon-quo-left"></i>技术会被淘汰，但思想会一直永存（多思考，多总结，多分享）；只有技术才是硬通货，看到技术背后的思想价值；<i class="icon icon-quo-right"></i></p>
+			<p class="header-subtitle"><i class="icon icon-quo-left"></i>技术会被淘汰，但思想会一直永存 &lt;br/&gt;多思考，多总结，多分享 &lt;br/&gt; 技术才是硬通货，探求本质与思想<i class="icon icon-quo-right"></i></p>
 			
 			
 			

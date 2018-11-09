@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
-  <title>Heartaway</title>
+  <title>心静志远</title>
   
-  <subtitle>技术会被淘汰，但思想会一直永存（多思考，多总结，多分享）；只有技术才是硬通货，看到技术背后的思想价值；</subtitle>
+  <subtitle>技术会被淘汰，但思想会一直永存 &lt;br/&gt;多思考，多总结，多分享 &lt;br/&gt; 技术才是硬通货，探求本质与思想</subtitle>
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://heartaway.cn/"/>

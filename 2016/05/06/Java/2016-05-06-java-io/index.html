@@ -6,14 +6,14 @@
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <link rel="dns-prefetch" href="http://heartaway.cn">
-  <title>Java基础 之 IO | Heartaway</title>
+  <title>Java基础 之 IO | 心静志远</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="description" content="操作系统IO五类模型  IO操作的两个阶段：1.等待数据的到来，当数据到来时将数据拷贝到内核临时缓冲区；2. 将数据从内核临时缓冲区拷贝到用户缓冲区； 阻塞IO、非阻塞IO：阻塞IO就是进程一直等待数据的到来直到抵达超时时间；非阻塞IO就是采用“轮询”的方式询问操作是否准备就绪，是一种浪费CPU的方式；在阻塞IO上上进一步改进，一个阻塞IO监控一个套接字比较改进为使用IO复用（select 、po">
 <meta name="keywords" content="IO">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Java基础 之 IO">
 <meta property="og:url" content="http://heartaway.cn/2016/05/06/Java/2016-05-06-java-io/index.html">
-<meta property="og:site_name" content="Heartaway">
+<meta property="og:site_name" content="心静志远">
 <meta property="og:description" content="操作系统IO五类模型  IO操作的两个阶段：1.等待数据的到来，当数据到来时将数据拷贝到内核临时缓冲区；2. 将数据从内核临时缓冲区拷贝到用户缓冲区； 阻塞IO、非阻塞IO：阻塞IO就是进程一直等待数据的到来直到抵达超时时间；非阻塞IO就是采用“轮询”的方式询问操作是否准备就绪，是一种浪费CPU的方式；在阻塞IO上上进一步改进，一个阻塞IO监控一个套接字比较改进为使用IO复用（select 、po">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/acb8761f8dca4cd913caf1a23cec53de.png?zoom=2">
@@ -23,7 +23,7 @@
 <meta name="twitter:description" content="操作系统IO五类模型  IO操作的两个阶段：1.等待数据的到来，当数据到来时将数据拷贝到内核临时缓冲区；2. 将数据从内核临时缓冲区拷贝到用户缓冲区； 阻塞IO、非阻塞IO：阻塞IO就是进程一直等待数据的到来直到抵达超时时间；非阻塞IO就是采用“轮询”的方式询问操作是否准备就绪，是一种浪费CPU的方式；在阻塞IO上上进一步改进，一个阻塞IO监控一个套接字比较改进为使用IO复用（select 、po">
 <meta name="twitter:image" content="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/acb8761f8dca4cd913caf1a23cec53de.png?zoom=2">
   
-    <link rel="alternative" href="/atom.xml" title="Heartaway" type="application/atom+xml">
+    <link rel="alternative" href="/atom.xml" title="心静志远" type="application/atom+xml">
   
   
     <link rel="icon" href="/favicon.ico">
@@ -56,7 +56,7 @@
 		  <h1 class="header-author"><a href="/">心静志远</a></h1>
 		</hgroup>
 		
-		<p class="header-subtitle">技术会被淘汰，但思想会一直永存（多思考，多总结，多分享）；只有技术才是硬通货，看到技术背后的思想价值；</p>
+		<p class="header-subtitle">技术会被淘汰，但思想会一直永存 &lt;br/&gt;多思考，多总结，多分享 &lt;br/&gt; 技术才是硬通货，探求本质与思想</p>
 		
 
 		<nav class="header-menu">
@@ -112,7 +112,7 @@
 			  <h1 class="header-author js-header-author">心静志远</h1>
 			</hgroup>
 			
-			<p class="header-subtitle"><i class="icon icon-quo-left"></i>技术会被淘汰，但思想会一直永存（多思考，多总结，多分享）；只有技术才是硬通货，看到技术背后的思想价值；<i class="icon icon-quo-right"></i></p>
+			<p class="header-subtitle"><i class="icon icon-quo-left"></i>技术会被淘汰，但思想会一直永存 &lt;br/&gt;多思考，多总结，多分享 &lt;br/&gt; 技术才是硬通货，探求本质与思想<i class="icon icon-quo-right"></i></p>
 			
 			
 			

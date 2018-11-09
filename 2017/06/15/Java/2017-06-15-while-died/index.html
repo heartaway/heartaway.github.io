@@ -6,14 +6,14 @@
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <link rel="dns-prefetch" href="http://heartaway.cn">
-  <title>Java Load CPU MEM 飙高的一次排查 | Heartaway</title>
+  <title>Java Load CPU MEM 飙高的一次排查 | 心静志远</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="description" content="问题发现：收到报警提醒： 问题排查：登录机器查看： CPU 持续高于 80%，8G内存几乎被占满； 异常报警项为 一个每隔5min执行一次的定时任务每次运行时间超过10分钟；初步判断为任务累加导致系统负载越来越重。 那为什么定时任务在5min内执行未完成呢？看看线程到底在做什么。 查看进程中线程的占用CPU时长：1top -Hp pid  可以看到有不少进程占用CPU总计时间超过100分钟，最大的">
 <meta name="keywords" content="jstack">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Java Load CPU MEM 飙高的一次排查">
 <meta property="og:url" content="http://heartaway.cn/2017/06/15/Java/2017-06-15-while-died/index.html">
-<meta property="og:site_name" content="Heartaway">
+<meta property="og:site_name" content="心静志远">
 <meta property="og:description" content="问题发现：收到报警提醒： 问题排查：登录机器查看： CPU 持续高于 80%，8G内存几乎被占满； 异常报警项为 一个每隔5min执行一次的定时任务每次运行时间超过10分钟；初步判断为任务累加导致系统负载越来越重。 那为什么定时任务在5min内执行未完成呢？看看线程到底在做什么。 查看进程中线程的占用CPU时长：1top -Hp pid  可以看到有不少进程占用CPU总计时间超过100分钟，最大的">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://heartaway.cn/images/posts/20170615/sys-mail-notice.png">
@@ -29,7 +29,7 @@
 <meta name="twitter:description" content="问题发现：收到报警提醒： 问题排查：登录机器查看： CPU 持续高于 80%，8G内存几乎被占满； 异常报警项为 一个每隔5min执行一次的定时任务每次运行时间超过10分钟；初步判断为任务累加导致系统负载越来越重。 那为什么定时任务在5min内执行未完成呢？看看线程到底在做什么。 查看进程中线程的占用CPU时长：1top -Hp pid  可以看到有不少进程占用CPU总计时间超过100分钟，最大的">
 <meta name="twitter:image" content="http://heartaway.cn/images/posts/20170615/sys-mail-notice.png">
   
-    <link rel="alternative" href="/atom.xml" title="Heartaway" type="application/atom+xml">
+    <link rel="alternative" href="/atom.xml" title="心静志远" type="application/atom+xml">
   
   
     <link rel="icon" href="/favicon.ico">
@@ -62,7 +62,7 @@
 		  <h1 class="header-author"><a href="/">心静志远</a></h1>
 		</hgroup>
 		
-		<p class="header-subtitle">技术会被淘汰，但思想会一直永存（多思考，多总结，多分享）；只有技术才是硬通货，看到技术背后的思想价值；</p>
+		<p class="header-subtitle">技术会被淘汰，但思想会一直永存 &lt;br/&gt;多思考，多总结，多分享 &lt;br/&gt; 技术才是硬通货，探求本质与思想</p>
 		
 
 		<nav class="header-menu">
@@ -118,7 +118,7 @@
 			  <h1 class="header-author js-header-author">心静志远</h1>
 			</hgroup>
 			
-			<p class="header-subtitle"><i class="icon icon-quo-left"></i>技术会被淘汰，但思想会一直永存（多思考，多总结，多分享）；只有技术才是硬通货，看到技术背后的思想价值；<i class="icon icon-quo-right"></i></p>
+			<p class="header-subtitle"><i class="icon icon-quo-left"></i>技术会被淘汰，但思想会一直永存 &lt;br/&gt;多思考，多总结，多分享 &lt;br/&gt; 技术才是硬通货，探求本质与思想<i class="icon icon-quo-right"></i></p>
 			
 			
 			

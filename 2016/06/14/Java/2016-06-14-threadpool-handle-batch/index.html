@@ -6,14 +6,14 @@
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <link rel="dns-prefetch" href="http://heartaway.cn">
-  <title>用线程池解决批量任务执行 | Heartaway</title>
+  <title>用线程池解决批量任务执行 | 心静志远</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="description" content="今天遇到一个场景：用于有一批数据需要批量处理，每一个任务的处理都会花费300~500ms的时间，如果列表为30个时，直接导致http请求超时了（设置的Http请求时间为10s）。所以期望服务端能够多线程执行任务，所有执行完毕后返回最终结果。  解决方案大家比较明确了，在外部接口无法被优化的场景下，只能将顺序执行的任务变为并行执行，Java提供了线程模型和线程池模型。但是要做到合理的利用线程池，必">
 <meta name="keywords" content="心静志远, xinjinzhiyuan, heartaway">
 <meta property="og:type" content="article">
 <meta property="og:title" content="用线程池解决批量任务执行">
 <meta property="og:url" content="http://heartaway.cn/2016/06/14/Java/2016-06-14-threadpool-handle-batch/index.html">
-<meta property="og:site_name" content="Heartaway">
+<meta property="og:site_name" content="心静志远">
 <meta property="og:description" content="今天遇到一个场景：用于有一批数据需要批量处理，每一个任务的处理都会花费300~500ms的时间，如果列表为30个时，直接导致http请求超时了（设置的Http请求时间为10s）。所以期望服务端能够多线程执行任务，所有执行完毕后返回最终结果。  解决方案大家比较明确了，在外部接口无法被优化的场景下，只能将顺序执行的任务变为并行执行，Java提供了线程模型和线程池模型。但是要做到合理的利用线程池，必">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/10a39f5ab6ff4780007537e2e73ee106.png">
@@ -23,7 +23,7 @@
 <meta name="twitter:description" content="今天遇到一个场景：用于有一批数据需要批量处理，每一个任务的处理都会花费300~500ms的时间，如果列表为30个时，直接导致http请求超时了（设置的Http请求时间为10s）。所以期望服务端能够多线程执行任务，所有执行完毕后返回最终结果。  解决方案大家比较明确了，在外部接口无法被优化的场景下，只能将顺序执行的任务变为并行执行，Java提供了线程模型和线程池模型。但是要做到合理的利用线程池，必">
 <meta name="twitter:image" content="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/10a39f5ab6ff4780007537e2e73ee106.png">
   
-    <link rel="alternative" href="/atom.xml" title="Heartaway" type="application/atom+xml">
+    <link rel="alternative" href="/atom.xml" title="心静志远" type="application/atom+xml">
   
   
     <link rel="icon" href="/favicon.ico">
@@ -56,7 +56,7 @@
 		  <h1 class="header-author"><a href="/">心静志远</a></h1>
 		</hgroup>
 		
-		<p class="header-subtitle">技术会被淘汰，但思想会一直永存（多思考，多总结，多分享）；只有技术才是硬通货，看到技术背后的思想价值；</p>
+		<p class="header-subtitle">技术会被淘汰，但思想会一直永存 &lt;br/&gt;多思考，多总结，多分享 &lt;br/&gt; 技术才是硬通货，探求本质与思想</p>
 		
 
 		<nav class="header-menu">
@@ -112,7 +112,7 @@
 			  <h1 class="header-author js-header-author">心静志远</h1>
 			</hgroup>
 			
-			<p class="header-subtitle"><i class="icon icon-quo-left"></i>技术会被淘汰，但思想会一直永存（多思考，多总结，多分享）；只有技术才是硬通货，看到技术背后的思想价值；<i class="icon icon-quo-right"></i></p>
+			<p class="header-subtitle"><i class="icon icon-quo-left"></i>技术会被淘汰，但思想会一直永存 &lt;br/&gt;多思考，多总结，多分享 &lt;br/&gt; 技术才是硬通货，探求本质与思想<i class="icon icon-quo-right"></i></p>
 			
 			
 			
