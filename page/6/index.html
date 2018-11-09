@@ -330,6 +330,114 @@
 
 
   
+    <article id="post-Paper/2018-03-14-infrastructure-auto-discovery" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/11/09/Paper/2018-03-14-infrastructure-auto-discovery/">《基于中间件的基础设施自动发现》</a>
+    </h1>
+  
+
+        
+        <a href="/2018/11/09/Paper/2018-03-14-infrastructure-auto-discovery/" class="archive-article-date">
+  	<time datetime="2018-11-09T13:48:02.822Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-11-09</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <blockquote>
+<p>论文地址：<br><a href="https://patents.google.com/patent/US7912749B2/en" target="_blank" rel="noopener">https://patents.google.com/patent/US7912749B2/en</a></p>
+</blockquote>
+<h4 id="论文主体内容："><a href="#论文主体内容：" class="headerlink" title="论文主体内容："></a>论文主体内容：</h4><p>通过分析中间件网络数据，建立信息模型；从网络数据中判断组件性能阈值、基础设施组件之间的依赖关系以及业务流程与基础设施的映射关系；</p>
+<p>建议采用分层（图层）模型；（比如Dynatrace中的5层模型）</p>
+<h4 id="架构基线特征"><a href="#架构基线特征" class="headerlink" title="架构基线特征"></a>架构基线特征</h4><ol>
+<li>基于对象的；<ul>
+<li>对象也就是架构实体或者信息模型的组合；</li>
+</ul>
+</li>
+<li>策略驱动的；</li>
+<li>安全的；</li>
+<li>自我管理的；</li>
+<li>自我描述；<ul>
+<li>自我描述有利于新组件加入后的关系挖掘，而不依赖人工的定义与配置；</li>
+</ul>
+</li>
+<li>能够提供信息透明度；</li>
+</ol>
+<p>架构基线是简化系统主要部分的识别和结构化组织的催化剂。</p>
+<p>架构发现本质上是对信息的识别和分类过程，识别和分类过程最好与任何特定的知识库，上下文，协议或平台 无关。</p>
+<h4 id="模型划分"><a href="#模型划分" class="headerlink" title="模型划分"></a>模型划分</h4><p>可以提供元模型来定义用于在业务管理环境中指定模型的语言。元模型可以具有描述动态语义的能力。元模型图层中的一些对象示例包括类，属性，操作，关联，组件等</p>
+<p>可以提根据核心模型来定义抽象类的集合，核心模型是分析师确定如何扩展核心模型以创建领域模型的起点。抽象类的一些例子，比如交易、客户等；</p>
+<p>按照信息的抽象程度划分：<br>元模型 &gt; 信息模型 &gt; 核心模型 &gt; 领域模型；</p>
+<p>信息模型和核心模型通常更稳定，这两个模型是定义域模型的来源，这些模型也提供了跨不同领域的元素视图，可发现有价值的业务相关数据。</p>
+<h4 id="信息过滤"><a href="#信息过滤" class="headerlink" title="信息过滤"></a>信息过滤</h4><p>从多个数据源创建有用的信息非常关键。但是，业务相关性需要适当、一致且相关的信息，而不是分散的数据。<strong>信息透明度服务</strong>可以将离散的实时或历史数据源分离出来，作为有用的信息源。该过程涉及通过使用明确定义的‘聚合’和‘转换规则’以及信息模型作为信息交换的基础来聚合和转换数据源。</p>
+<h4 id="模式"><a href="#模式" class="headerlink" title="模式"></a>模式</h4><p>软件模块存储在数据库中。库中的各个模块称为模式，而库本身称为模式目录。模式可以根据其规模和抽象进一步分类为</p>
+<ul>
+<li>架构模式</li>
+<li>设计模式</li>
+<li>语言模式</li>
+</ul>
+<p>架构模式：表达了软件系统的基本结构组织模式。它提供了一组预定义的子系统，指定了他们的职责，并包括组织它们之间关系的规则和准则。</p>
+<h4 id="扩展功能"><a href="#扩展功能" class="headerlink" title="扩展功能"></a>扩展功能</h4><p>基础设施的自动发现，可衍生出通过诊断分析进行故障定位或影响分析等功能。可以提供自我修复程序，并且可以通过动态资源管理和嵌入式服务意识来解决基础结构优化问题。比如Dynatrace的故障定位；</p>
+<h4 id="扩展产品了解："><a href="#扩展产品了解：" class="headerlink" title="扩展产品了解："></a>扩展产品了解：</h4><p><a href="https://www.dynatrace.com/capabilities/application-topology-discovery/smartscape/" target="_blank" rel="noopener">dynatrace</a><br><a href="https://docs.aws.amazon.com/application-discovery/latest/APIReference/discovery-api-queries.html" target="_blank" rel="noopener">amazon-application-discovery</a></p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Paper//" class="article-tag-list-link color1">Paper</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2018/11/09/Paper/2018-03-14-infrastructure-auto-discovery/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
     <article id="post-Mysql/2016-06-15-mysql-lock-table-ddl" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
   <div class="article-inner">
     
@@ -416,114 +524,6 @@
       
         <p class="article-more-link">
           <a class="article-more-a" href="/2018/11/09/Mysql/2016-06-15-mysql-lock-table-ddl/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-Paper/2018-03-14-infrastructure-auto-discovery" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/11/09/Paper/2018-03-14-infrastructure-auto-discovery/">《基于中间件的基础设施自动发现》</a>
-    </h1>
-  
-
-        
-        <a href="/2018/11/09/Paper/2018-03-14-infrastructure-auto-discovery/" class="archive-article-date">
-  	<time datetime="2018-11-09T13:48:02.822Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-11-09</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <blockquote>
-<p>论文地址：<br><a href="https://patents.google.com/patent/US7912749B2/en" target="_blank" rel="noopener">https://patents.google.com/patent/US7912749B2/en</a></p>
-</blockquote>
-<h4 id="论文主体内容："><a href="#论文主体内容：" class="headerlink" title="论文主体内容："></a>论文主体内容：</h4><p>通过分析中间件网络数据，建立信息模型；从网络数据中判断组件性能阈值、基础设施组件之间的依赖关系以及业务流程与基础设施的映射关系；</p>
-<p>建议采用分层（图层）模型；（比如Dynatrace中的5层模型）</p>
-<h4 id="架构基线特征"><a href="#架构基线特征" class="headerlink" title="架构基线特征"></a>架构基线特征</h4><ol>
-<li>基于对象的；<ul>
-<li>对象也就是架构实体或者信息模型的组合；</li>
-</ul>
-</li>
-<li>策略驱动的；</li>
-<li>安全的；</li>
-<li>自我管理的；</li>
-<li>自我描述；<ul>
-<li>自我描述有利于新组件加入后的关系挖掘，而不依赖人工的定义与配置；</li>
-</ul>
-</li>
-<li>能够提供信息透明度；</li>
-</ol>
-<p>架构基线是简化系统主要部分的识别和结构化组织的催化剂。</p>
-<p>架构发现本质上是对信息的识别和分类过程，识别和分类过程最好与任何特定的知识库，上下文，协议或平台 无关。</p>
-<h4 id="模型划分"><a href="#模型划分" class="headerlink" title="模型划分"></a>模型划分</h4><p>可以提供元模型来定义用于在业务管理环境中指定模型的语言。元模型可以具有描述动态语义的能力。元模型图层中的一些对象示例包括类，属性，操作，关联，组件等</p>
-<p>可以提根据核心模型来定义抽象类的集合，核心模型是分析师确定如何扩展核心模型以创建领域模型的起点。抽象类的一些例子，比如交易、客户等；</p>
-<p>按照信息的抽象程度划分：<br>元模型 &gt; 信息模型 &gt; 核心模型 &gt; 领域模型；</p>
-<p>信息模型和核心模型通常更稳定，这两个模型是定义域模型的来源，这些模型也提供了跨不同领域的元素视图，可发现有价值的业务相关数据。</p>
-<h4 id="信息过滤"><a href="#信息过滤" class="headerlink" title="信息过滤"></a>信息过滤</h4><p>从多个数据源创建有用的信息非常关键。但是，业务相关性需要适当、一致且相关的信息，而不是分散的数据。<strong>信息透明度服务</strong>可以将离散的实时或历史数据源分离出来，作为有用的信息源。该过程涉及通过使用明确定义的‘聚合’和‘转换规则’以及信息模型作为信息交换的基础来聚合和转换数据源。</p>
-<h4 id="模式"><a href="#模式" class="headerlink" title="模式"></a>模式</h4><p>软件模块存储在数据库中。库中的各个模块称为模式，而库本身称为模式目录。模式可以根据其规模和抽象进一步分类为</p>
-<ul>
-<li>架构模式</li>
-<li>设计模式</li>
-<li>语言模式</li>
-</ul>
-<p>架构模式：表达了软件系统的基本结构组织模式。它提供了一组预定义的子系统，指定了他们的职责，并包括组织它们之间关系的规则和准则。</p>
-<h4 id="扩展功能"><a href="#扩展功能" class="headerlink" title="扩展功能"></a>扩展功能</h4><p>基础设施的自动发现，可衍生出通过诊断分析进行故障定位或影响分析等功能。可以提供自我修复程序，并且可以通过动态资源管理和嵌入式服务意识来解决基础结构优化问题。比如Dynatrace的故障定位；</p>
-<h4 id="扩展产品了解："><a href="#扩展产品了解：" class="headerlink" title="扩展产品了解："></a>扩展产品了解：</h4><p><a href="https://www.dynatrace.com/capabilities/application-topology-discovery/smartscape/" target="_blank" rel="noopener">dynatrace</a><br><a href="https://docs.aws.amazon.com/application-discovery/latest/APIReference/discovery-api-queries.html" target="_blank" rel="noopener">amazon-application-discovery</a></p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Paper//" class="article-tag-list-link color1">Paper</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2018/11/09/Paper/2018-03-14-infrastructure-auto-discovery/">展开全文 >></a>
         </p>
       
 
@@ -778,6 +778,101 @@
 
 
   
+    <article id="post-Java/2018-03-22-java-bean-setter-return" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/11/09/Java/2018-03-22-java-bean-setter-return/">POJO 对象setter 方法是否合适return &#34;this&#34;</a>
+    </h1>
+  
+
+        
+        <a href="/2018/11/09/Java/2018-03-22-java-bean-setter-return/" class="archive-article-date">
+  	<time datetime="2018-11-09T13:48:02.820Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-11-09</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>通常的POJO对象setter方法return 为void</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setStatus</span><span class="params">(String status)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.status = status;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>但是面对对象属性填充时，一堆的set方法让代码看起来很臃肿，部分同学采用类build模式，对setter方法进行改造，改造后就可以使用链式处理简化属性设置；</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Employee <span class="title">setName</span><span class="params">(String name)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.name = name;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">this</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>流式编码风格如：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">new</span> Employee().setName(<span class="string">"Xin yuan"</span>).setHeight(<span class="number">178</span>);</span><br></pre></td></tr></table></figure>
+<p>有人认为这让pojo方法设置变得更加便捷，有其使用之处，但是也有人认为<code>return this</code>打破了<a href="https://docstore.mik.ua/orelly/java-ent/jnut/ch06_02.htm" target="_blank" rel="noopener">Java Bean</a>的规约，破坏了每个函数单一职责的原则，也可能会破坏一些工具库的使用，或组织JVM做一些优化。而且在IDE中getter&amp;setter的自动生成内容中并没有“return this”。综其所述，setter方法“return this”并不建议。</p>
+<p>当然还有其它选择方案：</p>
+<p><strong>方法一：</strong></p>
+<p>采用java内置语法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">new</span> Employee()</span><br><span class="line">&#123;&#123;</span><br><span class="line">    setName(<span class="string">"Jack Sparrow"</span>);</span><br><span class="line">    setId(<span class="number">1</span>);</span><br><span class="line">    setFoo(<span class="string">"bacon!"</span>);</span><br><span class="line">&#125;&#125;);</span><br></pre></td></tr></table></figure>
+<p><strong>方法二：</strong></p>
+<p>采用更加复杂的内部类builder模式：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Employee <span class="title">setName</span><span class="params">(String name)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.name = name;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">this</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Builder</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> String name;</span><br><span class="line">      <span class="function"><span class="keyword">public</span> Builder <span class="title">name</span><span class="params">(Strig name)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.name = name;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">this</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>造者模式(Builder Pattern)：将一个<strong>复杂对象</strong>的<strong>构建</strong>与它的<strong>表示</strong>分离，使得同样的构建过程可以创建不同的表示。但是一般POJO 类都比较简单，非复杂对象，所以采用builder模式并不会让代码变得简洁，反而会显得更加臃肿。</p>
+<p><strong>方法三：</strong></p>
+<p>属性新增withXxx方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Employee <span class="title">setName</span><span class="params">(String name)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.name = name;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">this</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> Employee <span class="title">withName</span><span class="params">(String name)</span> </span>&#123;</span><br><span class="line">    setName(name);</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">this</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//使用方式</span></span><br><span class="line"><span class="keyword">new</span> Employee().withName(<span class="string">"Xin yuan"</span>).withHeight(<span class="number">178</span>);</span><br></pre></td></tr></table></figure>
+<h3 id="结论："><a href="#结论：" class="headerlink" title="结论："></a>结论：</h3><p>不建议在POJO： Java Bean的setter方法中添加‘return this’，我们遵循Java规范，如果期望简化Java Bean的属性设置，可以采用with或build方法。</p>
+<p><strong>参考：</strong></p>
+<p><a href="https://en.wikipedia.org/wiki/Plain_old_Java_object" target="_blank" rel="noopener">https://en.wikipedia.org/wiki/Plain_old_Java_object</a></p>
+<p><a href="https://stackoverflow.com/questions/1345001/is-it-bad-practice-to-make-a-setter-return-this" target="_blank" rel="noopener">https://stackoverflow.com/questions/1345001/is-it-bad-practice-to-make-a-setter-return-this</a></p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2018/11/09/Java/2018-03-22-java-bean-setter-return/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
     <article id="post-Java/2018-04-09-mybatis-core-thought" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
   <div class="article-inner">
     
@@ -905,101 +1000,6 @@
       
         <p class="article-more-link">
           <a class="article-more-a" href="/2018/11/09/Java/2018-04-09-mybatis-core-thought/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-Java/2018-03-22-java-bean-setter-return" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/11/09/Java/2018-03-22-java-bean-setter-return/">POJO 对象setter 方法是否合适return &#34;this&#34;</a>
-    </h1>
-  
-
-        
-        <a href="/2018/11/09/Java/2018-03-22-java-bean-setter-return/" class="archive-article-date">
-  	<time datetime="2018-11-09T13:48:02.820Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-11-09</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>通常的POJO对象setter方法return 为void</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setStatus</span><span class="params">(String status)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.status = status;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>但是面对对象属性填充时，一堆的set方法让代码看起来很臃肿，部分同学采用类build模式，对setter方法进行改造，改造后就可以使用链式处理简化属性设置；</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Employee <span class="title">setName</span><span class="params">(String name)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.name = name;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">this</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>流式编码风格如：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">new</span> Employee().setName(<span class="string">"Xin yuan"</span>).setHeight(<span class="number">178</span>);</span><br></pre></td></tr></table></figure>
-<p>有人认为这让pojo方法设置变得更加便捷，有其使用之处，但是也有人认为<code>return this</code>打破了<a href="https://docstore.mik.ua/orelly/java-ent/jnut/ch06_02.htm" target="_blank" rel="noopener">Java Bean</a>的规约，破坏了每个函数单一职责的原则，也可能会破坏一些工具库的使用，或组织JVM做一些优化。而且在IDE中getter&amp;setter的自动生成内容中并没有“return this”。综其所述，setter方法“return this”并不建议。</p>
-<p>当然还有其它选择方案：</p>
-<p><strong>方法一：</strong></p>
-<p>采用java内置语法：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">new</span> Employee()</span><br><span class="line">&#123;&#123;</span><br><span class="line">    setName(<span class="string">"Jack Sparrow"</span>);</span><br><span class="line">    setId(<span class="number">1</span>);</span><br><span class="line">    setFoo(<span class="string">"bacon!"</span>);</span><br><span class="line">&#125;&#125;);</span><br></pre></td></tr></table></figure>
-<p><strong>方法二：</strong></p>
-<p>采用更加复杂的内部类builder模式：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Employee <span class="title">setName</span><span class="params">(String name)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.name = name;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">this</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Builder</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> String name;</span><br><span class="line">      <span class="function"><span class="keyword">public</span> Builder <span class="title">name</span><span class="params">(Strig name)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.name = name;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">this</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>造者模式(Builder Pattern)：将一个<strong>复杂对象</strong>的<strong>构建</strong>与它的<strong>表示</strong>分离，使得同样的构建过程可以创建不同的表示。但是一般POJO 类都比较简单，非复杂对象，所以采用builder模式并不会让代码变得简洁，反而会显得更加臃肿。</p>
-<p><strong>方法三：</strong></p>
-<p>属性新增withXxx方法：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Employee <span class="title">setName</span><span class="params">(String name)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.name = name;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">this</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> Employee <span class="title">withName</span><span class="params">(String name)</span> </span>&#123;</span><br><span class="line">    setName(name);</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">this</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//使用方式</span></span><br><span class="line"><span class="keyword">new</span> Employee().withName(<span class="string">"Xin yuan"</span>).withHeight(<span class="number">178</span>);</span><br></pre></td></tr></table></figure>
-<h3 id="结论："><a href="#结论：" class="headerlink" title="结论："></a>结论：</h3><p>不建议在POJO： Java Bean的setter方法中添加‘return this’，我们遵循Java规范，如果期望简化Java Bean的属性设置，可以采用with或build方法。</p>
-<p><strong>参考：</strong></p>
-<p><a href="https://en.wikipedia.org/wiki/Plain_old_Java_object" target="_blank" rel="noopener">https://en.wikipedia.org/wiki/Plain_old_Java_object</a></p>
-<p><a href="https://stackoverflow.com/questions/1345001/is-it-bad-practice-to-make-a-setter-return-this" target="_blank" rel="noopener">https://stackoverflow.com/questions/1345001/is-it-bad-practice-to-make-a-setter-return-this</a></p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2018/11/09/Java/2018-03-22-java-bean-setter-return/">展开全文 >></a>
         </p>
       
 

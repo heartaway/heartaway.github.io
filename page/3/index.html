@@ -833,99 +833,6 @@
 
 
   
-    <article id="post-Tool/2017-02-27-git-repo" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/11/09/Tool/2017-02-27-git-repo/">GIT本地仓库与远程仓库</a>
-    </h1>
-  
-
-        
-        <a href="/2018/11/09/Tool/2017-02-27-git-repo/" class="archive-article-date">
-  	<time datetime="2018-11-09T13:48:02.835Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-11-09</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>很多初学GIT的同学对GIT的本地仓库和远程仓库无法做到很好的区分，我就画了一张图，来阐明他们之间的关系：</p>
-<p><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/df535a2370b095ec8a75ab25d972ad80.png" alt=""></p>
-<h3 id="Git-stash-的使用："><a href="#Git-stash-的使用：" class="headerlink" title="Git stash 的使用："></a>Git stash 的使用：</h3><p>我们在多分支操作时，暂存工作区中未提交的代码的功能非常有用。一般我们要求commit的代码都是功能完善的，可测试的，但是很多时候，我们的代码片段还未写完，需要临时切出一个分支来解决线上问题，此时就应该使用git stash功能；</p>
-<p>git stash 是全局储藏区，不同的分支下的stash操作都会到同一个储藏区。</p>
-<h5 id="默认名称储藏工作区："><a href="#默认名称储藏工作区：" class="headerlink" title="默认名称储藏工作区："></a>默认名称储藏工作区：</h5><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git stash</span><br></pre></td></tr></table></figure>
-<h5 id="按照指定储藏名称储藏工作区："><a href="#按照指定储藏名称储藏工作区：" class="headerlink" title="按照指定储藏名称储藏工作区："></a>按照指定储藏名称储藏工作区：</h5><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git stash save "commit info"</span><br></pre></td></tr></table></figure>
-<h5 id="查看历史储藏区列表："><a href="#查看历史储藏区列表：" class="headerlink" title="查看历史储藏区列表："></a>查看历史储藏区列表：</h5><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git stash list</span><br></pre></td></tr></table></figure>
-<h5 id="恢复储藏区的某操作到当前分支："><a href="#恢复储藏区的某操作到当前分支：" class="headerlink" title="恢复储藏区的某操作到当前分支："></a>恢复储藏区的某操作到当前分支：</h5><ul>
-<li>方式一：</li>
-</ul>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git stash pop</span><br></pre></td></tr></table></figure>
-<p>此方式直接从储藏区堆栈中的栈顶弹出最近的一次stash操作的内容，并删除堆栈中的当前stash操作记录；</p>
-<ul>
-<li>方式二：</li>
-</ul>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git stash apply stash@&#123;0&#125;</span><br></pre></td></tr></table></figure>
-<p>通过指定使用储藏区记录的名称来恢复stash的内容，stash@{n} 具体值可以从<code>git stash list</code>中查看，当然，直接使用git stash apply ，默认指向栈顶记录（stash@{0}永远指向栈顶）。 <code>apply</code>只是应用储藏区的一个记录到当前工作区，并不会删除储藏区的记录。</p>
-<h5 id="删除储藏区某一记录："><a href="#删除储藏区某一记录：" class="headerlink" title="删除储藏区某一记录："></a>删除储藏区某一记录：</h5><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git stash drop stash@&#123;0&#125;</span><br></pre></td></tr></table></figure>
-<p><code>git stash drop</code>默认的也是从栈顶开始删除，通过drop 后加名称可以指定删除的储藏记录。</p>
-<h5 id="从stash中创建分支："><a href="#从stash中创建分支：" class="headerlink" title="从stash中创建分支："></a>从stash中创建分支：</h5><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git stash branch branch-name</span><br></pre></td></tr></table></figure>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Tool//" class="article-tag-list-link color5">Tool</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2018/11/09/Tool/2017-02-27-git-repo/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
     <article id="post-Tool/2017-05-18-github-io-blog" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
   <div class="article-inner">
     
@@ -1013,6 +920,99 @@
       
         <p class="article-more-link">
           <a class="article-more-a" href="/2018/11/09/Tool/2017-05-18-github-io-blog/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-Tool/2017-02-27-git-repo" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/11/09/Tool/2017-02-27-git-repo/">GIT本地仓库与远程仓库</a>
+    </h1>
+  
+
+        
+        <a href="/2018/11/09/Tool/2017-02-27-git-repo/" class="archive-article-date">
+  	<time datetime="2018-11-09T13:48:02.835Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-11-09</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>很多初学GIT的同学对GIT的本地仓库和远程仓库无法做到很好的区分，我就画了一张图，来阐明他们之间的关系：</p>
+<p><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/df535a2370b095ec8a75ab25d972ad80.png" alt=""></p>
+<h3 id="Git-stash-的使用："><a href="#Git-stash-的使用：" class="headerlink" title="Git stash 的使用："></a>Git stash 的使用：</h3><p>我们在多分支操作时，暂存工作区中未提交的代码的功能非常有用。一般我们要求commit的代码都是功能完善的，可测试的，但是很多时候，我们的代码片段还未写完，需要临时切出一个分支来解决线上问题，此时就应该使用git stash功能；</p>
+<p>git stash 是全局储藏区，不同的分支下的stash操作都会到同一个储藏区。</p>
+<h5 id="默认名称储藏工作区："><a href="#默认名称储藏工作区：" class="headerlink" title="默认名称储藏工作区："></a>默认名称储藏工作区：</h5><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git stash</span><br></pre></td></tr></table></figure>
+<h5 id="按照指定储藏名称储藏工作区："><a href="#按照指定储藏名称储藏工作区：" class="headerlink" title="按照指定储藏名称储藏工作区："></a>按照指定储藏名称储藏工作区：</h5><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git stash save "commit info"</span><br></pre></td></tr></table></figure>
+<h5 id="查看历史储藏区列表："><a href="#查看历史储藏区列表：" class="headerlink" title="查看历史储藏区列表："></a>查看历史储藏区列表：</h5><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git stash list</span><br></pre></td></tr></table></figure>
+<h5 id="恢复储藏区的某操作到当前分支："><a href="#恢复储藏区的某操作到当前分支：" class="headerlink" title="恢复储藏区的某操作到当前分支："></a>恢复储藏区的某操作到当前分支：</h5><ul>
+<li>方式一：</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git stash pop</span><br></pre></td></tr></table></figure>
+<p>此方式直接从储藏区堆栈中的栈顶弹出最近的一次stash操作的内容，并删除堆栈中的当前stash操作记录；</p>
+<ul>
+<li>方式二：</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git stash apply stash@&#123;0&#125;</span><br></pre></td></tr></table></figure>
+<p>通过指定使用储藏区记录的名称来恢复stash的内容，stash@{n} 具体值可以从<code>git stash list</code>中查看，当然，直接使用git stash apply ，默认指向栈顶记录（stash@{0}永远指向栈顶）。 <code>apply</code>只是应用储藏区的一个记录到当前工作区，并不会删除储藏区的记录。</p>
+<h5 id="删除储藏区某一记录："><a href="#删除储藏区某一记录：" class="headerlink" title="删除储藏区某一记录："></a>删除储藏区某一记录：</h5><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git stash drop stash@&#123;0&#125;</span><br></pre></td></tr></table></figure>
+<p><code>git stash drop</code>默认的也是从栈顶开始删除，通过drop 后加名称可以指定删除的储藏记录。</p>
+<h5 id="从stash中创建分支："><a href="#从stash中创建分支：" class="headerlink" title="从stash中创建分支："></a>从stash中创建分支：</h5><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git stash branch branch-name</span><br></pre></td></tr></table></figure>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Tool//" class="article-tag-list-link color5">Tool</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2018/11/09/Tool/2017-02-27-git-repo/">展开全文 >></a>
         </p>
       
 

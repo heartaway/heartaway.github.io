@@ -152,813 +152,6 @@
           <div id="js-content" class="content-ll">
             
   
-    <article id="post-HighAvailability/2018-03-14-monitor-system" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/11/09/HighAvailability/2018-03-14-monitor-system/">自用型监控系统方案</a>
-    </h1>
-  
-
-        
-        <a href="/2018/11/09/HighAvailability/2018-03-14-monitor-system/" class="archive-article-date">
-  	<time datetime="2018-11-09T13:48:02.807Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-11-09</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="一、监控系统整体概述"><a href="#一、监控系统整体概述" class="headerlink" title="一、监控系统整体概述"></a>一、监控系统整体概述</h2><blockquote>
-<p>系统背景：<br>在当前项目中，当我们对特定流程注入故障后，如何评估故障的效果以及系统应对故障的表现？传统方式是用户需要登录线上机器或者各种监控系统去查看具体的指标信息，然后通过人工判断，来判断故障的影响范围，产品使用上不够自动化，且没有闭环。我们期望引入监控系统，把之前需要人来做的事情交给系统来做，为故障注入后的影响进行量化分析。</p>
-</blockquote>
-<p>整个监控系统对数据处理的四个步骤：<br><img src="https://gw.alicdn.com/tfscom/TB1nArGof2H8KJjy0FcXXaDlFXa.png" alt=""></p>
-<p>系统架构图：<br><img src="https://gw.alipayobjects.com/zos/skylark/155aa3d2-3444-4bd5-9588-ae9dfa39a0b2/2018/png/c59df181-ff42-4f6d-be01-3314a92f5e03.png" alt=""></p>
-<p><strong>组件说明：</strong></p>
-<p><strong>API Gateway</strong>：agent 与 Server 所有交互都会通过API Gateway，统一由API Gateway进行管控，为整个MK提供一致的数据门面接口，实现之前约定的数据总线的方案。</p>
-<p><strong>Data Collector</strong>：为数据采集器，接受来自客户端推送上来的监控数据 或 拉去外部监控数据；</p>
-<p><strong>Data Transfer</strong>： 数据转换器，把采集到的非一致性架构的数据转换为统一的数据模型；</p>
-<p><strong>Config</strong>： 此模块主要提供一些Agent、Collector、Analyzer需要的一些元数据；</p>
-<p><strong>Schedule</strong>： 依赖Schedule，主要是期望能把周期性数据拉取采集任务转换为 schedule任务，降低重复编写分布式任务调度的复杂度，其次，借助schedule实现周期任务分发的负载均衡；</p>
-<p><strong>Diamond</strong>：采用Diamond作为数据采集规则的动态配置中心。</p>
-<p><strong>MQ</strong>： 把数据采集器采集到的数据转换为统一的消息格式，解耦数据采集与数据分析对数据使用差异性；其次，当数据分析器Data Analyzer集群宕机或处理性能下降时，MQ能起到数据缓存池的作用，一定程度上防止采集上来的数据未能处理而导致的数据丢失。</p>
-<p><strong>Data Analyzer</strong>： 数据分析器，对收集到的监控数据进行一定程度上的计算转换，并根据关注点规则，进行事件监控处理；</p>
-<p>自研监控系统，需要面临一系列的抉择：<br><img src="https://gw.alipayobjects.com/zos/skylark/03a23023-065f-4333-a11a-86afff4f770f/2018/png/f2c31281-de0d-49e7-830d-49c2474b6ddb.png" alt=""></p>
-<h2 id="二、行业监控系统架构："><a href="#二、行业监控系统架构：" class="headerlink" title="二、行业监控系统架构："></a>二、行业监控系统架构：</h2><h4 id="OneAPM"><a href="#OneAPM" class="headerlink" title="OneAPM"></a>OneAPM</h4><p><img src="https://gw.alipayobjects.com/zos/skylark/1c75fc4a-de85-408c-a859-d943a7bccec3/2018/png/2e24513f-0c46-4f25-acd2-0aa293962b01.png" alt=""></p>
-<h4 id="CAT"><a href="#CAT" class="headerlink" title="CAT"></a>CAT</h4><p><img src="https://gw.alipayobjects.com/zos/skylark/33fb5a1d-2b4a-45dd-a94b-f0b660b47339/2018/png/e956684e-e5ce-4e10-b424-6d51b2949502.png" alt=""></p>
-<p>参考：<a href="https://tech.meituan.com/CAT_in_Depth_Java_Application_Monitoring.html" target="_blank" rel="noopener">https://tech.meituan.com/CAT_in_Depth_Java_Application_Monitoring.html</a></p>
-<h2 id="三、数据采集方案"><a href="#三、数据采集方案" class="headerlink" title="三、数据采集方案"></a>三、数据采集方案</h2><p>数据采集面的的挑战：</p>
-<ul>
-<li>数据源多种多样 </li>
-<li>数据量大 </li>
-<li>变化快 </li>
-<li>如何保证数据采集的可靠性的性能 </li>
-<li>如何避免重复数据 </li>
-<li>如何保证数据的质量</li>
-</ul>
-<h3 id="3-1-采集方案"><a href="#3-1-采集方案" class="headerlink" title="3.1 采集方案"></a>3.1 采集方案</h3><p>目前常用的数据采集方式有两种：</p>
-<ol>
-<li>主动监控（客户端推模式-Push）；<ul>
-<li>优势：<ul>
-<li>实时性好；</li>
-<li>对服务端的压力相对较小；</li>
-<li>插件化支持用户自定义采集脚本；</li>
-<li>监控自动发现；</li>
-</ul>
-</li>
-<li>劣势：<ul>
-<li>数据聚合与异常处理复杂；</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>被动监控（服务端拉模式-Pull）；<ul>
-<li>优势：<ul>
-<li>数据处理方便；</li>
-<li>数据准确性、完备性更好；</li>
-<li>Edas已经存在根据staragent进行数据拉去的实践方案；</li>
-</ul>
-</li>
-<li>劣势：<ul>
-<li>集群规模大时，服务器压力大，任务分发易积压，分发线程忙，带来一定数据延迟；</li>
-<li>数据拉取时服务隔离难(twitter)；</li>
-<li>无法区分服务失效和代理失效(twitter)；</li>
-</ul>
-</li>
-</ul>
-</li>
-</ol>
-<p>现有监控系统采集方案：</p>
-<table>
-<thead>
-<tr>
-<th>系统</th>
-<th>采集方式</th>
-<th>备注</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>AliMonitor</td>
-<td>Push</td>
-<td></td>
-</tr>
-<tr>
-<td>Ali-Sunfire</td>
-<td>Pull</td>
-<td></td>
-</tr>
-<tr>
-<td>TLog</td>
-<td>Pull</td>
-<td></td>
-</tr>
-<tr>
-<td>aliyun-sls-ilogtail</td>
-<td>Push</td>
-<td></td>
-</tr>
-<tr>
-<td>Zabbix</td>
-<td>push+pull</td>
-<td></td>
-</tr>
-<tr>
-<td>Open-falcon</td>
-<td>Push</td>
-<td></td>
-</tr>
-<tr>
-<td>OneAPM</td>
-<td>Push</td>
-<td></td>
-</tr>
-<tr>
-<td>Cacti</td>
-<td>Pull</td>
-</tr>
-</tbody>
-</table>
-<p><strong>主动监控示意图（Push）：</strong><br><img src="https://gw.alicdn.com/tfscom/TB1MJZKonvI8KJjSspjXXcgjXXa.png" alt=""></p>
-<p>服务端提供一个接受数据请求的域名地址，客户端把数据推送到服务端，服务端负责数据解析与存储；</p>
-<p><strong>被动监控示意图（Pull）：</strong><br><img src="https://gw.alicdn.com/tfscom/TB19cEKonvI8KJjSspjXXcgjXXa.png" alt=""></p>
-<p><strong>Agent一般具备的功能:</strong></p>
-<ol>
-<li>LogFinder: 能够根据请求的时间区间返回区间内的监控数据；</li>
-<li>LogQuery: 能够根据偏移量定位到日志位置；</li>
-<li>LogCompression： 支持日志数据压缩；</li>
-</ol>
-<p>此部分可以参考LogAgent的实现逻辑。</p>
-<p><strong>我们的需求：</strong></p>
-<ul>
-<li>轻量级；</li>
-<li>可扩展；</li>
-<li>支持系统监控（OS）、业务监控（Agent）</li>
-<li>支持Agent自动注册以及静态数据主动上报；</li>
-<li>监控项受控开启与关闭，具备开关功能（非常态化挂载）；</li>
-<li>需要具备数据堆积能力；</li>
-<li>需要具备多数据源扩展能力；</li>
-</ul>
-<p><strong>方案结论：</strong></p>
-<blockquote>
-<p>客户端通过写本地磁盘日志的方式写指标数据，服务端通过 主动拉的方式到客户端上进行拉去数据；</p>
-</blockquote>
-<h3 id="3-2-分布式任务调度"><a href="#3-2-分布式任务调度" class="headerlink" title="3.2 分布式任务调度"></a>3.2 分布式任务调度</h3><p>我们采用服务端拉去日志的方式，所以需要一套对多个节点进行周期性调度拉取日志的框架。目前分布式定时调度服务阿里集团内有scheduleX以及开源的Quartz，考虑到服务单独输出减少依赖组件的需求，对Quartz的分布式持久化任务整合工作量评估后， 我们选择了使用quartz的方式。目前spring有对quartz进行整合，简化对quartz的使用。<br>不仅在监控数据采集上需要调度，在演练定时触发、演练监控定时开启等场景下都需要分布式任务调度服务，所以提供一套通用型的与业务无关的分布式调度服务API很有必要。<br>基于spring-quartz进行接口封装出统一的分布式调度服务接口服务SchedulerService， 这部分是单独的一个模块。</p>
-<h3 id="3-3-数据Metric指标"><a href="#3-3-数据Metric指标" class="headerlink" title="3.3 数据Metric指标"></a>3.3 数据Metric指标</h3><p>客户端打印的日志非Metric格式，通过日志数据采集上来的数据需要通过转换器Transfer进行转换为统一的Metric格式；</p>
-<p>当前监控系统采集的数据指标分为两类：</p>
-<ul>
-<li>系统OS监控指标；</li>
-<li>应用性能指标；</li>
-</ul>
-<p>系统监控指标Metric含义：</p>
-<table>
-<thead>
-<tr>
-<th>category</th>
-<th>Metric</th>
-<th>Type</th>
-<th>Tag</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>cpu</td>
-<td>system.cpu.idle</td>
-<td>GAUGE</td>
-<td>host</td>
-<td></td>
-</tr>
-<tr>
-<td></td>
-<td>system.cpu.system</td>
-<td>GAUGE</td>
-<td>host</td>
-<td></td>
-</tr>
-<tr>
-<td></td>
-<td>system.cpu.user</td>
-<td>GAUGE</td>
-<td>host</td>
-<td></td>
-</tr>
-<tr>
-<td></td>
-<td>system.cpu.util</td>
-<td>GAUGE</td>
-<td>host</td>
-<td>cpu使用率</td>
-</tr>
-<tr>
-<td>load</td>
-<td>system.load.1min</td>
-<td>GAUGE</td>
-<td>host</td>
-<td></td>
-</tr>
-<tr>
-<td></td>
-<td>system.load.5min</td>
-<td>GAUGE</td>
-<td>host</td>
-<td></td>
-</tr>
-<tr>
-<td></td>
-<td>system.load.15min</td>
-<td>GAUGE</td>
-<td>host</td>
-<td></td>
-</tr>
-<tr>
-<td>mem</td>
-<td>system.mem.buffers</td>
-<td>GAUGE</td>
-<td>host</td>
-<td>当前系统的buffer cache的内存数(单位kb)</td>
-</tr>
-<tr>
-<td></td>
-<td>system.mem.cached</td>
-<td>GAUGE</td>
-<td>host</td>
-<td>当前系统的pagecache里的内存数(单位kb)</td>
-</tr>
-<tr>
-<td></td>
-<td>system.mem.free</td>
-<td>GAUGE</td>
-<td>host</td>
-<td>当前系统的空闲内存(单位kb)</td>
-</tr>
-<tr>
-<td></td>
-<td>system.mem.total</td>
-<td>GAUGE</td>
-<td>host</td>
-<td>当前系统的总内存(单位kb)</td>
-</tr>
-<tr>
-<td></td>
-<td>system.mem.used</td>
-<td>GAUGE</td>
-<td>host</td>
-<td>当前系统的已经使用的内存(单位kb)</td>
-</tr>
-<tr>
-<td></td>
-<td>system.mem.util</td>
-<td>GAUGE</td>
-<td>host</td>
-<td>当前系统的已经使用的内存占比</td>
-</tr>
-<tr>
-<td>disk.partition</td>
-<td>system.disk.partition.total</td>
-<td>GAUGE</td>
-<td>host、device</td>
-<td>当前系统的磁盘总字节数</td>
-</tr>
-<tr>
-<td></td>
-<td>system.disk.partition.free</td>
-<td>GAUGE</td>
-<td>host、device</td>
-<td>当前系统的磁盘空闲字节数</td>
-</tr>
-<tr>
-<td></td>
-<td>system.disk.partition.used</td>
-<td>GAUGE</td>
-<td>host、device</td>
-<td>当前系统的磁盘使用字节数</td>
-</tr>
-<tr>
-<td></td>
-<td>system.disk.partition.used_ratio</td>
-<td>GAUGE</td>
-<td>host、device</td>
-<td>当前系统的磁盘使用率</td>
-</tr>
-<tr>
-<td>disk.io</td>
-<td>system.disk.io.read_merge</td>
-<td>GAUGE</td>
-<td>host、device</td>
-<td>每秒合并读完成次数</td>
-</tr>
-<tr>
-<td></td>
-<td>system.disk.io.write_merge</td>
-<td>GAUGE</td>
-<td>host、device</td>
-<td>每秒合并写完成次数</td>
-</tr>
-<tr>
-<td></td>
-<td>system.disk.io.read</td>
-<td>GAUGE</td>
-<td>host、device</td>
-<td>每秒读完成次</td>
-</tr>
-<tr>
-<td></td>
-<td>system.disk.io.write</td>
-<td>GAUGE</td>
-<td>host、device</td>
-<td>每秒写完成次数</td>
-</tr>
-<tr>
-<td></td>
-<td>system.disk.io.util</td>
-<td>GAUGE</td>
-<td>host、device</td>
-<td>io占比</td>
-</tr>
-<tr>
-<td>processs</td>
-<td>system.process.switches</td>
-<td>GAUGE</td>
-<td>host</td>
-<td></td>
-</tr>
-<tr>
-<td></td>
-<td>system.process.total</td>
-<td>GAUGE</td>
-<td>host</td>
-<td></td>
-</tr>
-<tr>
-<td>traffic</td>
-<td>system.net.in.bytes</td>
-<td>GAUGE</td>
-<td>host</td>
-<td></td>
-</tr>
-<tr>
-<td></td>
-<td>system.net.out.bytes</td>
-<td>GAUGE</td>
-<td>host</td>
-<td></td>
-</tr>
-<tr>
-<td></td>
-<td>system.net.in.packets</td>
-<td>GAUGE</td>
-<td>host</td>
-<td></td>
-</tr>
-<tr>
-<td></td>
-<td>system.net.out.packets</td>
-<td>GAUGE</td>
-<td>host</td>
-<td></td>
-</tr>
-<tr>
-<td></td>
-<td>system.net.packet.errs</td>
-<td>GAUGE</td>
-<td>host</td>
-<td></td>
-</tr>
-<tr>
-<td></td>
-<td>system.net.packet.dropped</td>
-<td>GAUGE</td>
-<td>host</td>
-<td></td>
-</tr>
-<tr>
-<td>tcp</td>
-<td>system.tcp.active_opens</td>
-<td>GAUGE</td>
-<td>host</td>
-<td>最近1min平均每秒主动建连的连接数</td>
-</tr>
-<tr>
-<td></td>
-<td>system.tcp.passive_opens</td>
-<td>GAUGE</td>
-<td>host</td>
-<td>最近1min平均每秒被动建连的连接数</td>
-</tr>
-<tr>
-<td></td>
-<td>system.tcp.current_estab</td>
-<td>GAUGE</td>
-<td>host</td>
-<td>最近1min平均每秒处于ESTABLISHED和CLOSE-WAIT状态的TCP连接数</td>
-</tr>
-<tr>
-<td></td>
-<td>system.tcp.estab_resets</td>
-<td>GAUGE</td>
-<td>host</td>
-<td>最近1min平均每秒reset次数</td>
-</tr>
-<tr>
-<td></td>
-<td>system.tcp.out_segs</td>
-<td>GAUGE</td>
-<td>host</td>
-<td>最近1min平均每秒发送的tcp包数量</td>
-</tr>
-<tr>
-<td></td>
-<td>system.tcp.in_segs</td>
-<td>GAUGE</td>
-<td>host</td>
-<td>最近1min平均每秒接收到的tcp包数量</td>
-</tr>
-<tr>
-<td></td>
-<td>system.tcp.attempt_fails</td>
-<td>GAUGE</td>
-<td>host</td>
-<td>最近1min平均每秒建连失败次数</td>
-</tr>
-<tr>
-<td></td>
-<td>system.tcp.retran_segs</td>
-<td>GAUGE</td>
-<td>host</td>
-<td>最近1min平均每秒重传的包数量</td>
-</tr>
-<tr>
-<td>udp</td>
-<td>system.udp.in_dgm</td>
-<td>GAUGE</td>
-<td>host</td>
-<td>收到的udp报数目</td>
-</tr>
-<tr>
-<td></td>
-<td>system.udp.out_dgm</td>
-<td>GAUGE</td>
-<td>host</td>
-<td>发送的udp报数目</td>
-</tr>
-<tr>
-<td></td>
-<td>system.udp.noport</td>
-<td>GAUGE</td>
-<td>host</td>
-<td>udp协议层接收到目的地址或目的端口不存在的数据包</td>
-</tr>
-<tr>
-<td></td>
-<td>system.udp.in_errs</td>
-<td>GAUGE</td>
-<td>host</td>
-<td>udp层接收到的无效数据包的个数</td>
-</tr>
-</tbody>
-</table>
-<p>应用性能监控指标Metric含义：</p>
-<table>
-<thead>
-<tr>
-<th>category</th>
-<th>Metric</th>
-<th>Type</th>
-<th>Tag</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>servlet</td>
-<td>app.servlet.request.count</td>
-<td>COUNTER</td>
-<td>host、transaction，device</td>
-<td>时间区间内，请求总次数</td>
-</tr>
-<tr>
-<td></td>
-<td>app.servlet.request.durations</td>
-<td>COUNTER</td>
-<td>host、transaction，device</td>
-<td>时间区间内，请求总时间</td>
-</tr>
-<tr>
-<td></td>
-<td>app.servlet.request.rt.mean</td>
-<td>GAUGE</td>
-<td>host、transaction，device</td>
-<td>请求的平均rt</td>
-</tr>
-<tr>
-<td></td>
-<td>app.servlet.request.rt.max</td>
-<td>GAUGE</td>
-<td>host、transaction，device</td>
-<td>请求的最大rt</td>
-</tr>
-<tr>
-<td></td>
-<td>app.servlet.request.rt.min</td>
-<td>GAUGE</td>
-<td>host、transaction，device</td>
-<td>请求的最小rt</td>
-</tr>
-<tr>
-<td></td>
-<td>app.servlet.request.error_count</td>
-<td>COUNTER</td>
-<td>host、transaction，device</td>
-</tr>
-</tbody>
-</table>
-<p>其中device存储agentId，transaction存储请求名称；</p>
-<p><strong>Metric命名规范</strong></p>
-<p>key和tag只支持：[a-z][A-Z][0-9][-_./], 不能有空格, 大小写敏感, key原则上不包含大写。<br>格式为xxx.category[.sub_category]*, category和sub_category里面如果有多个单词，用下划线’_’连接， 不要用’.’连接。<br>需要动态聚合的维度， 放在tag里面， 同时在tagKey也在key中体现。 不需要聚合的维度， 放在key里面。</p>
-<h3 id="3-4-数据转换transfer"><a href="#3-4-数据转换transfer" class="headerlink" title="3.4 数据转换transfer"></a>3.4 数据转换transfer</h3><p>针对不同类型的类型，采用工厂方法提供自适配的解析器。针对system系统监控，继续拆分为领域适配器，比如针对CPU域、mem域提供不同的处理方式。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">MetricTransfer</span> <span class="keyword">extends</span> <span class="title">Transfer</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * format  data to metric list</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> sourceData</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function">List&lt;MetricObject&gt; <span class="title">format</span><span class="params">(MetricMeta metricMeta, String sourceData)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h2 id="四、数据分析方案"><a href="#四、数据分析方案" class="headerlink" title="四、数据分析方案"></a>四、数据分析方案</h2><h3 id="4-1-分析方案："><a href="#4-1-分析方案：" class="headerlink" title="4.1 分析方案："></a>4.1 分析方案：</h3><p>现有的监控系统数据分析模块主要分为两类：</p>
-<ul>
-<li>批处理模型；</li>
-<li>流处理模型（Spark Streaming、Storm、Flink）；<br><img src="https://gw.alicdn.com/tfscom/TB1kLTkodbJ8KJjy1zjXXaqapXa.png" alt=""></li>
-</ul>
-<p>结论：考虑到我们要求部署节点少、拓扑简单以及本期研发周期时间紧，我们采暂且不采用流式处理方案，数据获取到后，直接给到后端进行分析处理；</p>
-<h3 id="4-2-监控点分析："><a href="#4-2-监控点分析：" class="headerlink" title="4.2 监控点分析："></a>4.2 监控点分析：</h3><p>用户可以通过配置监控指标，来对关心的系统指标进行阈值判断，比如选择一批机器，关注CPU利用率超过90%，那么监控系统就需要把这批机器在演练期间CPU利用率超过90%的指标都找出来，并转换为Event事件。这点类似于监控系统中的报警系统模型。</p>
-<p>数据分析器中处理监控指标的流程如下：<br><img src="https://gw.alicdn.com/tfscom/TB1sQtXov2H8KJjy1zkXXXr7pXa.png" alt=""></p>
-<p><strong>流程分析：</strong></p>
-<p>每一个Data Analyzer模块中都会包含一个Rule Set集合，Rule Set集合存放着生效后的关注点规则，在监控数据到达分析引擎中后，分析引擎通过filter机制，判断是否命中规则，如果命中规则，则根据规则与数据形成一条Event 事件数据，用于描述某次监控指标命中了监控指标阈值。后续复盘时，可以对Event 库中的指标事件进行聚合分析，形成需要的结论报告。</p>
-<p><strong>规则注册与更新机制：</strong></p>
-<p>关注点规则为内存数据集，当用户在界面是哪个新增了规则或者变更了规则的时候，都需要对内存中维护的这份规则集合进行修改操作。</p>
-<p><strong>规则存储：</strong></p>
-<p>当前规则为内存存储方式，在系统启动时从数据库中进行load全量有效关注点指标；带来的影响每一台机器都需要在内存中维护一份数据，如果某台机器数据更新失败，会带来数据的一致性问题，后续会考虑这部分数据移动到公共的外部快速存储设备中，比如Redis中。</p>
-<p><strong>数据模型：</strong></p>
-<p>我们把用户配置的关注点在系统指标上的阈值简称为“告警”，告警条件的判断以及存储流程中，主要涉及的领域模型为：Hosts、Metrics、triggers、functions、items、events、actions；</p>
-<ul>
-<li>hosts： 存储被监控的主机信息；</li>
-<li>metrics：存储监控到的数据指标；</li>
-<li>items： 存储支持的监控项配置信息。</li>
-<li>triggers：存储触发器的相关信息；</li>
-<li>events： 存储事件数据；</li>
-<li>actions：存储当触发器触发时，需要采取的动作（不再本期研发范围内）；</li>
-</ul>
-<p><strong>触发器计算模型：</strong></p>
-<p>我们的需求是：监控某个关注对象下的某类监控指标下的特定聚合函数值 是否超过(也可能是其它运算符)某个固定阈值；那么我们把需求中拆解出几个对象出来，分别是：监控对象、监控指标、聚合函数、运算符、固定阈值，我们通过这几个对象的组合，可以对我们的意图进行对象化描述，表达式函数格式如下：<br>{<host>:<metric>.<function>(<parameter>)}<operator><constant></constant></operator></parameter></function></metric></host></p>
-<p><strong>计算模型举例：</strong></p>
-<p>关注点描述为： 11.23.45.67  这台机器的 最近十分钟 load 指标 大于2   ， 那么 表达式函数为：<br>{11.23.45.67:system.cpu.load.last(10m)}  &gt; 2</p>
-<p><strong>触发器中的聚合函数：</strong></p>
-<ul>
-<li>max    最大值    </li>
-<li>min    最小值    </li>
-<li>avg    平均值    </li>
-</ul>
-<p><strong>数据模型：</strong></p>
-<p>在监控指标分析域中涉及到的领域模型对象为：</p>
-<ul>
-<li>items</li>
-<li>triggers</li>
-<li>events</li>
-<li>actions</li>
-</ul>
-<p>数据模型以及关联关系如下：</p>
-<p><img src="https://gw.alipayobjects.com/zos/skylark/5ec4918f-2d14-4c92-a637-cc5457c828a8/2018/png/f1dffd57-4a0e-4f98-a295-b39db045a6e2.png" alt=""></p>
-<p>资源组与触发器为1：n的关系，监控项与触发器为1:1关系，触发器与事件为1:1关系；</p>
-<h2 id="五、数据存储方案"><a href="#五、数据存储方案" class="headerlink" title="五、数据存储方案"></a>五、数据存储方案</h2><h3 id="5-1-数据分类："><a href="#5-1-数据分类：" class="headerlink" title="5.1 数据分类："></a>5.1 数据分类：</h3><p>我们把数据类型分为五类：</p>
-<ol>
-<li>Metric指标数据（分为服务器和容器）<ul>
-<li>定义：metric描述一个指标在某个时间点的值是多少，可以使用tag来进行元数据标记划分；比如OS的系统监控指标；</li>
-</ul>
-</li>
-<li>Event  事件数据（包括：系统、Docker数据采集）<ul>
-<li>定义：event记录系统在特定时刻下发生的具体信息，比如规则下发、故障启停、MkKit安装与卸载、Metric触发规则配置产生的事件等；</li>
-</ul>
-</li>
-<li>Log 运行时日志数据<ul>
-<li>定义：event数据可以根据业务需求打上tag便于分析时筛选，统计，text中记录事件丰富上下文信</li>
-</ul>
-</li>
-<li>Heartbeat 心跳数据<ul>
-<li>定义：定期执行的状态汇报，比如agent的心跳信息，进程的状态等；</li>
-</ul>
-</li>
-<li>Trace 数据<ul>
-<li>定义：记录故障注入请求trace的信息；</li>
-</ul>
-</li>
-</ol>
-<h3 id="5-2-数据存储方案："><a href="#5-2-数据存储方案：" class="headerlink" title="5.2 数据存储方案："></a>5.2 数据存储方案：</h3><p>监控数据是时间序列的数据，由于监控的对象数量巨大，所以存储的介质需要支持高的写入吞吐量，良好的扩充性，读取最近的数据速度要快，支持多数据类型，支持多种扫描方式等特点，目前主要的存储方式有SQL和NoSQL两种。通过对比，NoSQL在数据存储吞吐量，扩充性等方面具有优势，SQL在数据类型的支持，扫描多样性具有优势。</p>
-<p>总而言之，监控数据更适合采用时序性存储媒介，比如OpenTSDB、HiTSDB等；考虑到种种原因，我们临时使用 Mysql，Mysql 能在一定程度上简化我们架构，让业务跑的更快一些。</p>
-<p>不压缩的情况下：100台机器同时采集长达30天，占用空间49G；（单条1kb计算，5秒存储一次）。</p>
-<h4 id="5-3-行业常用存储方案"><a href="#5-3-行业常用存储方案" class="headerlink" title="5.3 行业常用存储方案"></a>5.3 行业常用存储方案</h4><p>Cassandra<br>InfluxDB<br>MongoDB<br>OpenTSDB<br>KairosDB<br>HBase</p>
-<h3 id="5-4-监控指标存储规范"><a href="#5-4-监控指标存储规范" class="headerlink" title="5.4 监控指标存储规范"></a>5.4 监控指标存储规范</h3><p>遵循metric规范；<br><a href="https://gw.alipayobjects.com/zos/skylark/02b7d493-9e02-490d-8f0c-243309a66ad5/2018/png/edcf8730-7203-48da-961b-1858d60a372c.png" target="_blank" rel="noopener"></a></p>
-<p>一个metric由两部分组成，metric key和metric tag：</p>
-<ol>
-<li>metric key：它是用英文点号分隔的字符串，用来表征这个指标的含义</li>
-<li>metric tag：它定义了这个指标的不同切分维度，可以是单个，也可以是多个<ul>
-<li>tag key: 用于描述维度的名称</li>
-<li>tag value: 用于描述维度的值</li>
-</ul>
-</li>
-</ol>
-<p>Metric的数据格式如下：<br><img src="https://gw.alicdn.com/tfscom/TB1Ey9PeAfb_uJkSne1XXbE4XXa.png" alt=""></p>
-<ul>
-<li>metric key：存储当前指标的key</li>
-<li>metric tag：存储当前指标的tag</li>
-<li>metric value：存储当前指标的值</li>
-<li>timestamp：存储当前的时间戳</li>
-<li>metadata：存储当前指标的一些元信息</li>
-</ul>
-<p>在Metric规范下，针对云上的多租户设计，我们增加了两个字段namespace、scope，用来对metric进行分类，一个是从用户角度进行划分，一个是从功能集角度划分，形成 MetricObject 对象属性描述如下：</p>
-<table>
-<thead>
-<tr>
-<th>字段</th>
-<th>类型</th>
-<th>描述</th>
-<th>是否必填</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>namespace</td>
-<td>​String</td>
-<td>命名空间，用于区分不同租户，存储userId</td>
-<td>必填</td>
-</tr>
-<tr>
-<td>scope</td>
-<td>String</td>
-<td>范围，比如system、jvm、hsf、servlet等</td>
-<td>必填</td>
-</tr>
-<tr>
-<td>metric</td>
-<td>String</td>
-<td>指标Key</td>
-<td>必填</td>
-</tr>
-<tr>
-<td>metricType</td>
-<td>MetricType</td>
-<td>指标类型</td>
-<td>必填</td>
-</tr>
-<tr>
-<td>tags</td>
-<td>map&lt;string,string&gt;</td>
-<td>附加信息，当前只支持内置tag，不支持用户自定义tag（原因是采用mysql而不是nosql）</td>
-<td>必填，遵循OpenTSDB规范，至少要求有一个Tag</td>
-</tr>
-<tr>
-<td>timestamp</td>
-<td>Long</td>
-<td>时间戳</td>
-<td>必填</td>
-</tr>
-<tr>
-<td>value</td>
-<td>Double</td>
-<td>指标值</td>
-<td>必填</td>
-</tr>
-</tbody>
-</table>
-<p>举例：</p>
-<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">"namespace"</span>: <span class="string">"1114805108664848"</span>,</span><br><span class="line">    <span class="attr">"scope"</span>: <span class="string">"system"</span>,</span><br><span class="line">    <span class="attr">"metric"</span>: <span class="string">"sys.memory.total"</span>,</span><br><span class="line">    <span class="attr">"metricType"</span>: <span class="string">"COUNTER"</span>,</span><br><span class="line">    <span class="attr">"tags"</span>: &#123;</span><br><span class="line">        <span class="attr">"host"</span>: <span class="string">"127.0.0.1"</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">"timestamp"</span>: <span class="number">1470298287916</span>,</span><br><span class="line">    <span class="attr">"value"</span>: <span class="number">1167126</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>MetricType 指标类型(参考：<a href="http://metrics.dropwizard.io/4.0.0/getting-started.html)：" target="_blank" rel="noopener">http://metrics.dropwizard.io/4.0.0/getting-started.html)：</a></p>
-<ul>
-<li>COUNTER: 用于累加型的数据，反映的是数据随着时间单调递增的关系，如Tomcat接受到的HTTP请求的总次数</li>
-<li>GAUGE: 用于瞬态数据，表示指标在当前时间点的瞬时情况，反映的是数据随着时间上下波动的关系，如系统的load，JVM的内存使用率</li>
-<li>METER：用于对变化速率型指标进行度量，反映的是数据随时间的增长快慢关系，如某个接口的QPS</li>
-<li>HISTOGRAM：用于对分布型数据进行度量，反映的是数据随时间的统计学分布关系</li>
-</ul>
-<p><strong>Tags 标签存储方案：</strong></p>
-<p>由于生产环境中存储方案当前技术选型为使用Mysql存储Metric数据，Mysql不支持schemaless结构，所以无法做到Tags的key-value的动态扩展，我们使用Mysql的固定列模式，通过提供内置tag来达到相同的目的；Tags中的key为Mysql中的列名称，字段值为tags的value；</p>
-<p>内置的tag字段为：</p>
-<table>
-<thead>
-<tr>
-<th>字段名称</th>
-<th>字段描述</th>
-<th>举例</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>tag_host</td>
-<td>主机信息</td>
-<td>127.0.0.1</td>
-</tr>
-<tr>
-<td>tag_device</td>
-<td>设备信息，比如磁盘盘符</td>
-<td>/usr/dev1</td>
-</tr>
-<tr>
-<td>tag_trace</td>
-<td>请求链路标识</td>
-<td>tid</td>
-</tr>
-<tr>
-<td>tag_transaction</td>
-<td>请求事务标识</td>
-<td>createOrder</td>
-</tr>
-</tbody>
-</table>
-<p>Mysql数据模型如下：<br><img src="https://gw.alipayobjects.com/zos/skylark/1936fc76-7df1-4485-aed2-00eda58b2903/2018/png/0a5f4d67-77ca-4030-a095-919918a948c6.png" alt=""></p>
-<h2 id="六、监控数据查询方案"><a href="#六、监控数据查询方案" class="headerlink" title="六、监控数据查询方案"></a>六、监控数据查询方案</h2><h3 id="6-1-数据查询分类："><a href="#6-1-数据查询分类：" class="headerlink" title="6.1 数据查询分类："></a>6.1 数据查询分类：</h3><p>用户对时序数据的查询场景多种多样，总的来说时序数据的查询分为两种：</p>
-<ul>
-<li>原始数据的查询（比如业务监控数据）</li>
-<li>时序数据聚合运算的查询（比如系统监控数据）</li>
-</ul>
-<p><strong>某监控 指标展示计算解析：</strong></p>
-<p>监控中用户日志的计算逻辑是由用户自定义的计算方式（因为是业务监控），主要由求行数、对列值求和、对列值求平均、对列值求最大值、对列值求最小值；其大盘数据展示中并未对数据做再次聚合处理，展示的是采集的原始数据（原始数据分为秒级和分钟级），如果需要做计算，是通过前端的聚合函数进行的业务处理。<br><img src="https://gw.alipayobjects.com/zos/skylark/ed6a20ea-c9d8-4ef7-be45-ab972ac211e2/2018/png/a9b705d7-cc05-43f2-8a3a-dc822ddfd7b2.png" alt=""></p>
-<h3 id="6-2-数据聚合分类："><a href="#6-2-数据聚合分类：" class="headerlink" title="6.2 数据聚合分类："></a>6.2 数据聚合分类：</h3><p>在监控数据使用过程中，我们往往会针对单台机器进行分析或者多台(集群)机器进行分析，每一种分析中又会加入时间的概念，比如是采用原始采集的数据点还是进行多个点的合并形成一个新点。所以我们把数据分析计算分为两个维度，一个是‘机器’维度(空间聚合)，一个时间维度(时间聚合)；在Metric模型中我们通过两个方法分别定义，一个是Aggregator，一个是Down sample。</p>
-<p>Aggregator：用来描述同一个时间点下，数据集合的聚合方式；比如一个集群的CPU使用率，在某一时刻下集群中所有机器的CPU使用率的平均值；需要注意的是，当随着集群规模越来越大的时候，我们也是需要从这个数据集合中进行采样，然后再做聚合计算。</p>
-<p>Down sample：用来描述在多个时间点下，数据聚合的聚合方式；比如一台机器每隔5秒采集一个CPU使用率，最终数据展示时，需要按照1分钟一个点的方式进行展示，那么这个数据集合中在不丢数据的情况下会有12个数据项，我们需要将这12个数据项聚合为一个数据项。</p>
-<h3 id="6-3-数据聚合方式："><a href="#6-3-数据聚合方式：" class="headerlink" title="6.3 数据聚合方式："></a>6.3 数据聚合方式：</h3><p>数据的聚合方式一般可以分为‘预聚合’和‘后聚合’；提前聚合可能引起数据膨胀但可以加速访问请求时的响应速度，访问时聚合虽然降低了一定的存储成本但可能会加慢响应速度。<br><img src="https://gw.alipayobjects.com/zos/skylark/84e8e67c-e0a8-4a9d-a748-0e5383cc08ee/2018/png/4afc4ec7-84d4-42e9-b3b7-d17cdc57eae3.png" alt=""></p>
-<p>大部分监控系统一般都支持预聚合(归档)数据处理（比如zabbix的数据归档表trends）；由于一般原始数据采集周期比较小，比如分钟级，那么展示长时间的数据的视图需要扫描过多数据，展示比较慢，如果将数据归档成按小时，和按天的数据，那么展示时间跨度大的数据的效率大大提高；基于Metric的数据预处理，一般采用流式预聚合引擎，对数据进行降精度处理，比如阿里的DBPass产品，会对指标数据事先降时间精度，分为6个精度：1秒、5秒、15秒、1分钟、5分钟、15分钟。</p>
-<p>基于Metric规范的时序数据库中，OpenTSDB支持预聚合和后聚合，Aliyun的HiTSDB优先采用后聚合，其通过采用倒排索引+前缀索引来加速数据查询。</p>
-<h3 id="6-4-数据计算算法："><a href="#6-4-数据计算算法：" class="headerlink" title="6.4 数据计算算法："></a>6.4 数据计算算法：</h3><p>在客户端数据采集计算的时候，通常也会遇到数据聚合的需求，主要是基于单机维度的数据聚合，比如我们期望采集固定周期周期范围内的数据，假如每个周期范围内存在多个数据点（D1，D2，D3），我们要怎样计算才能得到一个点的数据呢？</p>
-<p>通常会有以下计算方式：</p>
-<ul>
-<li>随机采样；</li>
-<li>滑动窗口；</li>
-<li>滑动时间窗口；</li>
-<li>指数衰减随机采样（EWMA）；</li>
-</ul>
-<p><img src="https://gw.alipayobjects.com/zos/skylark/b070bc51-d1db-46b0-9fb9-19461a360ecc/2018/png/ebfc264d-1e49-4ae2-b771-63e88e39e63d.png" alt=""></p>
-<p><img src="https://gw.alipayobjects.com/zos/skylark/5d1585f9-8351-4eec-afee-d2b74531c268/2018/png/490d585e-700e-44f5-978c-d30a772d9e80.png" alt=""></p>
-<p>EWMA的Java实现方式可以参考：<a href="https://github.com/heartaway/metrics/blob/4.1-development/metrics-core/src/main/java/com/codahale/metrics/EWMA.java" target="_blank" rel="noopener">EWMA.java</a><br>EWMA算法 维护一个固定大小的集合，并认为该集合中的元素的权重不一样，元素的权重随元素距离当前时间的远近而呈现指数型的衰减。主要是解决数据集合中的离散点，让数据曲线跟加平滑。比如Load1、Load5、Load15目前的计算逻辑就采用EWMA算法；</p>
-<h3 id="6-5-数据查询API："><a href="#6-5-数据查询API：" class="headerlink" title="6.5 数据查询API："></a>6.5 数据查询API：</h3><p>待补充</p>
-<h2 id="七、扩展阅读："><a href="#七、扩展阅读：" class="headerlink" title="七、扩展阅读："></a>七、扩展阅读：</h2><p>metric起源：</p>
-<p><a href="https://www.youtube.com/watch?v=czes-oa0yik" target="_blank" rel="noopener">https://www.youtube.com/watch?v=czes-oa0yik</a></p>
-<p>小米 open-falcon：</p>
-<p><a href="http://open-falcon.com/" target="_blank" rel="noopener">http://open-falcon.com/</a></p>
-<p>网易企业级监控：</p>
-<p><a href="http://blog.163yun.com/archives/900" target="_blank" rel="noopener">http://blog.163yun.com/archives/900</a></p>
-<p>salesforce-Argus：<br><a href="https://github.com/salesforce/argus" target="_blank" rel="noopener">https://github.com/salesforce/argus</a></p>
-<p>使用Metrics监控应用程序的性能：</p>
-<p><a href="http://www.cnblogs.com/yangecnu/p/Using-Metrics-to-Profiling-WebService-Performance.html" target="_blank" rel="noopener">http://www.cnblogs.com/yangecnu/p/Using-Metrics-to-Profiling-WebService-Performance.html</a></p>
-<p>深入浅出时序数据库之预处理篇：</p>
-<p><a href="http://www.infoq.com/cn/articles/pretreatment-in-sequential-databases" target="_blank" rel="noopener">http://www.infoq.com/cn/articles/pretreatment-in-sequential-databases</a></p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/HighAvailability//" class="article-tag-list-link color2">HighAvailability</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2018/11/09/HighAvailability/2018-03-14-monitor-system/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
     <article id="post-Basic/2017-03-14-mail-html" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
   <div class="article-inner">
     
@@ -966,13 +159,13 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2018/11/09/Basic/2017-03-14-mail-html/">制作符合Mail格式的HTML</a>
+      <a class="article-title" href="/2017/03/14/Basic/2017-03-14-mail-html/">制作符合Mail格式的HTML</a>
     </h1>
   
 
         
-        <a href="/2018/11/09/Basic/2017-03-14-mail-html/" class="archive-article-date">
-  	<time datetime="2018-11-09T13:48:02.806Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-11-09</time>
+        <a href="/2017/03/14/Basic/2017-03-14-mail-html/" class="archive-article-date">
+  	<time datetime="2017-03-13T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2017-03-14</time>
 </a>
         
       </header>
@@ -1032,125 +225,7 @@
 
       
         <p class="article-more-link">
-          <a class="article-more-a" href="/2018/11/09/Basic/2017-03-14-mail-html/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-Basic/2013-05-02-websocket" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/11/09/Basic/2013-05-02-websocket/">Websocket 探究</a>
-    </h1>
-  
-
-        
-        <a href="/2018/11/09/Basic/2013-05-02-websocket/" class="archive-article-date">
-  	<time datetime="2018-11-09T13:48:02.805Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-11-09</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p><strong>WebSocket：</strong> 基于 HTML5 的一种浏览器与服务器之间的即时通讯解决方案(基于 TCP 连接的双向通道)；</p>
-<p><strong>Java容器支持：</strong>目前只支持 jetty 和 tomcat。</p>
-<p><strong>应用场景：</strong>即时通讯（网页游戏[双向异步消息模式]，网页聊天，微博等）</p>
-<h2 id="一、概念区分："><a href="#一、概念区分：" class="headerlink" title="一、概念区分："></a>一、概念区分：</h2><h3 id="HTTP-协议-与-TCP-协议区别："><a href="#HTTP-协议-与-TCP-协议区别：" class="headerlink" title="HTTP 协议 与 TCP 协议区别："></a>HTTP 协议 与 TCP 协议区别：</h3><p>HTTP协议是应用层协议，是用于www浏览的一个协，应用层协议包括HTTP协议，TELNET协议，WebSocket协议等。Http 协议是请求/响应范式的, 每一个 http 响应都是由一个对应的 http 请求产生的; http 协议是无状态的, 多个 http 请求之间是没有关系的.<br>TCP协议是传输层协议,是机器之间建立连接用的到的一个协议,传输层协议包括TCP协议，UDP协议。</p>
-<h3 id="长轮询-、短轮询-、长连接区别"><a href="#长轮询-、短轮询-、长连接区别" class="headerlink" title="长轮询 、短轮询 、长连接区别:"></a>长轮询 、短轮询 、长连接区别:</h3><p>长轮询：首先长轮询并不等于长连接，长轮询还是采用的http短连接，只是服务器端把请求hold。<br>长连接：是多个 http 请求共用一个 tcp 连接; 这样可以减少多次临近 http 请求导致 tcp 建立关闭所产生的时间消耗。<br>短轮询：服务器收到请求不管是否有数据都直接响应 http 请求; 浏览器受到 http 响应隔一段时间在发送同样的 http 请求查询是否有数据;</p>
-<h3 id="Http协议-与-webSocket协议关系："><a href="#Http协议-与-webSocket协议关系：" class="headerlink" title="Http协议 与 webSocket协议关系："></a>Http协议 与 webSocket协议关系：</h3><p>WebSocket和Http协议一样都属于应用层的协议，webSocket在第一步进行握手时采用的是Http请求，第二步进行数据流传输是在TCP协议上操作，所以webSocket长连接 跟 Http长连接之间基本没有关系。本质上来说，WebSocket是不限于HTTP协议的，但是由于现存大量的HTTP基础设施，代理，过滤，身份认证等等，WebSocket借用HTTP和HTTPS的端口。由于使用HTTP的端口，因此TCP连接建立后的握手消息是基于HTTP的，由服务器判断这是一个HTTP协议，还是WebSocket协议。 WebSocket连接除了建立和关闭时的握手，数据传输和HTTP没丁点关系了。</p>
-<p><img src="https://yanmingming.files.wordpress.com/2013/05/2a213e4d-2cd6-4d8a-8be2-3bf50d8d7b64.png" alt=""></p>
-<h2 id="二、之前即时通讯的折衷方案："><a href="#二、之前即时通讯的折衷方案：" class="headerlink" title="二、之前即时通讯的折衷方案："></a>二、之前即时通讯的折衷方案：</h2><ol>
-<li>短轮询(Polling)：定时轮询，一定时间间隔浏览器向服务器发送请求。</li>
-<li>长轮询(Long Polling)：浏览器向服务器发送请求，有数据更新时反馈数据，如果服务器端没有新的数据需要发送，这里与Polling方法不同的是，服务器不是立即发送回应给浏览器，而是把这个请求保持住，等待有新的数据到来时，再来响应这个请求；当然了，如果服务器的数据长期没有更新，一段时间后，这个Get请求就会超时，浏览器收到超时消息后，再立即发送一个新的Get请求给服务器。然后依次循环这个过程。</li>
-<li>流：流技术方案通常就是在客户端的页面使用一个隐藏的窗口向服务端发出一个长连接的请求。服务器端接到这个请求后作出回应并不断更新连接状态以保证客户端和服务器端的连接不过期。</li>
-</ol>
-<h3 id="折衷方案的缺点："><a href="#折衷方案的缺点：" class="headerlink" title="折衷方案的缺点："></a>折衷方案的缺点：</h3><ol>
-<li>两次HTTP请求模拟双向通道，增加了编程复杂度。</li>
-<li>增加了服务器压力。</li>
-<li>制约应用的扩展性。</li>
-</ol>
-<h2 id="三、WebSocket原理："><a href="#三、WebSocket原理：" class="headerlink" title="三、WebSocket原理："></a>三、WebSocket原理：</h2><p><img src="https://gw.alipayobjects.com/zos/skylark/17625c30-c987-4090-9926-36a5fc709990/2018/png/07c0e5f9-d550-4bb5-9586-86554bbcdcc2.png" alt=""></p>
-<ol>
-<li>浏览器与服务器建立握手：<br><img src="https://gw.alipayobjects.com/zos/skylark/9183678b-5633-493a-9b9f-512631ba8a6a/2018/png/cc7b882b-3327-4d99-9dfb-3d385572aaff.png" alt=""></li>
-<li>浏览器与服务器之间进行双向数据传输;</li>
-</ol>
-<h3 id="Java中使用方法："><a href="#Java中使用方法：" class="headerlink" title="Java中使用方法："></a>Java中使用方法：</h3><ul>
-<li>依赖 jetty 服务包：</li>
-</ul>
-<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&lt;dependency&gt;</span><br><span class="line">   &lt;groupId&gt;org.eclipse.jetty.aggregate&lt;/groupId&gt;</span><br><span class="line">   &lt;artifactId&gt;jetty-all-server&lt;/artifactId&gt;</span><br><span class="line">   &lt;version&gt;8.1.9.v20130131&lt;/version&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br></pre></td></tr></table></figure>
-<ul>
-<li><p>IdeWebSocketServlet 继承 WebSocketServlet 抽象类：必须实现抽象接口方法 doWebSocketConnect()创建websocket的入口.定义 WebSocket连接缓存-new ConcurrentHashMap&lt;String, WebSocket&gt;()；用来管理所有webSocket连接，每次新建连接都会写入map，断开连接也会从map中移除这个元素。</p>
-<ul>
-<li>建立WebSocket连接的过程：<br><img src="https://yanmingming.files.wordpress.com/2013/05/c8affbd4-5659-41c6-aba7-6613d44715fc-1.png" alt=""></li>
-</ul>
-</li>
-<li><p>定义自己的WebSocket对象,实现 WebSocket.OnTextMessage 接口,比如 SessionWebSocket：实现onOpen、onClose、onMessage 方法。当事件类型较多时，定义一组事件列表， onMessage 中根据事件类型执行相应事件的具体方法。</p>
-</li>
-<li>客户端中Js的写法：</li>
-</ul>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">function <span class="title">connect</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="keyword">var</span> target = document.getElementById(<span class="string">'target'</span>).value;</span><br><span class="line">            <span class="keyword">if</span> (target == <span class="string">''</span>) &#123;</span><br><span class="line">                alert(<span class="string">'Please select server side connection implementation.'</span>);</span><br><span class="line">                <span class="keyword">return</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (<span class="string">'WebSocket'</span> in window) &#123;</span><br><span class="line">                ws = <span class="keyword">new</span> WebSocket(target);</span><br><span class="line">            &#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="string">'MozWebSocket'</span> in window) &#123;</span><br><span class="line">                ws = <span class="keyword">new</span> MozWebSocket(target);</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                alert(<span class="string">'WebSocket is not supported by this browser.'</span>);</span><br><span class="line">                <span class="keyword">return</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            ws.onopen = function () &#123;</span><br><span class="line">                setConnected(<span class="keyword">true</span>);</span><br><span class="line">                log(<span class="string">'Info: WebSocket connection opened.'</span>);</span><br><span class="line">            &#125;;</span><br><span class="line">            ws.onmessage = function (event) &#123;</span><br><span class="line">                log(<span class="string">'Received: '</span> + event.data);</span><br><span class="line">            &#125;;</span><br><span class="line">            ws.onclose = function () &#123;</span><br><span class="line">                setConnected(<span class="keyword">false</span>);</span><br><span class="line">                log(<span class="string">'Info: WebSocket connection closed.'</span>);</span><br><span class="line">            &#125;;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function">function <span class="title">updateTarget</span><span class="params">(target)</span> </span>&#123;</span><br><span class="line">            <span class="keyword">if</span> (window.location.protocol == <span class="string">'http:'</span>) &#123;</span><br><span class="line">                document.getElementById(<span class="string">'target'</span>).value = <span class="string">'ws://'</span> + window.location.host + target;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                document.getElementById(<span class="string">'target'</span>).value = <span class="string">'wss://'</span> + window.location.host + target;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br></pre></td></tr></table></figure>
-<h3 id="WebSocket优势："><a href="#WebSocket优势：" class="headerlink" title="WebSocket优势："></a>WebSocket优势：</h3><ul>
-<li>从服务器上主动给客户端推送信息；</li>
-<li>比Http协议传输效率高；<h3 id="WebSocket劣势："><a href="#WebSocket劣势：" class="headerlink" title="WebSocket劣势："></a>WebSocket劣势：</h3></li>
-<li>浏览器支持的兼容性不好，对于IE，支持IE10；</li>
-</ul>
-<h3 id="WebSocket为什么要把message分成frame："><a href="#WebSocket为什么要把message分成frame：" class="headerlink" title="WebSocket为什么要把message分成frame："></a>WebSocket为什么要把message分成frame：</h3><p>因为HTTP协议有chunk功能，可以让服务器一边生数据，一边发。而websocket协议也考虑到了这点。如果没有framing功能，那么我必须知道整个message的长度之后，才能开始发送message的data。</p>
-<h3 id="长连接误解："><a href="#长连接误解：" class="headerlink" title="长连接误解："></a>长连接误解：</h3><p>关于 http 长连接一个误解就是服务器主动推送数据, 这个在 http 协议下是无法实现的, 因为 http 请求/响应范式决定的, http 中服务器返回数据必须要有一个浏览器端的请求对应, 服务器无法主动推送给浏览器数据.</p>
-<h3 id="长短轮询策略："><a href="#长短轮询策略：" class="headerlink" title="长短轮询策略："></a>长短轮询策略：</h3><p>不管 http 长轮询还是 http 短轮询 保证同一个用户在多 tab 下只存在一个定时查询是有好处的, 这可以通过在浏览器端缓存数据解决, 在 http 响应后在浏览器端缓存数据, 并设置一个有效期, 然后在每次发送 http 请求时检查是否有有效数据, 没有则发送请求获取。</p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Basic//" class="article-tag-list-link color1">Basic</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2018/11/09/Basic/2013-05-02-websocket/">展开全文 >></a>
+          <a class="article-more-a" href="/2017/03/14/Basic/2017-03-14-mail-html/">展开全文 >></a>
         </p>
       
 
@@ -1187,13 +262,13 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2018/11/09/Basic/2016-06-06-https-with-wireshark/">Wireshark监控分析Https的交互过程</a>
+      <a class="article-title" href="/2016/06/06/Basic/2016-06-06-https-with-wireshark/">Wireshark监控分析Https的交互过程</a>
     </h1>
   
 
         
-        <a href="/2018/11/09/Basic/2016-06-06-https-with-wireshark/" class="archive-article-date">
-  	<time datetime="2018-11-09T13:48:02.805Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-11-09</time>
+        <a href="/2016/06/06/Basic/2016-06-06-https-with-wireshark/" class="archive-article-date">
+  	<time datetime="2016-06-05T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2016-06-06</time>
 </a>
         
       </header>
@@ -1317,7 +392,103 @@
 
       
         <p class="article-more-link">
-          <a class="article-more-a" href="/2018/11/09/Basic/2016-06-06-https-with-wireshark/">展开全文 >></a>
+          <a class="article-more-a" href="/2016/06/06/Basic/2016-06-06-https-with-wireshark/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-Android/2014-09-11-layout" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2014/09/11/Android/2014-09-11-layout/">Android 高效的 Layout</a>
+    </h1>
+  
+
+        
+        <a href="/2014/09/11/Android/2014-09-11-layout/" class="archive-article-date">
+  	<time datetime="2014-09-10T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2014-09-11</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>我们知道随着我们业务越来越负责，UI布局也会越来越复杂，大量的布局信息必定会带来一定的性能损耗，那么我们怎么才能写出高效的布局呢？</p>
+<p>1.使用 <code>&lt;include&gt; &lt;merge&gt; &lt;viewStub&gt;</code>标签。<br><a href="https://developer.android.com/training/improving-layouts/optimizing-layout.html" target="_blank" rel="noopener">https://developer.android.com/training/improving-layouts/optimizing-layout.html</a></p>
+<p>2.LinearLayout中减少使用layout_weight参数，因为使用此属性会导致子元素被测量两次。</p>
+<p>3.学会测量Layout的层次结构,优化布局<br><a href="https://developer.android.com/training/improving-layouts/optimizing-layout.html" target="_blank" rel="noopener">https://developer.android.com/training/improving-layouts/optimizing-layout.html</a></p>
+<p>4.使得Layout宽而浅，而不是窄而深（在Hierarchy Viewer的Tree视图里面体现）<br>连接真机时，HierarchyVIewer报错了：无法加载设备上的窗口数据</p>
+<p>原因：若需要使用hierarchyviewer，需要手机上开启对应的ViewServer服务。Hierarchy Viewer在连接手机时，手机上必须启动一个叫View Server的客户端与其进行socket通信。而在商业手机上，是无法开启View Server的，故Hierarchy Viewer是无法连接到普通的商业手机。</p>
+<p>解决办法：</p>
+<p>方法一：使用模拟器。</p>
+<p>方法二：App中需要开启View Server，可以参考一下连个类的实现。</p>
+<p><a href="http://pan.baidu.com/s/1sjIulYl" target="_blank" rel="noopener">http://pan.baidu.com/s/1sjIulYl </a>提取码：wrc8</p>
+<p>使用方法：</p>
+<p>引入ViewServer.java 类到Util包中，在需要查看Layout层次结构的Activity类中，加入以下代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">(Bundle savedInstanceState)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">super</span>.onCreate(savedInstanceState);</span><br><span class="line">    …</span><br><span class="line">    ViewServer.get(<span class="keyword">this</span>).addWindow(<span class="keyword">this</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onDestroy</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">super</span>.onDestroy();</span><br><span class="line">    ViewServer.get(<span class="keyword">this</span>).removeWindow(<span class="keyword">this</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onResume</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">super</span>.onResume();</span><br><span class="line">    ViewServer.get(<span class="keyword">this</span>).setFocusedWindow(<span class="keyword">this</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>5.使用Lint工具来优化Layout</p>
+<ul>
+<li>使用merge根框架 – 如果FramLayout仅仅是一个纯粹的（没有设置背景，间距等）布局根元素，我们可以使用merge标签来当作根标签；</li>
+<li>无用的分支 – 如果一个layout并没有任何子组件，那么可以被移除，这样可以提高效率</li>
+<li>无用的父控件 – 如果一个layout只有子控件，没有兄弟控件，并且不是一个ScrollView或者根节点，而且没有设置背景，那么我们可以移除这个父控件，直接把子控件提升为父控件</li>
+<li>深层次的layout – 尽量减少内嵌的层级，考虑使用更多平级的组件 RelativeLayout or GridLayout来提升布局性能，默认最大的深度是10<br>Lint工具在android Studio中的使用:<br>Analyze → Inspect code 这个时候会自动启动Lint工具。</li>
+</ul>
+<p>6.虽然官方说LinearLayout 与 RelationLayout在性能上相差无几，但是能使用relative layout的地方尽量不要使用LinearLayout。</p>
+<p>7.有同事对比了RelationLayout 与 FrameLayout的性能，发现FrameLayout性能比RelationLayout更优。原因很简单：因为FrameLayout比RelationLayout更简单，没有那么多属性，所有效率更高。无论是使用那种布局，在都能满足需求的情况下，只要记住，使用属性跟少、更简单的布局方式一定是没错的。<br><a href="http://stackoverflow.com/questions/22875453/framelayout-vs-relativelayout-for-overlays" target="_blank" rel="noopener">http://stackoverflow.com/questions/22875453/framelayout-vs-relativelayout-for-overlays</a></p>
+<p>8.对于textview和imageview组成的layout，直接使用textview替换（drawableTop类似属性）</p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Android//" class="article-tag-list-link color3">Android</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2014/09/11/Android/2014-09-11-layout/">展开全文 >></a>
         </p>
       
 
@@ -1354,13 +525,13 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2018/11/09/Android/2014-09-01-listview/">Android 之 Listview</a>
+      <a class="article-title" href="/2014/09/01/Android/2014-09-01-listview/">Android 之 Listview</a>
     </h1>
   
 
         
-        <a href="/2018/11/09/Android/2014-09-01-listview/" class="archive-article-date">
-  	<time datetime="2018-11-09T13:48:02.804Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-11-09</time>
+        <a href="/2014/09/01/Android/2014-09-01-listview/" class="archive-article-date">
+  	<time datetime="2014-08-31T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2014-09-01</time>
 </a>
         
       </header>
@@ -1427,7 +598,7 @@ c. 第一种情况：
 
       
         <p class="article-more-link">
-          <a class="article-more-a" href="/2018/11/09/Android/2014-09-01-listview/">展开全文 >></a>
+          <a class="article-more-a" href="/2014/09/01/Android/2014-09-01-listview/">展开全文 >></a>
         </p>
       
 
@@ -1457,49 +628,71 @@ c. 第一种情况：
 
 
   
-    <article id="post-Android/2014-09-11-layout" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
+    <article id="post-Basic/2013-05-02-websocket" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
   <div class="article-inner">
     
       <header class="article-header">
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2018/11/09/Android/2014-09-11-layout/">Android 高效的 Layout</a>
+      <a class="article-title" href="/2013/05/02/Basic/2013-05-02-websocket/">Websocket 探究</a>
     </h1>
   
 
         
-        <a href="/2018/11/09/Android/2014-09-11-layout/" class="archive-article-date">
-  	<time datetime="2018-11-09T13:48:02.804Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-11-09</time>
+        <a href="/2013/05/02/Basic/2013-05-02-websocket/" class="archive-article-date">
+  	<time datetime="2013-05-01T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2013-05-02</time>
 </a>
         
       </header>
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>我们知道随着我们业务越来越负责，UI布局也会越来越复杂，大量的布局信息必定会带来一定的性能损耗，那么我们怎么才能写出高效的布局呢？</p>
-<p>1.使用 <code>&lt;include&gt; &lt;merge&gt; &lt;viewStub&gt;</code>标签。<br><a href="https://developer.android.com/training/improving-layouts/optimizing-layout.html" target="_blank" rel="noopener">https://developer.android.com/training/improving-layouts/optimizing-layout.html</a></p>
-<p>2.LinearLayout中减少使用layout_weight参数，因为使用此属性会导致子元素被测量两次。</p>
-<p>3.学会测量Layout的层次结构,优化布局<br><a href="https://developer.android.com/training/improving-layouts/optimizing-layout.html" target="_blank" rel="noopener">https://developer.android.com/training/improving-layouts/optimizing-layout.html</a></p>
-<p>4.使得Layout宽而浅，而不是窄而深（在Hierarchy Viewer的Tree视图里面体现）<br>连接真机时，HierarchyVIewer报错了：无法加载设备上的窗口数据</p>
-<p>原因：若需要使用hierarchyviewer，需要手机上开启对应的ViewServer服务。Hierarchy Viewer在连接手机时，手机上必须启动一个叫View Server的客户端与其进行socket通信。而在商业手机上，是无法开启View Server的，故Hierarchy Viewer是无法连接到普通的商业手机。</p>
-<p>解决办法：</p>
-<p>方法一：使用模拟器。</p>
-<p>方法二：App中需要开启View Server，可以参考一下连个类的实现。</p>
-<p><a href="http://pan.baidu.com/s/1sjIulYl" target="_blank" rel="noopener">http://pan.baidu.com/s/1sjIulYl </a>提取码：wrc8</p>
-<p>使用方法：</p>
-<p>引入ViewServer.java 类到Util包中，在需要查看Layout层次结构的Activity类中，加入以下代码：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">(Bundle savedInstanceState)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">super</span>.onCreate(savedInstanceState);</span><br><span class="line">    …</span><br><span class="line">    ViewServer.get(<span class="keyword">this</span>).addWindow(<span class="keyword">this</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onDestroy</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">super</span>.onDestroy();</span><br><span class="line">    ViewServer.get(<span class="keyword">this</span>).removeWindow(<span class="keyword">this</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onResume</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">super</span>.onResume();</span><br><span class="line">    ViewServer.get(<span class="keyword">this</span>).setFocusedWindow(<span class="keyword">this</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>5.使用Lint工具来优化Layout</p>
-<ul>
-<li>使用merge根框架 – 如果FramLayout仅仅是一个纯粹的（没有设置背景，间距等）布局根元素，我们可以使用merge标签来当作根标签；</li>
-<li>无用的分支 – 如果一个layout并没有任何子组件，那么可以被移除，这样可以提高效率</li>
-<li>无用的父控件 – 如果一个layout只有子控件，没有兄弟控件，并且不是一个ScrollView或者根节点，而且没有设置背景，那么我们可以移除这个父控件，直接把子控件提升为父控件</li>
-<li>深层次的layout – 尽量减少内嵌的层级，考虑使用更多平级的组件 RelativeLayout or GridLayout来提升布局性能，默认最大的深度是10<br>Lint工具在android Studio中的使用:<br>Analyze → Inspect code 这个时候会自动启动Lint工具。</li>
+        <p><strong>WebSocket：</strong> 基于 HTML5 的一种浏览器与服务器之间的即时通讯解决方案(基于 TCP 连接的双向通道)；</p>
+<p><strong>Java容器支持：</strong>目前只支持 jetty 和 tomcat。</p>
+<p><strong>应用场景：</strong>即时通讯（网页游戏[双向异步消息模式]，网页聊天，微博等）</p>
+<h2 id="一、概念区分："><a href="#一、概念区分：" class="headerlink" title="一、概念区分："></a>一、概念区分：</h2><h3 id="HTTP-协议-与-TCP-协议区别："><a href="#HTTP-协议-与-TCP-协议区别：" class="headerlink" title="HTTP 协议 与 TCP 协议区别："></a>HTTP 协议 与 TCP 协议区别：</h3><p>HTTP协议是应用层协议，是用于www浏览的一个协，应用层协议包括HTTP协议，TELNET协议，WebSocket协议等。Http 协议是请求/响应范式的, 每一个 http 响应都是由一个对应的 http 请求产生的; http 协议是无状态的, 多个 http 请求之间是没有关系的.<br>TCP协议是传输层协议,是机器之间建立连接用的到的一个协议,传输层协议包括TCP协议，UDP协议。</p>
+<h3 id="长轮询-、短轮询-、长连接区别"><a href="#长轮询-、短轮询-、长连接区别" class="headerlink" title="长轮询 、短轮询 、长连接区别:"></a>长轮询 、短轮询 、长连接区别:</h3><p>长轮询：首先长轮询并不等于长连接，长轮询还是采用的http短连接，只是服务器端把请求hold。<br>长连接：是多个 http 请求共用一个 tcp 连接; 这样可以减少多次临近 http 请求导致 tcp 建立关闭所产生的时间消耗。<br>短轮询：服务器收到请求不管是否有数据都直接响应 http 请求; 浏览器受到 http 响应隔一段时间在发送同样的 http 请求查询是否有数据;</p>
+<h3 id="Http协议-与-webSocket协议关系："><a href="#Http协议-与-webSocket协议关系：" class="headerlink" title="Http协议 与 webSocket协议关系："></a>Http协议 与 webSocket协议关系：</h3><p>WebSocket和Http协议一样都属于应用层的协议，webSocket在第一步进行握手时采用的是Http请求，第二步进行数据流传输是在TCP协议上操作，所以webSocket长连接 跟 Http长连接之间基本没有关系。本质上来说，WebSocket是不限于HTTP协议的，但是由于现存大量的HTTP基础设施，代理，过滤，身份认证等等，WebSocket借用HTTP和HTTPS的端口。由于使用HTTP的端口，因此TCP连接建立后的握手消息是基于HTTP的，由服务器判断这是一个HTTP协议，还是WebSocket协议。 WebSocket连接除了建立和关闭时的握手，数据传输和HTTP没丁点关系了。</p>
+<p><img src="https://yanmingming.files.wordpress.com/2013/05/2a213e4d-2cd6-4d8a-8be2-3bf50d8d7b64.png" alt=""></p>
+<h2 id="二、之前即时通讯的折衷方案："><a href="#二、之前即时通讯的折衷方案：" class="headerlink" title="二、之前即时通讯的折衷方案："></a>二、之前即时通讯的折衷方案：</h2><ol>
+<li>短轮询(Polling)：定时轮询，一定时间间隔浏览器向服务器发送请求。</li>
+<li>长轮询(Long Polling)：浏览器向服务器发送请求，有数据更新时反馈数据，如果服务器端没有新的数据需要发送，这里与Polling方法不同的是，服务器不是立即发送回应给浏览器，而是把这个请求保持住，等待有新的数据到来时，再来响应这个请求；当然了，如果服务器的数据长期没有更新，一段时间后，这个Get请求就会超时，浏览器收到超时消息后，再立即发送一个新的Get请求给服务器。然后依次循环这个过程。</li>
+<li>流：流技术方案通常就是在客户端的页面使用一个隐藏的窗口向服务端发出一个长连接的请求。服务器端接到这个请求后作出回应并不断更新连接状态以保证客户端和服务器端的连接不过期。</li>
+</ol>
+<h3 id="折衷方案的缺点："><a href="#折衷方案的缺点：" class="headerlink" title="折衷方案的缺点："></a>折衷方案的缺点：</h3><ol>
+<li>两次HTTP请求模拟双向通道，增加了编程复杂度。</li>
+<li>增加了服务器压力。</li>
+<li>制约应用的扩展性。</li>
+</ol>
+<h2 id="三、WebSocket原理："><a href="#三、WebSocket原理：" class="headerlink" title="三、WebSocket原理："></a>三、WebSocket原理：</h2><p><img src="https://gw.alipayobjects.com/zos/skylark/17625c30-c987-4090-9926-36a5fc709990/2018/png/07c0e5f9-d550-4bb5-9586-86554bbcdcc2.png" alt=""></p>
+<ol>
+<li>浏览器与服务器建立握手：<br><img src="https://gw.alipayobjects.com/zos/skylark/9183678b-5633-493a-9b9f-512631ba8a6a/2018/png/cc7b882b-3327-4d99-9dfb-3d385572aaff.png" alt=""></li>
+<li>浏览器与服务器之间进行双向数据传输;</li>
+</ol>
+<h3 id="Java中使用方法："><a href="#Java中使用方法：" class="headerlink" title="Java中使用方法："></a>Java中使用方法：</h3><ul>
+<li>依赖 jetty 服务包：</li>
 </ul>
-<p>6.虽然官方说LinearLayout 与 RelationLayout在性能上相差无几，但是能使用relative layout的地方尽量不要使用LinearLayout。</p>
-<p>7.有同事对比了RelationLayout 与 FrameLayout的性能，发现FrameLayout性能比RelationLayout更优。原因很简单：因为FrameLayout比RelationLayout更简单，没有那么多属性，所有效率更高。无论是使用那种布局，在都能满足需求的情况下，只要记住，使用属性跟少、更简单的布局方式一定是没错的。<br><a href="http://stackoverflow.com/questions/22875453/framelayout-vs-relativelayout-for-overlays" target="_blank" rel="noopener">http://stackoverflow.com/questions/22875453/framelayout-vs-relativelayout-for-overlays</a></p>
-<p>8.对于textview和imageview组成的layout，直接使用textview替换（drawableTop类似属性）</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&lt;dependency&gt;</span><br><span class="line">   &lt;groupId&gt;org.eclipse.jetty.aggregate&lt;/groupId&gt;</span><br><span class="line">   &lt;artifactId&gt;jetty-all-server&lt;/artifactId&gt;</span><br><span class="line">   &lt;version&gt;8.1.9.v20130131&lt;/version&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br></pre></td></tr></table></figure>
+<ul>
+<li><p>IdeWebSocketServlet 继承 WebSocketServlet 抽象类：必须实现抽象接口方法 doWebSocketConnect()创建websocket的入口.定义 WebSocket连接缓存-new ConcurrentHashMap&lt;String, WebSocket&gt;()；用来管理所有webSocket连接，每次新建连接都会写入map，断开连接也会从map中移除这个元素。</p>
+<ul>
+<li>建立WebSocket连接的过程：<br><img src="https://yanmingming.files.wordpress.com/2013/05/c8affbd4-5659-41c6-aba7-6613d44715fc-1.png" alt=""></li>
+</ul>
+</li>
+<li><p>定义自己的WebSocket对象,实现 WebSocket.OnTextMessage 接口,比如 SessionWebSocket：实现onOpen、onClose、onMessage 方法。当事件类型较多时，定义一组事件列表， onMessage 中根据事件类型执行相应事件的具体方法。</p>
+</li>
+<li>客户端中Js的写法：</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">function <span class="title">connect</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="keyword">var</span> target = document.getElementById(<span class="string">'target'</span>).value;</span><br><span class="line">            <span class="keyword">if</span> (target == <span class="string">''</span>) &#123;</span><br><span class="line">                alert(<span class="string">'Please select server side connection implementation.'</span>);</span><br><span class="line">                <span class="keyword">return</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (<span class="string">'WebSocket'</span> in window) &#123;</span><br><span class="line">                ws = <span class="keyword">new</span> WebSocket(target);</span><br><span class="line">            &#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="string">'MozWebSocket'</span> in window) &#123;</span><br><span class="line">                ws = <span class="keyword">new</span> MozWebSocket(target);</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                alert(<span class="string">'WebSocket is not supported by this browser.'</span>);</span><br><span class="line">                <span class="keyword">return</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            ws.onopen = function () &#123;</span><br><span class="line">                setConnected(<span class="keyword">true</span>);</span><br><span class="line">                log(<span class="string">'Info: WebSocket connection opened.'</span>);</span><br><span class="line">            &#125;;</span><br><span class="line">            ws.onmessage = function (event) &#123;</span><br><span class="line">                log(<span class="string">'Received: '</span> + event.data);</span><br><span class="line">            &#125;;</span><br><span class="line">            ws.onclose = function () &#123;</span><br><span class="line">                setConnected(<span class="keyword">false</span>);</span><br><span class="line">                log(<span class="string">'Info: WebSocket connection closed.'</span>);</span><br><span class="line">            &#125;;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function">function <span class="title">updateTarget</span><span class="params">(target)</span> </span>&#123;</span><br><span class="line">            <span class="keyword">if</span> (window.location.protocol == <span class="string">'http:'</span>) &#123;</span><br><span class="line">                document.getElementById(<span class="string">'target'</span>).value = <span class="string">'ws://'</span> + window.location.host + target;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                document.getElementById(<span class="string">'target'</span>).value = <span class="string">'wss://'</span> + window.location.host + target;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br></pre></td></tr></table></figure>
+<h3 id="WebSocket优势："><a href="#WebSocket优势：" class="headerlink" title="WebSocket优势："></a>WebSocket优势：</h3><ul>
+<li>从服务器上主动给客户端推送信息；</li>
+<li>比Http协议传输效率高；<h3 id="WebSocket劣势："><a href="#WebSocket劣势：" class="headerlink" title="WebSocket劣势："></a>WebSocket劣势：</h3></li>
+<li>浏览器支持的兼容性不好，对于IE，支持IE10；</li>
+</ul>
+<h3 id="WebSocket为什么要把message分成frame："><a href="#WebSocket为什么要把message分成frame：" class="headerlink" title="WebSocket为什么要把message分成frame："></a>WebSocket为什么要把message分成frame：</h3><p>因为HTTP协议有chunk功能，可以让服务器一边生数据，一边发。而websocket协议也考虑到了这点。如果没有framing功能，那么我必须知道整个message的长度之后，才能开始发送message的data。</p>
+<h3 id="长连接误解："><a href="#长连接误解：" class="headerlink" title="长连接误解："></a>长连接误解：</h3><p>关于 http 长连接一个误解就是服务器主动推送数据, 这个在 http 协议下是无法实现的, 因为 http 请求/响应范式决定的, http 中服务器返回数据必须要有一个浏览器端的请求对应, 服务器无法主动推送给浏览器数据.</p>
+<h3 id="长短轮询策略："><a href="#长短轮询策略：" class="headerlink" title="长短轮询策略："></a>长短轮询策略：</h3><p>不管 http 长轮询还是 http 短轮询 保证同一个用户在多 tab 下只存在一个定时查询是有好处的, 这可以通过在浏览器端缓存数据解决, 在 http 响应后在浏览器端缓存数据, 并设置一个有效期, 然后在每次发送 http 请求时检查是否有有效数据, 没有则发送请求获取。</p>
 
       
 
@@ -1514,7 +707,7 @@ c. 第一种情况：
 		<ul class="article-tag-list">
 			 
         		<li class="article-tag-list-item">
-        			<a href="/categories/Android//" class="article-tag-list-link color3">Android</a>
+        			<a href="/categories/Basic//" class="article-tag-list-link color1">Basic</a>
         		</li>
       		
 		</ul>
@@ -1523,7 +716,136 @@ c. 第一种情况：
 
       
         <p class="article-more-link">
-          <a class="article-more-a" href="/2018/11/09/Android/2014-09-11-layout/">展开全文 >></a>
+          <a class="article-more-a" href="/2013/05/02/Basic/2013-05-02-websocket/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-Java/2013-02-28-datasource-grouth" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2013/02/28/Java/2013-02-28-datasource-grouth/">Java 数据库连接(dataSource)的演进</a>
+    </h1>
+  
+
+        
+        <a href="/2013/02/28/Java/2013-02-28-datasource-grouth/" class="archive-article-date">
+  	<time datetime="2013-02-27T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2013-02-28</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h4 id="原生方法"><a href="#原生方法" class="headerlink" title="原生方法"></a>原生方法</h4><ul>
+<li>加载JDBC 驱动：</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Class.forName(driver);</span><br><span class="line"><span class="comment">// mysql 数据库：“com.mysql.jdbc.Driver”</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>建立数据库连接：</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Connection conn = DriverManager.getConnection(url,userName,password);</span><br></pre></td></tr></table></figure>
+<ul>
+<li>创建 statement，用来执行SQL 语句</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Statement statement = conn.createStatement();</span><br></pre></td></tr></table></figure>
+<ul>
+<li>执行 SQL 语句：</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ResultSet rs = statement.executeQuery(sql);</span><br></pre></td></tr></table></figure>
+<ul>
+<li>关闭记录集，关闭声明，关闭连接对象</li>
+</ul>
+<h5 id="不足："><a href="#不足：" class="headerlink" title="不足："></a>不足：</h5><ol>
+<li>每次使用都要创建连接，使用完毕后还必须关闭连接，操作繁琐，易出错；</li>
+<li>连接数据库资源不便统一管理；</li>
+</ol>
+<h4 id="使用Spring的-JDBC-方法："><a href="#使用Spring的-JDBC-方法：" class="headerlink" title="使用Spring的 JDBC 方法："></a>使用Spring的 JDBC 方法：</h4><ul>
+<li>引入 spring-jdbc.jar 包</li>
+<li>添加 dataSource配置</li>
+</ul>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&lt;bean id=<span class="string">"dataSource"</span>&gt;</span><br><span class="line">    &lt;property name=<span class="string">"driverClassName"</span> value=<span class="string">"org.springframework.jdbc.datasource.DriverManagerDataSource"</span>&gt;</span><br><span class="line">    &lt;/property&gt;</span><br><span class="line">    &lt;property name=<span class="string">"url"</span> value=<span class="string">"jdbc:oracle:thin:@10.217.3.2:1521:orcl"</span>&gt;</span><br><span class="line">    &lt;/property&gt;</span><br><span class="line">    &lt;property name="username" value="*"&gt;&lt;/property&gt;</span><br><span class="line">    &lt;property name="password" value="*"&gt;&lt;/property&gt;</span><br><span class="line">&lt;/bean&gt;</span><br></pre></td></tr></table></figure>
+<p>DriverManagerDataSource 类位于 org.springframework.jdbc.datasource 包下。 当然这里还可以选择 SingleConnectionDataSource<br>DriverManagerDataSource -&gt; 在每一个连接请求时都新建一个连接；<br>SingleConnectionDataSource -&gt;     在每一个连接请求时都返回同一个连接；</p>
+<ul>
+<li>获取dataSource bean对象</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ApplicationContext ctx = <span class="keyword">new</span> ClassPathXmlApplicationContext(<span class="string">"applicationContext.xml"</span>);</span><br><span class="line">ds = (DataSource)ctx.getBean(<span class="string">"dataSource"</span>);</span><br></pre></td></tr></table></figure>
+<ul>
+<li>获取连接对象Connection和Statement</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Connection conn = ds.getConnection();</span><br><span class="line">Statement sm = conn.createStatement();</span><br></pre></td></tr></table></figure>
+<ul>
+<li>执行向数据库插入记录操作</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">String sqlString = <span class="string">"insert into bryanttesttable values(2,'bryant')"</span>;</span><br><span class="line">sm.execute(sqlString);</span><br></pre></td></tr></table></figure>
+<h5 id="优势："><a href="#优势：" class="headerlink" title="优势："></a>优势：</h5><ol>
+<li>更干净的 代码；</li>
+<li>更简单的使用；</li>
+<li>更好的异常与资源处理；</li>
+</ol>
+<p>Spring JDBC 介绍：模版设计模式（核心包包含JdbcTemplate），Spring JDBC 异常处理 ；这些会在下一章节来具体介绍Spring JDBC的优雅设计 和 是如何在 原生JDBC 上做封装的。</p>
+<h4 id="使用Spring的-数据库连接池-DBCP-方法：（四个流行的Java连接池）"><a href="#使用Spring的-数据库连接池-DBCP-方法：（四个流行的Java连接池）" class="headerlink" title="使用Spring的 数据库连接池 DBCP 方法：（四个流行的Java连接池）"></a>使用Spring的 数据库连接池 DBCP 方法：（四个流行的Java连接池）</h4><p>需要引入commons-collections.jar、commons-dbcp.jar和commons-pool.jar。</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&lt;bean id=<span class="string">"dataSource"</span> <span class="class"><span class="keyword">class</span></span>=<span class="string">"org.apache.commons.dbcp.BasicDataSource"</span>&gt;</span><br><span class="line">&lt;property name="driverClassName" value="oracle.jdbc.driver.OracleDriver"&gt;&lt;/property&gt;</span><br><span class="line">&lt;property name="url" value="jdbc:oracle:thin:@192.168.1.35:1521:orcl"&gt;&lt;/property&gt;</span><br><span class="line">&lt;property name="username" value="or_meal"&gt;&lt;/property&gt;</span><br><span class="line">&lt;property name="password" value="or_meal"&gt;&lt;/property&gt;</span><br><span class="line">&lt;property name="maxActive" value="100"&gt;&lt;/property&gt;</span><br><span class="line">&lt;property name="maxIdle" value="30"&gt;&lt;/property&gt;</span><br><span class="line">&lt;property name="maxWait" value="10"&gt;&lt;/property&gt;</span><br><span class="line">&lt;/bean&gt;</span><br></pre></td></tr></table></figure>
+<h4 id="使用-JNDI-连接数据库"><a href="#使用-JNDI-连接数据库" class="headerlink" title="使用 JNDI 连接数据库"></a>使用 JNDI 连接数据库</h4><p>1、SpringJNDI数据源配置信息：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&lt;bean id=<span class="string">"dataSource"</span> <span class="class"><span class="keyword">class</span></span>=<span class="string">"org.springframework.jndi.JndiObjectFactoryBean"</span>&gt;</span><br><span class="line">   &lt;property name=<span class="string">"jndiName"</span>&gt;</span><br><span class="line">    &lt;value&gt;java:comp/env/jcptDataSourceJNDI&lt;/value&gt;</span><br><span class="line">   &lt;/property&gt;</span><br><span class="line">  &lt;/bean&gt;</span><br></pre></td></tr></table></figure>
+<p>  jcptDataSourceJNDI是tomcat或者其他应用服务器配置的JNDI.</p>
+<p>2、关于JNDI的配置(tomcat)：<br>  修改tomcat目录conf/context.xml文件：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&lt;Resource name=<span class="string">"jcptDataSourceJNDI"</span> auth=<span class="string">"Container"</span> type=<span class="string">"javax.sql.DataSource"</span></span><br><span class="line">      maxActive=<span class="string">"100"</span> maxIdle=<span class="string">"30"</span> maxWait=<span class="string">"10"</span>   username=<span class="string">"tysp"</span></span><br><span class="line">      password=<span class="string">"12345678"</span> driverClassName=<span class="string">"oracle.jdbc.driver.OracleDriver"</span></span><br><span class="line">      url=<span class="string">"jdbc:oracle:thin:@192.168.1.35:1521:orcl"</span>/&gt;</span><br></pre></td></tr></table></figure>
+<p>3、通过JNDI获取DataSource:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&lt;Resource name=<span class="string">"jcptDataSourceJNDI"</span> auth=<span class="string">"Container"</span> type=<span class="string">"javax.sql.DataSource"</span></span><br><span class="line">      maxActive=<span class="string">"100"</span> maxIdle=<span class="string">"30"</span> maxWait=<span class="string">"10"</span>   username=<span class="string">"tysp"</span></span><br><span class="line">      password=<span class="string">"12345678"</span> driverClassName=<span class="string">"oracle.jdbc.driver.OracleDriver"</span></span><br><span class="line">      url=<span class="string">"jdbc:oracle:thin:@192.168.1.35:1521:orcl"</span>/&gt;</span><br></pre></td></tr></table></figure>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2013/02/28/Java/2013-02-28-datasource-grouth/">展开全文 >></a>
         </p>
       
 
