@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <title>Heartaway</title>
   
-  
+  <subtitle>热爱生活，努力工作</subtitle>
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://heartaway.cn/"/>
