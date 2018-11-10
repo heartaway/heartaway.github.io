@@ -47,6 +47,36 @@
   </entry>
   
   <entry>
+    <title>微服务架构可视化</title>
+    <link href="http://heartaway.cn/2018/11/10/blog/%E5%BE%AE%E6%9C%8D%E5%8A%A1%E6%9E%B6%E6%9E%84%E5%8F%AF%E8%A7%86%E5%8C%96/"/>
+    <id>http://heartaway.cn/2018/11/10/blog/微服务架构可视化/</id>
+    <published>2018-11-09T16:00:00.000Z</published>
+    <updated>2018-11-10T08:22:27.897Z</updated>
+    
+    <content type="html"><![CDATA[<p>架构可视化内容。</p>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;p&gt;架构可视化内容。&lt;/p&gt;
+
+      
+    
+    </summary>
+    
+      <category term="架构" scheme="http://heartaway.cn/categories/%E6%9E%B6%E6%9E%84/"/>
+    
+    
+      <category term="架构" scheme="http://heartaway.cn/tags/%E6%9E%B6%E6%9E%84/"/>
+    
+      <category term="可视化" scheme="http://heartaway.cn/tags/%E5%8F%AF%E8%A7%86%E5%8C%96/"/>
+    
+      <category term="系统拓扑" scheme="http://heartaway.cn/tags/%E7%B3%BB%E7%BB%9F%E6%8B%93%E6%89%91/"/>
+    
+  </entry>
+  
+  <entry>
     <title>他人经受的，我必经受</title>
     <link href="http://heartaway.cn/2018/10/06/Think/2018-10-06-marriage-quarrel/"/>
     <id>http://heartaway.cn/2018/10/06/Think/2018-10-06-marriage-quarrel/</id>
@@ -470,33 +500,6 @@
     </summary>
     
       <category term="Think" scheme="http://heartaway.cn/categories/Think/"/>
-    
-    
-  </entry>
-  
-  <entry>
-    <title>消息收发中的中文乱码</title>
-    <link href="http://heartaway.cn/2017/10/20/Java/2017-10-20-message-string-byte/"/>
-    <id>http://heartaway.cn/2017/10/20/Java/2017-10-20-message-string-byte/</id>
-    <published>2017-10-19T16:00:00.000Z</published>
-    <updated>2018-11-09T14:24:06.308Z</updated>
-    
-    <content type="html"><![CDATA[<blockquote><p>背景：<br>A发消息给B系统，A、B应用的编码均为UTF-8，但是B收到的消息出现中文乱码。</p></blockquote><p>A发送消息的方式：</p><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">new</span> Message(TOPIC, TAG, <span class="keyword">null</span>,          (messageContent.toString()).getBytes())</span><br></pre></td></tr></table></figure><p>这里消息接受二进制byte数据，我们把消息string转换为byte的时候，默认使用了getBytes()，未指定编码方式，getBytes()方法的注释如下：</p><p>Encodes this {@code String} into a sequence of bytes using the<br> platform’s default charset, storing the result into a new byte array.</p><p>也就是会使用平台默认编码，查看StringCoding.encode方法中的Charset.defaultCharset().name()方法：</p><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">  * Returns the default charset of this Java virtual machine.</span></span><br><span class="line"><span class="comment">  *</span></span><br><span class="line"><span class="comment">  * &lt;p&gt; The default charset is determined during virtual-machine startup and</span></span><br><span class="line"><span class="comment">  * typically depends upon the locale and charset of the underlying</span></span><br><span class="line"><span class="comment">  * operating system.</span></span><br><span class="line"><span class="comment">  *</span></span><br><span class="line"><span class="comment">  * <span class="doctag">@return</span>  A charset object for the default charset</span></span><br><span class="line"><span class="comment">  *</span></span><br><span class="line"><span class="comment">  * <span class="doctag">@since</span> 1.5</span></span><br><span class="line"><span class="comment">  */</span></span><br><span class="line"> <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Charset <span class="title">defaultCharset</span><span class="params">()</span> </span>&#123;</span><br><span class="line">     <span class="keyword">if</span> (defaultCharset == <span class="keyword">null</span>) &#123;</span><br><span class="line">         <span class="keyword">synchronized</span> (Charset.class) &#123;</span><br><span class="line">             String csn = AccessController.doPrivileged(</span><br><span class="line">                 <span class="keyword">new</span> GetPropertyAction(<span class="string">"file.encoding"</span>));</span><br><span class="line">             Charset cs = lookup(csn);</span><br><span class="line">             <span class="keyword">if</span> (cs != <span class="keyword">null</span>)</span><br><span class="line">                 defaultCharset = cs;</span><br><span class="line">             <span class="keyword">else</span></span><br><span class="line">                 defaultCharset = forName(<span class="string">"UTF-8"</span>);</span><br><span class="line">         &#125;</span><br><span class="line">     &#125;</span><br><span class="line">     <span class="keyword">return</span> defaultCharset;</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure><p>注释的很清楚了，返回JVM默认的字符编码，如果在jvm启动参数中指定了-Dfile.encoding 编码，则优先使用此编码，如果未指定，则使用UTF-8编码；</p><p>登录服务器查看启动参数，发现A应用进程中指定了-Dfile.encoding=GB18030</p><p><img src="/images/posts/20171020/15084809508975.jpg" alt=""></p><p>示意图如下：<br><img src="/images/posts/20171020/15084807485727.jpg" alt=""></p><p>总结：<br>在进行string与byte转换的时候，最好使用getBytes(String charsetName)方法，明确指定字符编码方式，最好编写一个编码转换的工具类，统一类型转换时的编码方式。</p>]]></content>
-    
-    <summary type="html">
-    
-      
-      
-        &lt;blockquote&gt;
-&lt;p&gt;背景：&lt;br&gt;A发消息给B系统，A、B应用的编码均为UTF-8，但是B收到的消息出现中文乱码。&lt;/p&gt;
-&lt;/blockquote&gt;
-&lt;p&gt;A发送消息的方式：&lt;/p&gt;
-&lt;figure class=&quot;highlight java&quot;&gt;&lt;table&gt;&lt;tr
-      
-    
-    </summary>
-    
-      <category term="Java" scheme="http://heartaway.cn/categories/Java/"/>
     
     
   </entry>

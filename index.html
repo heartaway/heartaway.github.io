@@ -242,6 +242,99 @@
 
 
   
+    <article id="post-blog/微服务架构可视化" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/11/10/blog/微服务架构可视化/">微服务架构可视化</a>
+    </h1>
+  
+
+        
+        <a href="/2018/11/10/blog/微服务架构可视化/" class="archive-article-date">
+  	<time datetime="2018-11-09T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-11-10</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>架构可视化内容。</p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color3">架构</a>
+        		</li>
+      		 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color4">可视化</a>
+        		</li>
+      		 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color5">系统拓扑</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/架构//" class="article-tag-list-link color3">架构</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2018/11/10/blog/微服务架构可视化/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
     <article id="post-Think/2018-10-06-marriage-quarrel" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
   <div class="article-inner">
     
@@ -1753,103 +1846,6 @@
       
         <p class="article-more-link">
           <a class="article-more-a" href="/2018/03/14/HighAvailability/2018-03-14-monitor-system/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-Java/2018-03-06-spring-quartz-trigger" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/03/06/Java/2018-03-06-spring-quartz-trigger/">spring quartz 指定trigger的执行机器</a>
-    </h1>
-  
-
-        
-        <a href="/2018/03/06/Java/2018-03-06-spring-quartz-trigger/" class="archive-article-date">
-  	<time datetime="2018-03-05T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-03-06</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>我们在使用spring-quartz的时候，常常会遇到一个场景，那就是任务的调度会随着争取锁的先后顺序而出现不固定机器执行的场景，这在正常业务逻辑中具备了很好的容灾能力，但是在我们排查问题时，却带来了困绕，如果出现问题，我们期望任务调度固定在一台机器上进行执行，方便我们对问题的定位和排查。</p>
-<p>这里就探讨如何扩展spring-quartz来实现任务的固定机器执行。</p>
-<h3 id="整体思路"><a href="#整体思路" class="headerlink" title="整体思路"></a>整体思路</h3><p>要指定机器运行trigger，那首先我们必须清楚spring-quartz cluster模式下，任务的触发时如何进行分布式执行的。<br>spring-quartz cluster 是借助数据锁来实现并发控制的，需要注意的是分布式环境下需要保证各机器系统时间一致性；</p>
-<p>核心处理线程QuartzSchedulerThread决定了扫描那些JOB，以及触发执行和生命周期的维护。<br>QuartzSchedulerThread中run方法：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//在trigger表中扫描指定SCHED_NAME、状态为WAITING，下次触发时间在30秒内的触发器</span></span><br><span class="line">triggers = qsRsrcs.getJobStore().acquireNextTriggers(</span><br><span class="line">                                now + idleWaitTime, Math.min(availThreadCount, qsRsrcs.getMaxBatchSize()), qsRsrcs.getBatchTimeWindow());</span><br><span class="line">....                  </span><br><span class="line"><span class="comment">//触发器执行</span></span><br><span class="line">List&lt;TriggerFiredResult&gt; res = qsRsrcs.getJobStore().triggersFired(triggers);                                                          </span><br><span class="line">...</span><br><span class="line"><span class="comment">//释放触发器</span></span><br><span class="line">qsRsrcs.getJobStore().releaseAcquiredTrigger(triggers.get(i));</span><br><span class="line">...</span><br><span class="line"><span class="comment">//完成触发器</span></span><br><span class="line">qsRsrcs.getJobStore().triggeredJobComplete(triggers.get(i), bndle.getJobDetail(), CompletedExecutionInstruction.SET_ALL_JOB_TRIGGERS_ERROR);</span><br></pre></td></tr></table></figure>
-<p>我们就可以在acquireNextTriggers中做扩展，获取全部或者指定了实例ID的trigger。</p>
-<p>延伸思考：acquireNextTriggers获取到trigger列表后，假设机器宕机，这些trigger如何路由到其他机器中正常运行？</p>
-<h3 id="扩展实例ID的生成策略"><a href="#扩展实例ID的生成策略" class="headerlink" title="扩展实例ID的生成策略"></a>扩展实例ID的生成策略</h3><p>spring-quartz一般配置的org.quartz.scheduler.instanceId：AUTO，采用的是SimpleInstanceIdGenerator ID生成策略。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SimpleInstanceIdGenerator</span> <span class="keyword">implements</span> <span class="title">InstanceIdGenerator</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">generateInstanceId</span><span class="params">()</span> <span class="keyword">throws</span> SchedulerException </span>&#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> InetAddress.getLocalHost().getHostName() + System.currentTimeMillis();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> SchedulerException(<span class="string">"Couldn't get host name!"</span>, e);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>SimpleInstanceIdGenerator 采用机器主机名称与当前时间戳作为instanceId,我们期望在开发环境使用hostName，在生产环境(Linux)采用IP作为实例ID。</p>
-<p>实现InstanceIdGenerator接口，实现自己的ID生成策略，QuartzSchedulerInstanceIdGenerator的实现逻辑为：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">QuartzSchedulerInstanceIdGenerator</span> <span class="keyword">implements</span> <span class="title">InstanceIdGenerator</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Logger log = LoggerFactory.getLogger(QuartzSchedulerInstanceIdGenerator.class);</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String OS_NAME = <span class="string">"os.name"</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String WINDOWS = <span class="string">"Windows"</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String MAC = <span class="string">"Mac OS"</span>;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">generateInstanceId</span><span class="params">()</span> <span class="keyword">throws</span> SchedulerException </span>&#123;</span><br><span class="line">        String id;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (isLocalDev()) &#123;</span><br><span class="line">                id = getHostName();</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                id = IpUtil.getIp();</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (StringUtils.isBlank(id)) &#123;</span><br><span class="line">                id = InetAddress.getLocalHost().getHostName() + System.currentTimeMillis();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> SchedulerException(<span class="string">"Couldn't generate instance id!"</span>, e);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> id;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> String <span class="title">getHostName</span><span class="params">()</span> <span class="keyword">throws</span> SchedulerException </span>&#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> InetAddress.getLocalHost().getHostName();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> SchedulerException(<span class="string">"Couldn't get host name!"</span>, e);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">isLocalDev</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (StringUtils.indexOfIgnoreCase(System.getProperty(OS_NAME), WINDOWS) &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (StringUtils.indexOfIgnoreCase(System.getProperty(OS_NAME), MAC) &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>在quartz.properties中配置：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">org.quartz.scheduler.instanceIdGenerator.class=com.xx.ext.QuartzSchedulerInstanceIdGenerator</span><br></pre></td></tr></table></figure>
-<h3 id="扩展StdJDBCDelegate"><a href="#扩展StdJDBCDelegate" class="headerlink" title="扩展StdJDBCDelegate"></a>扩展StdJDBCDelegate</h3><p>SchedulerFactoryBean 工厂Bean负责加载配置信息，初始化SchedulerFactory和Scheduler实例，jobStore负责job、trigger等的持久化工作，针对不同的数据库类型，可以配置不同的DriverDelegate。Spring中默认使用LocalDataSourceJobStore作为JobStore的处理类。</p>
-<p>SchedulerFactory中initSchedulerFactory方法:</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">     <span class="keyword">if</span> (<span class="keyword">this</span>.configLocation != <span class="keyword">null</span>) &#123;</span><br><span class="line">	<span class="keyword">if</span> (logger.isInfoEnabled()) &#123;</span><br><span class="line">		logger.info(<span class="string">"Loading Quartz config from ["</span> + <span class="keyword">this</span>.configLocation + <span class="string">"]"</span>);</span><br><span class="line">	&#125;</span><br><span class="line">	PropertiesLoaderUtils.fillProperties(mergedProps, <span class="keyword">this</span>.configLocation);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">CollectionUtils.mergePropertiesIntoMap(<span class="keyword">this</span>.quartzProperties, mergedProps);</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (<span class="keyword">this</span>.dataSource != <span class="keyword">null</span>) &#123;</span><br><span class="line">	mergedProps.put(StdSchedulerFactory.PROP_JOB_STORE_CLASS, LocalDataSourceJobStore.class.getName());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>可以看到SchedulerFactoryBean中设置PROP_JOB_STORE_CLASS属性是在合并用户设置的配置文件之后，也就是PROP_JOB_STORE_CLASS的实现类Spring强制指定为LocalDataSourceJobStore而无法更改，即便是我们在quartz.properties中配置了org.quartz.jobStore.class属性，也会被LocalDataSourceJobStore覆盖掉。</p>
-<p>LocalDataSourceJobStore继承自JobStoreSupport，JobStoreSupport默认配置使用StdJDBCDelegate作为与数据库交互的代理处理类；我们可以通过扩展StdJDBCDelegate类，来实现底层数据库交互的扩展。通过配置org.quartz.jobStore.driverDelegateClass属性，指定driverDelegate为我们扩展后的Delegate。</p>
-<p>在quartz.properties中配置：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">org.quartz.jobStore.driverDelegateClass=com.xx.ext.StdJDBCDelegateExt</span><br></pre></td></tr></table></figure>
-<p>针对${table_prefix}_quartz_triggers表新增字段INSTANCE_NAME，此字段为InstanceIdGenerator生成的实例ID，此字段会透传到StdJDBCDelegate中的属性instanceId中，因此我们可以扩展StdJDBCDelegate，通过instanceId字段来指定获取的trigger列表。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">StdJDBCDelegateExt</span> <span class="keyword">extends</span> <span class="title">StdJDBCDelegate</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    String INSTANCE_NAME_VALUE = <span class="string">"&#123;2&#125;"</span>;</span><br><span class="line"></span><br><span class="line">    String SELECT_NEXT_TRIGGER_TO_ACQUIRE_EXT = <span class="string">"SELECT "</span></span><br><span class="line">        + COL_TRIGGER_NAME + <span class="string">", "</span> + COL_TRIGGER_GROUP + <span class="string">", "</span></span><br><span class="line">        + COL_NEXT_FIRE_TIME + <span class="string">", "</span> + COL_PRIORITY + <span class="string">" FROM "</span></span><br><span class="line">        + TABLE_PREFIX_SUBST + TABLE_TRIGGERS + <span class="string">" WHERE "</span></span><br><span class="line">        + COL_SCHEDULER_NAME + <span class="string">" = "</span> + SCHED_NAME_SUBST</span><br><span class="line">        + <span class="string">" AND "</span> + COL_TRIGGER_STATE + <span class="string">" = ? AND "</span> + COL_NEXT_FIRE_TIME + <span class="string">" &lt;= ? "</span></span><br><span class="line">        + <span class="string">" AND ("</span> + COL_INSTANCE_NAME + <span class="string">" IS NULL OR "</span> + COL_INSTANCE_NAME + <span class="string">" = "</span> + INSTANCE_NAME_VALUE + <span class="string">")"</span></span><br><span class="line">        + <span class="string">"AND ("</span> + COL_MISFIRE_INSTRUCTION + <span class="string">" = -1 OR ("</span> + COL_MISFIRE_INSTRUCTION + <span class="string">" != -1 AND "</span></span><br><span class="line">        + COL_NEXT_FIRE_TIME + <span class="string">" &gt;= ?)) "</span></span><br><span class="line">        + <span class="string">"ORDER BY "</span> + COL_NEXT_FIRE_TIME + <span class="string">" ASC, "</span> + COL_PRIORITY + <span class="string">" DESC"</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 允许设置trigger 指定一台机器进行任务调度执行；</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> conn</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> noLaterThan</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> noEarlierThan</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> maxCount</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">     * <span class="doctag">@throws</span> SQLException</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> List&lt;TriggerKey&gt; <span class="title">selectTriggerToAcquire</span><span class="params">(Connection conn, <span class="keyword">long</span> noLaterThan, <span class="keyword">long</span> noEarlierThan, <span class="keyword">int</span> maxCount)</span></span></span><br><span class="line"><span class="function">        <span class="keyword">throws</span> SQLException </span>&#123;</span><br><span class="line">        PreparedStatement ps = <span class="keyword">null</span>;</span><br><span class="line">        ResultSet rs = <span class="keyword">null</span>;</span><br><span class="line">        List&lt;TriggerKey&gt; nextTriggers = <span class="keyword">new</span> LinkedList&lt;TriggerKey&gt;();</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            ps = conn.prepareStatement(rtp(SELECT_NEXT_TRIGGER_TO_ACQUIRE_EXT, instanceId));</span><br><span class="line"></span><br><span class="line">            <span class="comment">// Set max rows to retrieve</span></span><br><span class="line">            <span class="keyword">if</span> (maxCount &lt; <span class="number">1</span>) &#123;</span><br><span class="line">                maxCount = <span class="number">1</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            ps.setMaxRows(maxCount);</span><br><span class="line"></span><br><span class="line">            <span class="comment">// Try to give jdbc driver a hint to hopefully not pull over more than the few rows we actually need.</span></span><br><span class="line">            <span class="comment">// Note: in some jdbc drivers, such as MySQL, you must set maxRows before fetchSize, or you get exception!</span></span><br><span class="line">            ps.setFetchSize(maxCount);</span><br><span class="line"></span><br><span class="line">            ps.setString(<span class="number">1</span>, STATE_WAITING);</span><br><span class="line">            ps.setBigDecimal(<span class="number">2</span>, <span class="keyword">new</span> BigDecimal(String.valueOf(noLaterThan)));</span><br><span class="line">            ps.setBigDecimal(<span class="number">3</span>, <span class="keyword">new</span> BigDecimal(String.valueOf(noEarlierThan)));</span><br><span class="line">            rs = ps.executeQuery();</span><br><span class="line"></span><br><span class="line">            <span class="keyword">while</span> (rs.next() &amp;&amp; nextTriggers.size() &lt;= maxCount) &#123;</span><br><span class="line">                nextTriggers.add(triggerKey(</span><br><span class="line">                    rs.getString(COL_TRIGGER_NAME),</span><br><span class="line">                    rs.getString(COL_TRIGGER_GROUP)));</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">return</span> nextTriggers;</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            closeResultSet(rs);</span><br><span class="line">            closeStatement(ps);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">final</span> String <span class="title">rtp</span><span class="params">(String query, String instanceName)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> MessageFormat.format(query,</span><br><span class="line">            <span class="keyword">new</span> Object[] &#123;tablePrefix, getSchedulerNameLiteral(), <span class="string">"'"</span> + instanceName + <span class="string">"'"</span>&#125;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>至此，完成了指定trigger在特定instanceId上运行，但是有一个问题，假如我们期望trigger可以在多台instanceId上随机执行的话，该如何实现呢？</p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2018/03/06/Java/2018-03-06-spring-quartz-trigger/">展开全文 >></a>
         </p>
       
 

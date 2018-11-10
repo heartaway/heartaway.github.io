@@ -149,6 +149,88 @@
           <div id="js-content" class="content-ll">
             
   
+    <article id="post-Program/2016-02-26-distributed-system-id-generator" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2016/02/26/Program/2016-02-26-distributed-system-id-generator/">分布式系统高效唯一ID生成方案</a>
+    </h1>
+  
+
+        
+        <a href="/2016/02/26/Program/2016-02-26-distributed-system-id-generator/" class="archive-article-date">
+  	<time datetime="2016-02-25T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2016-02-26</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <blockquote>
+<p>背景：在分布式系统中，对于订单ID如何保证全局唯一地高效的生成，并对性能影响不大的情况下，利于建立索引和业务使用？</p>
+</blockquote>
+<h4 id="方案一：使用数据库主键ID"><a href="#方案一：使用数据库主键ID" class="headerlink" title="方案一：使用数据库主键ID"></a>方案一：使用数据库主键ID</h4><p>优势：实现简单；<br>弊端：使用数据库增加写库的压力，生成订单的上限受限于数据库的写性能上限；扩展性差；</p>
+<h4 id="方案二：单点批量生成订单号的服务；"><a href="#方案二：单点批量生成订单号的服务；" class="headerlink" title="方案二：单点批量生成订单号的服务；"></a>方案二：单点批量生成订单号的服务；</h4><p>优势：批量降低了数据库的读写压力<br>弊端：服务单点风险；</p>
+<h4 id="方案三：使用UUID"><a href="#方案三：使用UUID" class="headerlink" title="方案三：使用UUID"></a>方案三：使用UUID</h4><p>优势：本地生成ID，不进行远程调用，延迟低；<br>弊端：无法保证趋势增长；uuid过长且建立索引效率低下；64位太长；</p>
+<h4 id="方案四：使用毫秒数"><a href="#方案四：使用毫秒数" class="headerlink" title="方案四：使用毫秒数"></a>方案四：使用毫秒数</h4><p>优势：本地生成ID，不进行远程调用，延迟低；ID为整数利于建立索引；<br>弊端：并发超过1000，可能会重复；<br>优化方案：使用LRU Cache存储最近生成的100Key，去除后先判断是否重复；进一步降低重复的可能性；但是无法根本上解决高并发下的重复；</p>
+<h4 id="方案五：订单号分段表示具体含义"><a href="#方案五：订单号分段表示具体含义" class="headerlink" title="方案五：订单号分段表示具体含义"></a>方案五：订单号分段表示具体含义</h4><p>方案描述：使用39bit表示毫秒数、4bit表示业务线、7bit表示机器等<br>优势：实现简单，且重复可能性很低；<br>弊端：订单长度过长，不利于业务使用；<br>方案六：使用Redis服务+毫秒数双重方案<br>优势：使用redis的自增序列特性，每次获取一定数量的数据（1000个），降低了每次调用Redis的开销；当Redis挂了，使用基于毫秒数的本地生成ID优化方案；<br>弊端：redis挂了后，订单号的重复性不可避免；</p>
+<h4 id="总结："><a href="#总结：" class="headerlink" title="总结："></a>总结：</h4><p>我们在设计分布式全局唯一单号的时候，不仅需要考虑生成单号的是否重复性，还要考虑生成时的性能开销、是否有容灾方案、是否便于建立索引、是否利于业务使用等。基于这些点的考虑，我们采用了方案六作为线上的唯一生成方案，并把此方案作为一个业务隔离的二方库，可以提供给不同业务方式用；</p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Program//" class="article-tag-list-link color3">Program</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2016/02/26/Program/2016-02-26-distributed-system-id-generator/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
     <article id="post-Think/2016-01-03-2016-my-success-and-fail" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
   <div class="article-inner">
     
@@ -1034,147 +1116,6 @@ c. 第一种情况：
       
         <p class="article-more-link">
           <a class="article-more-a" href="/2014/09/01/Android/2014-09-01-listview/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-Java/2013-07-04-httpclient" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2013/07/04/Java/2013-07-04-httpclient/">HTTP学习笔记（二）之HttpClient</a>
-    </h1>
-  
-
-        
-        <a href="/2013/07/04/Java/2013-07-04-httpclient/" class="archive-article-date">
-  	<time datetime="2013-07-03T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2013-07-04</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h4 id="HttpClient-是什么："><a href="#HttpClient-是什么：" class="headerlink" title="HttpClient 是什么："></a>HttpClient 是什么：</h4><p>HttpClient 是 Apache Jakarta Common 下的子项目，用来提供高效的、最新的、功能丰富的支持 HTTP 协议的客户端编程工具包，并且它支持 HTTP 协议最新的版本和建议。</p>
-<h4 id="HttpClient-主要功能："><a href="#HttpClient-主要功能：" class="headerlink" title="HttpClient 主要功能："></a>HttpClient 主要功能：</h4><p>实现了所有 HTTP 的方法（GET,POST,PUT,HEAD 等）<br>支持自动转向<br>支持 HTTPS 协议<br>支持代理服务器等<br>HttpClient包下面都有那些内容：</p>
-<h4 id="HttpClient-的基本使用方法："><a href="#HttpClient-的基本使用方法：" class="headerlink" title="HttpClient 的基本使用方法："></a>HttpClient 的基本使用方法：</h4><h5 id="Get方法："><a href="#Get方法：" class="headerlink" title="Get方法："></a>Get方法：</h5><p>使用 HttpClient 需要以下 6 个步骤：</p>
-<ol>
-<li>创建 HttpClient 的实例</li>
-<li>创建某种连接方法的实例，在这里是 GetMethod。在 GetMethod 的构造函数中传入待连接的地址</li>
-<li>调用第一步中创建好的实例的 execute 方法来执行第二步中创建好的 method 实例</li>
-<li>读 response</li>
-<li>释放连接。无论执行方法是否成功，都必须释放连接</li>
-<li>对得到后的内容进行处理</li>
-</ol>
-<p>Demo 示例：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//构造HttpClient的实例</span></span><br><span class="line"> HttpClient httpClient = <span class="keyword">new</span> HttpClient();</span><br><span class="line"> <span class="comment">//创建GET方法的实例</span></span><br><span class="line"> GetMethod getMethod = <span class="keyword">new</span> GetMethod(<span class="string">"http://www.ibm.com"</span>);</span><br><span class="line"> <span class="comment">//使用系统提供的默认的恢复策略</span></span><br><span class="line"> getMethod.getParams().setParameter(HttpMethodParams.RETRY_HANDLER,</span><br><span class="line">   <span class="keyword">new</span> DefaultHttpMethodRetryHandler());</span><br><span class="line"> <span class="keyword">try</span> &#123;</span><br><span class="line">  <span class="comment">//执行getMethod</span></span><br><span class="line">  <span class="keyword">int</span> statusCode = httpClient.executeMethod(getMethod);</span><br><span class="line">  <span class="keyword">if</span> (statusCode != HttpStatus.SC_OK) &#123;</span><br><span class="line">   System.err.println(<span class="string">"Method failed: "</span></span><br><span class="line">     + getMethod.getStatusLine());</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">//读取内容</span></span><br><span class="line">  <span class="keyword">byte</span>[] responseBody = getMethod.getResponseBody();</span><br><span class="line">  <span class="comment">//处理内容</span></span><br><span class="line">  System.out.println(<span class="keyword">new</span> String(responseBody));</span><br><span class="line"> &#125; <span class="keyword">catch</span> (HttpException e) &#123;</span><br><span class="line">  <span class="comment">//发生致命的异常，可能是协议不对或者返回的内容有问题</span></span><br><span class="line">  System.out.println(<span class="string">"Please check your provided http address!"</span>);</span><br><span class="line">  e.printStackTrace();</span><br><span class="line"> &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">  <span class="comment">//发生网络异常</span></span><br><span class="line">  e.printStackTrace();</span><br><span class="line"> &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">  <span class="comment">//释放连接</span></span><br><span class="line">  getMethod.releaseConnection();</span><br><span class="line"> &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>注意点：</p>
-<ol>
-<li>HttpClient的恢复策略是指在遇到异常时自动重试的机制，并且可以自定义（通过实现接口HttpMethodRetryHandler来实现）。通过httpClient的方法setParameter设置你实现的恢复策略，demo中使用的是系统提供的默认恢复策略，该策略在碰到IOException的时候将自动重试3次。</li>
-<li>用GetMethod将会自动处理重定向，如果想要把自动处理重定向去掉的话，可以调用方法setFollowRedirects(false)。</li>
-<li>executeMethod返回值是一个整数，表示了执行该方法后服务器返回的状态码；</li>
-<li>获取响应内容的方式有三种：getResponseBody(返回二进制byte流)、getResponseBodyAsString(返回String)、getResponseBodyAsStream(这个方法对返回大量数据处理效率很高)；</li>
-<li>乱码：在使用getResponseBodyAsString容易出现乱码，影响响应内容字符编码的地方有两个：第一，Response的header设置，这里的设置编码可能与html内容编码不符，通过method对象的getResponseCharSet()方法就可以得到http头中的编码信息；第二，Respone的body内容中设置了<code>&lt;meta http-equiv=”Content-Type” content=”text/html; charset=GBK”/&gt;或&lt;?xml version=”1.0″ encoding=”GBK”?&gt;</code>标签，这样也可能与header编码冲突造成乱码。</li>
-<li>释放连接。无论执行方法是否成功，都必须释放连接。</li>
-</ol>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">method.releaseConnection();</span><br></pre></td></tr></table></figure>
-<h5 id="Post方法："><a href="#Post方法：" class="headerlink" title="Post方法："></a>Post方法：</h5><p>PostMethod基本与GetMethod类似；</p>
-<p>不同点：</p>
-<ul>
-<li>POST和PUT，不支持自动重定向，因此需要自己对页面转向做处理。</li>
-</ul>
-<p>Proxy代理服务的使用(host绑定)：<br>在日常工作中很多url的访问都是需要绑定host地址的，使用httpClient如何进行绑定访问？</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">HttpClient httpclient = <span class="keyword">new</span> HttpClient();</span><br><span class="line">           <span class="comment">// 设置HTTP代理IP和端口</span></span><br><span class="line">           httpclient.getHostConfiguration().setProxy(hostIp, hostIpPort);</span><br></pre></td></tr></table></figure>
-<p>支持Https：<br>HttpClient提供了对SSL的支持，允许HttpClient来打开Https连接。</p>
-<p>有两种方法可以打开https连接，第一种就是得到服务器颁发的证书，然后导入到本地的keystore中；另外一种办法就是通过扩展HttpClient的类来实现自动接受证书。</p>
-<p>方法1参考：<a href="http://www.ibm.com/developerworks/cn/opensource/os-httpclient/#N10060" target="_blank" rel="noopener">处理HTTPS协议</a></p>
-<p>方法2：</p>
-<ol>
-<li>实现自己的socket factory，必须实现SecureProtocolSocketFactory接口。</li>
-<li>自定义私有类 TrustAnyTrustManager implements X509TrustManager。</li>
-<li>定义Protocol ，将socket factory注册到 Protocol中。</li>
-</ol>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Protocol myhttps = <span class="keyword">new</span> Protocol(<span class="string">"https"</span>, <span class="keyword">new</span> MySecureProtocolSocketFactory(), <span class="number">443</span>);</span><br><span class="line">        Protocol.registerProtocol(<span class="string">"https"</span>, myhttps);</span><br></pre></td></tr></table></figure>
-<p>Cookie处理：</p>
-<p>通过state获取cookie：httpclient.getState().getCookies();</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">CookieSpec cookiespec = CookiePolicy.getDefaultSpec();</span><br><span class="line">        cookies = cookiespec.match(<span class="string">"login.daily.taobao.net"</span>, hostIpPort, <span class="string">"/"</span>, <span class="keyword">false</span>,</span><br><span class="line">                httpClient.getState().getCookies());</span><br></pre></td></tr></table></figure>
-<p>CookieSpec接口代表了cookie管理的规范。cookiespec.match获取匹配路径下的cookie数组。</p>
-<p>通过state设置cookie:</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">httpclient.getParams().setCookiePolicy(CookiePolicy.RFC_2109);<span class="comment">//RFC_2109是支持较普遍的一个，还有其他cookie协议</span></span><br><span class="line">HttpState initialState = <span class="keyword">new</span> HttpState();</span><br><span class="line">Cookie cookie=<span class="keyword">new</span> Cookie();</span><br><span class="line">cookie.setDomain(<span class="string">"www.balblabla.com"</span>);</span><br><span class="line">cookie.setPath(<span class="string">"/"</span>);</span><br><span class="line">cookie.setName(<span class="string">"多情环"</span>);</span><br><span class="line">cookie.setValue(<span class="string">"多情即无情"</span>);</span><br><span class="line">initialState.addCookie(cookie);</span><br><span class="line">httpclient.setState(initialState);</span><br></pre></td></tr></table></figure>
-<p>cookie协议：RFC 2109（过时的严格策略）、RFC 2965（严格策略的标准符合）、best-match：最佳匹配meta（元）策略(推荐使用)。</p>
-<p>携带cookie进行页面访问：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">postMethod.setRequestHeader(<span class="string">"Cookie"</span>, cookieToString(cookies));</span><br></pre></td></tr></table></figure>
-<p>httpClient本身就可以保持cookie，可以通过同一个httpclient进行页面登录访问，但是对于有页面跳转的只能使用自带cookie进行模拟登录后访问。</p>
-<p>通过HTTP上传文件：<br>httpclient使用了单独的一个HttpMethod子类来处理文件的上传，这个类就是MultipartPostMethod，该类已经封装了文件上传的细节，我们要做的仅仅是告诉它我们要上传文件的全路径即可。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">ArrayList&lt;Part&gt; partArray = <span class="keyword">new</span> ArrayList&lt;Part&gt;();</span><br><span class="line">      <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; params.size(); i++) &#123;</span><br><span class="line">          <span class="keyword">if</span> (params.get(i) <span class="keyword">instanceof</span> FileNameValuePair) &#123;</span><br><span class="line">              partArray.add(<span class="keyword">new</span> FilePart(params.get(i).getName(), ((FileNameValuePair) params.get(i)).getFile()));</span><br><span class="line">          &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">              postMethod.addParameter(params.get(i).getName(), params.get(i).getValue());</span><br><span class="line">          &#125;</span><br><span class="line">      &#125;</span><br><span class="line">      Part[] parts = <span class="keyword">new</span> Part[partArray.size()];</span><br><span class="line">      <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; partArray.size(); i++) &#123;</span><br><span class="line">          parts[i] = partArray.get(i);</span><br><span class="line">      &#125;</span><br><span class="line">      postMethod.setRequestEntity(<span class="keyword">new</span> MultipartRequestEntity(parts, postMethod.getParams()));</span><br><span class="line"></span><br><span class="line">      <span class="keyword">int</span> statusCode = httpclient.executeMethod(postMethod);</span><br></pre></td></tr></table></figure>
-<p>通过HTTP模拟登录：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title">LoginDailyToGetPageWithHost</span><span class="params">(String nick, String psw, String scopeString, String url, List&lt;NameValuePair&gt; params, String hostIp, Integer hostIpPort)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">        Protocol myhttps = <span class="keyword">new</span> Protocol(<span class="string">"https"</span>, <span class="keyword">new</span> MySecureProtocolSocketFactory(), <span class="number">443</span>);</span><br><span class="line">        Protocol.registerProtocol(<span class="string">"https"</span>, myhttps);</span><br><span class="line">        HttpClient httpClient = <span class="keyword">new</span> HttpClient();</span><br><span class="line">        Cookie[] cookies;</span><br><span class="line">        LOGIN_URL = LOGIN_URL + <span class="string">"?redirectURL="</span> + url;</span><br><span class="line">        PostMethod postMethod = <span class="keyword">new</span> PostMethod(LOGIN_URL);</span><br><span class="line">        postMethod.getParams().setParameter(HttpMethodParams.HTTP_CONTENT_CHARSET, <span class="string">"GBK"</span>);</span><br><span class="line">        List&lt;org.apache.commons.httpclient.NameValuePair&gt; nameValues = <span class="keyword">new</span> ArrayList&lt;org.apache.commons.httpclient.NameValuePair&gt;();</span><br><span class="line">        nameValues.add(<span class="keyword">new</span> org.apache.commons.httpclient.NameValuePair(<span class="string">"TPL_username"</span>, nick));</span><br><span class="line">        nameValues.add(<span class="keyword">new</span> org.apache.commons.httpclient.NameValuePair(<span class="string">"TPL_password"</span>, psw));</span><br><span class="line">        nameValues.add(<span class="keyword">new</span> org.apache.commons.httpclient.NameValuePair(<span class="string">"action"</span>, <span class="string">"Authenticator"</span>));</span><br><span class="line">        <span class="comment">/** httpclient post不支持方式重定向,fuck */</span></span><br><span class="line"><span class="comment">//        nameValues.add(new org.apache.commons.httpclient.NameValuePair("TPL_redirect_url", url));</span></span><br><span class="line">        nameValues.add(<span class="keyword">new</span> org.apache.commons.httpclient.NameValuePair(<span class="string">"from"</span>, <span class="string">"tb"</span>));</span><br><span class="line">        nameValues.add(<span class="keyword">new</span> org.apache.commons.httpclient.NameValuePair(<span class="string">"event_submit_do_login"</span>, <span class="string">"anything"</span>));</span><br><span class="line">        nameValues.add(<span class="keyword">new</span> org.apache.commons.httpclient.NameValuePair(<span class="string">"TPL_checkcode"</span>, <span class="string">"8888"</span>));</span><br><span class="line">        nameValues.add(<span class="keyword">new</span> org.apache.commons.httpclient.NameValuePair(<span class="string">"loginType"</span>, <span class="string">"3"</span>));</span><br><span class="line"></span><br><span class="line">        postMethod.setRequestBody(nameValues.toArray(<span class="keyword">new</span> org.apache.commons.httpclient.NameValuePair[nameValues.size()]));</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">int</span> status = httpClient.executeMethod(postMethod);</span><br><span class="line">            System.out.println(status);</span><br><span class="line">            CookieSpec cookiespec = CookiePolicy.getDefaultSpec();</span><br><span class="line">            cookies = cookiespec.match(<span class="string">"login.daily.taobao.net"</span>, hostIpPort, <span class="string">"/"</span>, <span class="keyword">false</span>,</span><br><span class="line">                    httpClient.getState().getCookies());</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            System.out.println(<span class="string">"Exception: "</span> + e.toString());</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            postMethod.releaseConnection();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">int</span> postresult = -<span class="number">1</span>;</span><br><span class="line">        <span class="keyword">if</span> (scopeString != <span class="keyword">null</span>) &#123;</span><br><span class="line">            url = url + <span class="string">"&amp;"</span> + scopeString;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            URI uri = <span class="keyword">new</span> URI(url);</span><br><span class="line">            postMethod.setURI(uri);</span><br><span class="line">            <span class="comment">// 如果不使用cookie 返回状态码 302，跳到i.daily.taobao.net去了，不能直接跳转到我们自己的页面</span></span><br><span class="line">            postMethod.setRequestHeader(<span class="string">"Cookie"</span>, cookieToString(cookies));</span><br><span class="line">            <span class="comment">// 设置HTTP代理IP和端口</span></span><br><span class="line">            httpClient.getHostConfiguration().setProxy(hostIp, hostIpPort);</span><br><span class="line">            <span class="keyword">if</span> (params != <span class="keyword">null</span>) &#123;</span><br><span class="line">                <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; params.size(); i++) &#123;</span><br><span class="line">                    postMethod.addParameter(params.get(i).getName(), params.get(i).getValue());</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            postresult = httpClient.executeMethod(postMethod);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            System.out.println(<span class="string">"Exception: "</span> + e.toString());</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            postMethod.releaseConnection();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> postresult + postMethod.getResponseBodyAsString();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title">cookieToString</span><span class="params">(Cookie[] cookie)</span></span>&#123;</span><br><span class="line">        StringBuffer cookieBuf = <span class="keyword">new</span> StringBuffer(<span class="number">256</span>);</span><br><span class="line">        <span class="keyword">for</span>(Cookie tmpCookie:cookie)&#123;</span><br><span class="line">            cookieBuf.append(tmpCookie).append(<span class="string">";"</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> cookieBuf.toString();</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
-<p>MySecureProtocolSocketFactory 的实现：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MySecureProtocolSocketFactory</span> <span class="keyword">implements</span> <span class="title">SecureProtocolSocketFactory</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> SSLContext sslcontext = <span class="keyword">null</span>;</span><br><span class="line">    <span class="function"><span class="keyword">private</span> SSLContext <span class="title">createSSLContext</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        SSLContext sslcontext=<span class="keyword">null</span>;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            sslcontext = SSLContext.getInstance(<span class="string">"SSL"</span>);</span><br><span class="line">            sslcontext.init(<span class="keyword">null</span>, <span class="keyword">new</span> TrustManager[]&#123;<span class="keyword">new</span> TrustAnyTrustManager()&#125;, <span class="keyword">new</span> java.security.SecureRandom());</span><br><span class="line">        &#125; <span class="keyword">catch</span> (NoSuchAlgorithmException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (KeyManagementException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> sslcontext;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">private</span> SSLContext <span class="title">getSSLContext</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">this</span>.sslcontext == <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">this</span>.sslcontext = createSSLContext();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">this</span>.sslcontext;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> Socket <span class="title">createSocket</span><span class="params">(Socket socket, String host, <span class="keyword">int</span> port, <span class="keyword">boolean</span> autoClose)</span></span></span><br><span class="line"><span class="function">            <span class="keyword">throws</span> IOException, UnknownHostException </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> getSSLContext().getSocketFactory().createSocket(</span><br><span class="line">                socket,</span><br><span class="line">                host,</span><br><span class="line">                port,</span><br><span class="line">                autoClose);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> Socket <span class="title">createSocket</span><span class="params">(String host, <span class="keyword">int</span> port)</span> <span class="keyword">throws</span> IOException,</span></span><br><span class="line"><span class="function">            UnknownHostException </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> getSSLContext().getSocketFactory().createSocket(</span><br><span class="line">                host,</span><br><span class="line">                port);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Socket <span class="title">createSocket</span><span class="params">(String host, <span class="keyword">int</span> port, InetAddress clientHost, <span class="keyword">int</span> clientPort)</span></span></span><br><span class="line"><span class="function">            <span class="keyword">throws</span> IOException, UnknownHostException </span>&#123;</span><br><span class="line">    	<span class="keyword">return</span> getSSLContext().getSocketFactory().createSocket(host, port, clientHost, clientPort);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> Socket <span class="title">createSocket</span><span class="params">(String host, <span class="keyword">int</span> port, InetAddress localAddress,</span></span></span><br><span class="line"><span class="function"><span class="params">            <span class="keyword">int</span> localPort, HttpConnectionParams params)</span> <span class="keyword">throws</span> IOException,</span></span><br><span class="line"><span class="function">            UnknownHostException, ConnectTimeoutException </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (params == <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">"Parameters may not be null"</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">int</span> timeout = params.getConnectionTimeout();</span><br><span class="line">        SocketFactory socketfactory = getSSLContext().getSocketFactory();</span><br><span class="line">        <span class="keyword">if</span> (timeout == <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> socketfactory.createSocket(host, port, localAddress, localPort);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            Socket socket = socketfactory.createSocket();</span><br><span class="line">            SocketAddress localaddr = <span class="keyword">new</span> InetSocketAddress(localAddress, localPort);</span><br><span class="line">            SocketAddress remoteaddr = <span class="keyword">new</span> InetSocketAddress(host, port);</span><br><span class="line">            socket.bind(localaddr);</span><br><span class="line">            socket.connect(remoteaddr, timeout);</span><br><span class="line">            <span class="keyword">return</span> socket;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//自定义私有类</span></span><br><span class="line">    <span class="class"><span class="keyword">class</span> <span class="title">TrustAnyTrustManager</span> <span class="keyword">implements</span> <span class="title">X509TrustManager</span> </span>&#123;</span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">checkClientTrusted</span><span class="params">(X509Certificate[] chain, String authType)</span> <span class="keyword">throws</span> CertificateException </span>&#123;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">checkServerTrusted</span><span class="params">(X509Certificate[] chain, String authType)</span> <span class="keyword">throws</span> CertificateException </span>&#123;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">public</span> X509Certificate[] getAcceptedIssuers() &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">new</span> X509Certificate[]&#123;&#125;;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>HttpClient 使用中的坑：</p>
-<ol>
-<li><p>为什么 返回状态吗 为 200，但是 responebody = null ？<br>原因：在执行完 executeMethod 方法后，立即使用 getMethod.getResponseBodyAsString() 得到的是null，<br>通过在 executeMethod 后面打印出 返回体后在获取 返回内容，这时就能获取到了，添加 if (getresult == HttpStatus.SC_OK) 判断条件后也能获取到，说明 返回值内容不是立即写入的，有延迟。<br>解决方案： 添加 是否成功的判断。</p>
-</li>
-<li><p>在进行请求的发生时，经常会遇到构建url参数时没有添加协议头:http://,这样会抛状态异常。</p>
-</li>
-<li>new HttpGet(url) 时出现 java.net.URISyntaxException 错误？<br>原因：url 中涉及了特殊字符，如‘｜’‘&amp;’等。所以不能直接用String代替URI来访问。必须采用%0xXX方式来替代特殊字符。但这种办法不直观。所以只能先把String转成URL，再能过URL生成URI的方法来解决问题.</li>
-</ol>
-<p>解决方案①：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">URL url = <span class="keyword">new</span> URL(strUrl);</span><br><span class="line">URI  uri = <span class="keyword">new</span> URI(url.getProtocol(),<span class="keyword">null</span>, url.getHost(),url.getPort(), url.getPath(), url.getQuery(), <span class="keyword">null</span>);</span><br><span class="line">HttpClient client    = <span class="keyword">new</span> DefaultHttpClient();</span><br><span class="line">HttpGet httpget = <span class="keyword">new</span> HttpGet(uri);</span><br></pre></td></tr></table></figure>
-<p>有时候会越到 把http://头也给替换掉了，这样就会引发其它异常，所以还有一种比较保险的做法是使用queryString构建参数部分:</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">String url = <span class="string">"http://**.**.com/user/deployPackInfoDetail.htm"</span>;</span><br><span class="line">       String queryString = <span class="string">"buildPackageId="</span>+ buildPackageId;</span><br><span class="line">       GetMethod getMethod = <span class="keyword">new</span> GetMethod(url);</span><br><span class="line">       getMethod.setQueryString(queryString);</span><br></pre></td></tr></table></figure>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2013/07/04/Java/2013-07-04-httpclient/">展开全文 >></a>
         </p>
       
 
