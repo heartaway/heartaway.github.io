@@ -16,7 +16,7 @@
 <meta property="og:site_name" content="心静志远">
 <meta property="og:description" content="现象：生产环境商品打标异步任务提交任务后，任务没有被执行；查看日志，没有异常日志抛出。 初步猜测：可能是队列出现了饱和或者死锁，但是如果出现了饱和，我们设置的线程池设置的饱和策略是通过主线程去执行，为什么主线程也没有执行呢？ 具体分析：我定义了一个线程池Pool-Z，core_size=5,max_size=20,queue_size=1000，第一个任务A提交后，占用一个线程，那么这个任务A又会">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2018-11-10T08:38:45.329Z">
+<meta property="og:updated_time" content="2018-11-10T08:47:06.281Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Task混用ThreadPool导致无限等待">
 <meta name="twitter:description" content="现象：生产环境商品打标异步任务提交任务后，任务没有被执行；查看日志，没有异常日志抛出。 初步猜测：可能是队列出现了饱和或者死锁，但是如果出现了饱和，我们设置的线程池设置的饱和策略是通过主线程去执行，为什么主线程也没有执行呢？ 具体分析：我定义了一个线程池Pool-Z，core_size=5,max_size=20,queue_size=1000，第一个任务A提交后，占用一个线程，那么这个任务A又会">
@@ -445,18 +445,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">标签2</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">架构</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">可视化</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">系统拓扑</a>
               </li>
             
             <div class="clearfix"></div>

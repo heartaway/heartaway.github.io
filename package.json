@@ -7,7 +7,7 @@
     "login": "xinyuan",
     "repo": "blog",
     "mdNameFormat": "title",
-    "postPath": "source/_posts/blog"
+    "postPath": "source/_posts/Blog"
   },
   "hexo": {
     "version": "3.8.0"

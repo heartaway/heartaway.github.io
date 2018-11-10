@@ -149,99 +149,6 @@
           <div id="js-content" class="content-ll">
             
   
-    <article id="post-blog/微服务架构可视化" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/11/10/blog/微服务架构可视化/">微服务架构可视化</a>
-    </h1>
-  
-
-        
-        <a href="/2018/11/10/blog/微服务架构可视化/" class="archive-article-date">
-  	<time datetime="2018-11-09T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-11-10</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>架构可视化内容。</p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-	<div class="article-tag tagcloud">
-		<i class="icon-price-tags icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color3">架构</a>
-        		</li>
-      		 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color4">可视化</a>
-        		</li>
-      		 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color5">系统拓扑</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/架构//" class="article-tag-list-link color3">架构</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2018/11/10/blog/微服务架构可视化/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
     <article id="post-Think/2018-10-06-marriage-quarrel" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
   <div class="article-inner">
     
@@ -1879,9 +1786,126 @@
 
 
   
+    <article id="post-Java/2018-01-19-spring-properties" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/01/19/Java/2018-01-19-spring-properties/">Spring中property-placeholder的使用与解析</a>
+    </h1>
+  
+
+        
+        <a href="/2018/01/19/Java/2018-01-19-spring-properties/" class="archive-article-date">
+  	<time datetime="2018-01-18T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-01-19</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>在我们程序开发中，进程会需要把一些变量通过property方式进行提取，方便不同环境配置不同的属性，替换变量的方法通常有两种，一种是静态替换，一种是动态替换；所谓静态替换，是在打包编译的时候，把变量替换掉，动态替换，是在程序运行起来时，通过把属性注入到程序的环境变量中，类初始化的时候，再使用环境变量进行替换的一种方法。</p>
+<p>静态替换常用工具：autoconfig<br>动态替换常用工具：spring.property-placeholder</p>
+<h2 id="spring动态替换变量实践"><a href="#spring动态替换变量实践" class="headerlink" title="spring动态替换变量实践"></a>spring动态替换变量实践</h2><p>简洁配置法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&lt;context:property-placeholder location=<span class="string">"classpath:xxx.properties"</span> </span><br><span class="line">ignore-unresolvable=<span class="string">"true"</span>/&gt;</span><br></pre></td></tr></table></figure>
+<p>等价于：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&lt;bean id=<span class="string">"propertyConfigurer"</span> <span class="class"><span class="keyword">class</span></span>=<span class="string">"org.springframework.beans.factory.config.PropertyPlaceholderConfigurer"</span>&gt;</span><br><span class="line">    &lt;property name=<span class="string">"location"</span>&gt;</span><br><span class="line">        &lt;value&gt;myConfig.properties&lt;/value&gt;</span><br><span class="line">    &lt;/property&gt;</span><br><span class="line">&lt;/bean&gt;</span><br></pre></td></tr></table></figure>
+<p>完整配置属性：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">&lt;context:property-placeholder   </span><br><span class="line">        location=<span class="string">""</span>  </span><br><span class="line">        file-encoding=<span class="string">""</span>  </span><br><span class="line">        ignore-resource-not-found=<span class="string">""</span>  </span><br><span class="line">        ignore-unresolvable=<span class="string">""</span>  </span><br><span class="line">        properties-ref=<span class="string">""</span>  </span><br><span class="line">        local-override=<span class="string">""</span>  </span><br><span class="line">        system-properties-mode=<span class="string">""</span>  </span><br><span class="line">        order=<span class="string">""</span>  </span><br><span class="line">/&gt;</span><br></pre></td></tr></table></figure>
+<p>ignore-resource-not-found：如果属性文件找不到，是否忽略，默认false，即不忽略，找不到将抛出异常 </p>
+<p>ignore-unresolvable：是否忽略解析不到的属性，如果不忽略，找不到将抛出异常 </p>
+<p>order：当配置多个<a href="context:property-placeholder/" target="_blank" rel="noopener">context:property-placeholder/</a>时的查找顺序</p>
+<p>不推荐将ignore-resource-not-found和ignore-unresolvable的值设置为ture，默认为false，可以有效避免程序运行异常</p>
+<h4 id="使用PropertySource注解配置"><a href="#使用PropertySource注解配置" class="headerlink" title="使用PropertySource注解配置"></a>使用PropertySource注解配置</h4><p>Spring3.1添加了@PropertySource注解,方便添加property文件到环境.</p>
+<h4 id="properties的注入与使用"><a href="#properties的注入与使用" class="headerlink" title="properties的注入与使用"></a>properties的注入与使用</h4><ul>
+<li>java中使用@Value注解获取</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Value</span>( <span class="string">"$&#123;jdbc.url&#125;"</span> )</span><br><span class="line"><span class="keyword">private</span> String jdbcUrl;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>在Spring的xml配置文件中获取</li>
+</ul>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&lt;bean id=<span class="string">"dataSource"</span>&gt;</span><br><span class="line">  &lt;property name=<span class="string">"url"</span> value=<span class="string">"$&#123;jdbc.url&#125;"</span> /&gt;</span><br><span class="line">&lt;/bean&gt;</span><br></pre></td></tr></table></figure>
+<h4 id="配置多个property-placeholder属性"><a href="#配置多个property-placeholder属性" class="headerlink" title="配置多个property-placeholder属性"></a>配置多个property-placeholder属性</h4><p>Spring容器是采用反射扫描的发现机制，通过标签的命名空间实例化实例，当Spring探测到容器中有一个org.springframework.beans.factory.config.PropertyPlaceholderCVonfigurer的Bean就会停止对剩余PropertyPlaceholderConfigurer的扫描，即只能存在一个实例！</p>
+<p>所以一遍不建议配置多个property-placeholder对象，但是在必须使用多个的场景下，如何配置呢？</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&lt;context:property-placeholder location=<span class="string">"xxx.properties"</span> ignore-unresolvable=<span class="string">"true"</span>/&gt;</span><br><span class="line"></span><br><span class="line">&lt;context:property-placeholder location=<span class="string">"xxx.properties"</span> ignore-unresolvable=<span class="string">"true"</span>/&gt;</span><br></pre></td></tr></table></figure>
+<p>需要设置ignore-unresolvable=”true”，否则后面的property-placeholder不会被加载；</p>
+<p>ignore-unresolvable单独使用来看是“是否忽视不存在的配置项”，不仅如此，其还有一个隐含意思：是否还要扫描其他配置项：如果为false，则会忽视后续的property-placeholder，如果需要配置多个property-placeholder则应该设置为true；</p>
+<h4 id="context-property-placeholder-工作原理"><a href="#context-property-placeholder-工作原理" class="headerlink" title="context:property-placeholder 工作原理"></a>context:property-placeholder 工作原理</h4><p>在 ContextNamespaceHandler 中对于 context中的property-placeholder 标签，会采用PropertyPlaceholderBeanDefinitionParser解析器进行解析；</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ContextNamespaceHandler</span> <span class="keyword">extends</span> <span class="title">NamespaceHandlerSupport</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">	<span class="meta">@Override</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">init</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		registerBeanDefinitionParser(<span class="string">"property-placeholder"</span>, <span class="keyword">new</span> PropertyPlaceholderBeanDefinitionParser());</span><br><span class="line">		registerBeanDefinitionParser(<span class="string">"property-override"</span>, <span class="keyword">new</span> PropertyOverrideBeanDefinitionParser());</span><br><span class="line">		registerBeanDefinitionParser(<span class="string">"annotation-config"</span>, <span class="keyword">new</span> AnnotationConfigBeanDefinitionParser());</span><br><span class="line">		registerBeanDefinitionParser(<span class="string">"component-scan"</span>, <span class="keyword">new</span> ComponentScanBeanDefinitionParser());</span><br><span class="line">		registerBeanDefinitionParser(<span class="string">"load-time-weaver"</span>, <span class="keyword">new</span> LoadTimeWeaverBeanDefinitionParser());</span><br><span class="line">		registerBeanDefinitionParser(<span class="string">"spring-configured"</span>, <span class="keyword">new</span> SpringConfiguredBeanDefinitionParser());</span><br><span class="line">		registerBeanDefinitionParser(<span class="string">"mbean-export"</span>, <span class="keyword">new</span> MBeanExportBeanDefinitionParser());</span><br><span class="line">		registerBeanDefinitionParser(<span class="string">"mbean-server"</span>, <span class="keyword">new</span> MBeanServerBeanDefinitionParser());</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>PropertyPlaceholderBeanDefinitionParser解析器会将property-placeholder 标签解析为一个PropertySourcesPlaceholderConfigurer的单例 bean 。</p>
+<p>可以看出 PropertySourcesPlaceholderConfigurer 或者 PropertyPlaceholderConfigurer 仅仅是做了一个配置文件的解析工作，真正的注入并不由它们完成，而是托付给了Spring 的Bean初始化流程。<br>之所以这么做可以生效，是因为这两个类实现了 BeanFactoryPostProcessor 接口，这个接口的优先级高于后续的Spring Bean。</p>
+<p>属性元素的注入依赖于 AutowiredAnnotationBeanPostProcessor#postProcessPropertyValues。 通过解析PropertySourcesPlaceholderConfigurer 查询得到元素值。 </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> PropertyValues <span class="title">postProcessPropertyValues</span><span class="params">(PropertyValues pvs, PropertyDescriptor[] pds, Object bean, String beanName)</span> <span class="keyword">throws</span> BeansException </span>&#123;</span><br><span class="line">    InjectionMetadata metadata = <span class="keyword">this</span>.findAutowiringMetadata(beanName, bean.getClass());</span><br><span class="line"></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        metadata.inject(bean, beanName, pvs);</span><br><span class="line">        <span class="keyword">return</span> pvs;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Throwable var7) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> BeanCreationException(beanName, <span class="string">"Injection of autowired dependencies failed"</span>, var7);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>PropertySourcesPlaceholderConfigurer本质上是一个BeanFactoryPostProcessor。解析XML的流程在BeanFactoryPostProcessor之前， 优先将配置文件的路径以及名字通过Setter传入PropertySourcesPlaceholderConfigurer。</p>
+<p>如上BeanFactoryPostProcessor的优先级又优于其余的Bean。因此可以实现在bean初始化之前的注入。</p>
+<h4 id="Spring-Value注入流程"><a href="#Spring-Value注入流程" class="headerlink" title="Spring @Value注入流程"></a>Spring @Value注入流程</h4><ol>
+<li>Spring Context 的初始化开始</li>
+<li>读取到context:property-placeholder标签或者PropertySourcesPlaceholderConfigurer</li>
+<li>解析并实例化一个PropertySourcesPlaceholderConfigurer。同时向其中注入配置文件路径、名称</li>
+<li>PropertySourcesPlaceholderConfigurer自身生成多个StringValueResolver备用，Bean准备完毕</li>
+<li>Spring在初始化非BeanFactoryPostProcessor的Bean的时候，AutowiredAnnotationBeanPostProcessor 负责找到Bean内有@Value注解的Field或者Method</li>
+<li>通过PropertySourcesPlaceholderConfigurer寻找合适的StringValueResolver并解析得到val值。注入给@Value的Field或Method。(Method优先)2</li>
+<li>Spring的其他流程。</li>
+</ol>
+<p>参考：<br><a href="http://blog.csdn.net/qyp199312/article/details/54313784" target="_blank" rel="noopener">http://blog.csdn.net/qyp199312/article/details/54313784</a></p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2018/01/19/Java/2018-01-19-spring-properties/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
   
     <nav id="page-nav">
-      <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><span class="space">&hellip;</span><a class="page-number" href="/page/10/">10</a><a class="extend next" rel="next" href="/page/2/">Next &raquo;</a>
+      <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><span class="space">&hellip;</span><a class="page-number" href="/page/9/">9</a><a class="extend next" rel="next" href="/page/2/">Next &raquo;</a>
     </nav>
   
 
@@ -1981,18 +2005,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">标签2</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">架构</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">可视化</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">系统拓扑</a>
               </li>
             
             <div class="clearfix"></div>

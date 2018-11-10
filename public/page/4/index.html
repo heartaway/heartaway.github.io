@@ -149,89 +149,6 @@
           <div id="js-content" class="content-ll">
             
   
-    <article id="post-Java/2017-06-15-while-died" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/06/15/Java/2017-06-15-while-died/">Java Load CPU MEM 飙高的一次排查</a>
-    </h1>
-  
-
-        
-        <a href="/2017/06/15/Java/2017-06-15-while-died/" class="archive-article-date">
-  	<time datetime="2017-06-14T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2017-06-15</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h3 id="问题发现："><a href="#问题发现：" class="headerlink" title="问题发现："></a>问题发现：</h3><p>收到报警提醒：<br><img src="/images/posts/20170615/sys-mail-notice.png" alt=""></p>
-<h3 id="问题排查："><a href="#问题排查：" class="headerlink" title="问题排查："></a>问题排查：</h3><p>登录机器查看：<br><img src="/images/posts/20170615/sys-load-top.png" alt=""></p>
-<p>CPU 持续高于 80%，8G内存几乎被占满；</p>
-<p>异常报警项为 一个每隔5min执行一次的定时任务每次运行时间超过10分钟；初步判断为任务累加导致系统负载越来越重。</p>
-<p>那为什么定时任务在5min内执行未完成呢？看看线程到底在做什么。</p>
-<p>查看进程中线程的占用CPU时长：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">top -Hp pid</span><br></pre></td></tr></table></figure></p>
-<p><img src="/images/posts/20170615/top-pid.png" alt=""></p>
-<p>可以看到有不少进程占用CPU总计时间超过100分钟，最大的进程257484为564分钟32.32秒；<br><img src="/images/posts/20170615/jstack-top.png" alt=""></p>
-<p>查询其它的几个占用时间比较高的进程：<br><img src="/images/posts/20170615/jstack-grep-tid.png" alt=""><br>发现都是ChangeFree的进程导致，查看相应代码后，发现最近的一次变更导致了程序在一些场景下出现了死循环：<br><img src="/images/posts/20170615/changefree-while-query.png" alt=""><br>从代码可以看出，在while循环中的累加程序放在了最后，这是一种极危险的操作，应该讲累加条件放在程序进入的第一行，保证不受后续代码逻辑的影响；</p>
-<p>问题解决后，通过系统监控发现系统负载恢复正常：<br><img src="/images/posts/20170615/system-monitor-line.png" alt=""></p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2017/06/15/Java/2017-06-15-while-died/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
     <article id="post-Tool/2017-05-18-github-io-blog" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
   <div class="article-inner">
     
@@ -1096,9 +1013,87 @@
 
 
   
+    <article id="post-Think/2016-08-19-leave-entrepreneurship" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2016/08/19/Think/2016-08-19-leave-entrepreneurship/">创业，离别</a>
+    </h1>
+  
+
+        
+        <a href="/2016/08/19/Think/2016-08-19-leave-entrepreneurship/" class="archive-article-date">
+  	<time datetime="2016-08-18T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2016-08-19</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>今天2016年8月19号，我结束了为期657天的上海创业旅程，但今后无论在什么环境从事什么岗位，我的创业心态不会变。这次的离别没有来时的兴奋与激动，也没有不解和埋怨，一切都显得那么平静，宛如无风的湖面。也许是我该反思的都反思过了，也许是经过了阅历而让自己有所成长。依稀记得上一次因离职的呈现出悲情满面的场景，凄凄地写下了离别书以慰藉我视如珍贵的友情，现在看来当初略显稚嫩，但一切都是真实情感的表露，也许是我因为多情，有道是“多情自古伤离别”；而如今，没有了这种眷恋之意，经历了创业的风风雨雨，让我的生活变得略显粗糙和沧桑，不过能遇到一对不多的朋友，为真正梦想无私付出的人，还是挺值得敬佩的。</p>
+<p>如果说上一次的选择创业是主动选择，听从内心的声音，而这次选择夹杂着些许被动与无奈，当然也有理智思考后的坚定抉择，经过了长达一个多月的思考之后，我越发的明白了自己是一个什么样的人，当前应该干什么事情。原来没有我想想那么不可或缺，在别人眼中只是一个工具，但是这个工具又不是那么好使，时常还容易夹手；做一个工具没问题，但是首先要让自己成为一个好用安全的工具，其次，让自己成为一个智能工具，这才是正确的道路，而不是不断的把这个工具换到不同的新地方，让没见过这个工具的人觉得，哇哦，还有这么好用的工具。其实这个世界上很多事情你都是无法左右的，我们唯有改变我们自己，自主的寻求方向尽可能的让自己少走弯路，而不是依赖别人给你指明方向；太依赖别人的承诺就像把自己的性命托付给屠夫一样愚蠢，别人哪会关你的前途与生死，也许在他们看来，决定今天吃什么的苦恼比你的事情更让他们惦记于心。</p>
+<p>值得庆幸的是，我在相对年轻的时候经历了创业公司的浮浮沉沉，让我体会到了在上一家公司看不到的事情，以前以为的理所当然变成需要你付出极大成本去获取，以前以为的唯一原来还处在那么多的不一样，视野开阔了，思路拓宽了，也许这就是成长，有着就值了。生命中没有如果..就…, 有的是对过去错误的反思和对今后正确方向的把握。我庆幸的是能在还算可以接受的成本下进行了试错，往往很多人一次的试错可能需要N多年的补偿。</p>
+<p>看了阮一峰老师写的“<strong>你的命运不是一头骡子</strong>”，觉得套在自己过去的一年工作生活中显得“格外合适”，原来，我是一个类似于驼灯柱上山的骡子。</p>
+<p>选择离别 ，为不做骡子一样的工具而奋斗。</p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Think//" class="article-tag-list-link color1">Think</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2016/08/19/Think/2016-08-19-leave-entrepreneurship/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
   
     <nav id="page-nav">
-      <a class="extend prev" rel="prev" href="/page/3/">&laquo; Prev</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><span class="page-number current">4</span><a class="page-number" href="/page/5/">5</a><a class="page-number" href="/page/6/">6</a><span class="space">&hellip;</span><a class="page-number" href="/page/10/">10</a><a class="extend next" rel="next" href="/page/5/">Next &raquo;</a>
+      <a class="extend prev" rel="prev" href="/page/3/">&laquo; Prev</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><span class="page-number current">4</span><a class="page-number" href="/page/5/">5</a><a class="page-number" href="/page/6/">6</a><span class="space">&hellip;</span><a class="page-number" href="/page/9/">9</a><a class="extend next" rel="next" href="/page/5/">Next &raquo;</a>
     </nav>
   
 
@@ -1198,18 +1193,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">标签2</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">架构</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">可视化</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">系统拓扑</a>
               </li>
             
             <div class="clearfix"></div>

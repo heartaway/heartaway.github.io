@@ -149,139 +149,6 @@
           <div id="js-content" class="content-ll">
             
   
-    <article id="post-Spring/2016-05-10-spring-bean-init" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2016/05/10/Spring/2016-05-10-spring-bean-init/">《Spring 技术内幕》之 bean的初始化</a>
-    </h1>
-  
-
-        
-        <a href="/2016/05/10/Spring/2016-05-10-spring-bean-init/" class="archive-article-date">
-  	<time datetime="2016-05-09T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2016-05-10</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p><strong>BeanFactory：</strong>指定IOC容器的基本功能规范； IOC是水桶，那么这个类就定义了水桶的基本功能;</p>
-<p><strong>BeanDefinition：</strong>对依赖反转模式中管理的对象依赖关系的抽象；它就像容器里装的水，有了这些基本数据，容器才能发挥作用；</p>
-<h2 id="BeanFactory-与-FactoryBean的区别："><a href="#BeanFactory-与-FactoryBean的区别：" class="headerlink" title="BeanFactory 与 FactoryBean的区别："></a>BeanFactory 与 FactoryBean的区别：</h2><p>BeanFactory 是 Factory，也就是IoC 容器或对象的工厂，所有的Bean都是由BeanFactory 来管理的。</p>
-<p>FactoryBean 是 bean，但不是一个简单的bean，而是一个能生产或修饰对象生成的工厂bean（工厂模式类似）；</p>
-<p>我们可以认为直接的BeanFactory 实现是IoC容器的基本实现，而各种ApplicationContext的实现是IoC容器的高级表现形式。</p>
-<p>IoC容器的建立过程:（XmlBeanFactory）</p>
-<ol>
-<li>创建IoＣ配置文件的抽象资源，这个抽象资源包含了BeanDefinition 的定义信息</li>
-<li>创建BeanFactory（实现类）</li>
-<li>创建一个载入BeanDefinition的读取器，然后通过一个回调配置给BeanFactory</li>
-<li>从定义好的资源位置读入配置信息。DefaultListableBeanFactory 非常重要的BeanFactory。</li>
-</ol>
-<p>IoC容器 的初始化包括 BeanDefinition的Resouce定位、载入和注册这三个基本过程。ResourceLoader，BeanDefinition.<br>三大过程：</p>
-<p>① BeanDefinition 的载入和解析<br>② BeanDefinition向 IoC容器中进行注册<br>③ IoC 容器的 依赖注入(bean 在使用时才进行初始化)</p>
-<p><img src="/images/posts/20160510/bean-init-three-step.png" alt=""></p>
-<p>整个过程可以理解为是容器的初始化过程。第一个过程是 ApplicationContext 的职责范围，第二步是 BeanFactory的职责范围。</p>
-<p>Resource 定义了资源文件</p>
-<p>ResourceLoader  对Resource进行加载</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">ResourceLoader</span><br><span class="line">  |__ DefaultResourceLoader</span><br><span class="line">       .    |__  ServletContextResourceLoader/ServletContextResourceLoader/FileSystemResourceLoader</span><br><span class="line">       .         AbstractApplicationContext</span><br><span class="line">       .                  |__ AbstractRefreshableConfigApplicationContext</span><br><span class="line">       .                          |__  AbstractXmlApplicationContext</span><br><span class="line">       .                                     |__ 各种 XmlAplicationContext</span><br><span class="line">       .                                AbstractRefreshableWebApplicationContext</span><br><span class="line">       ResourcePatternResolver</span><br></pre></td></tr></table></figure>
-<p>Cotext 中的构造方法中的 refresh() 代表启动容器，是bean加载和解析的入口。</p>
-<p>BeanDefinition  定义了 bean的数据结构</p>
-<p>BeanDefinitionReader 是对Bean的加载；</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">BeanDefinitionReader </span><br><span class="line"> |__ AbstractBeanDefinitionReader</span><br><span class="line">      |__ PropertiesBeanDefinitionReader   </span><br><span class="line">           XmlBeanDefinitionReader</span><br></pre></td></tr></table></figure>
-<p>两大容器体系： BeanFactory 和 ApplicationContext</p>
-<p><img src="/images/posts/20160510/beanFactory-applicationContext-hex.png" alt=""></p>
-<p>左边黄色部分是 ApplicationContext 体系继承结构，右边是 BeanFactory 的结构体系,两个结构是典型模板方法设计模式的使用。</p>
-<p>从该继承体系可以看出：</p>
-<ol>
-<li>BeanFactory 是一个 bean 工厂的最基本定义，里面包含了一个 bean 工厂的几个最基本的方法，getBean(…) 、 containsBean(…) 等 ,是一个很纯粹的bean工厂，不关注资源、资源位置、事件等。ApplicationContext 是一个容器的最基本接口定义，它继承了 BeanFactory, 拥有工厂的基本方法。同时继承了ApplicationEventPublisher 、 MessageSource 、 ResourcePatternResolver 等接口，使其 定义了一些额外的功能，如资源、事件等这些额外的功能。</li>
-<li>AbstractBeanFactory 和 AbstractAutowireCapableBeanFactory 是两个模板抽象工厂类。AbstractBeanFactory 提供了 bean 工厂的抽象基类，同时提供了 ConfigurableBeanFactory 的完整实现。AbstractAutowireCapableBeanFactory 是继承了 AbstractBeanFactory 的抽象工厂，里面提供了 bean 创建的支持，包括 bean 的创建、依赖注入、检查等等功能，是一个核心的 bean 工厂基类。</li>
-<li>ClassPathXmlApplicationContext之 所以拥有 bean 工厂的功能是通过持有一个真正的 bean 工厂DefaultListableBeanFactory 的实例，并通过 代理 该工厂完成。</li>
-<li>ClassPathXmlApplicationContext 的初始化过程是对本身容器的初始化同时也是对其持有的DefaultListableBeanFactory 的初始化。</li>
-</ol>
-<p>BeanDefinition 的载入包括两部分，首先是通过调用XML 的解析器得到document 对象，但这些document对象 并没有按照Spring 的bean 规则进行解析，在完成通用的XML 解析以后，才是按照Spring 的bean 规则 进行解析的地方，按照Spring的bean 规则进行解析的过程是在 documentReader 中实现的。</p>
-<p>具体容器初始化过程如下：</p>
-<p><img src="/images/posts/20160510/ioc-context-init.png" alt=""></p>
-<p>依赖注入是发生在容器中的BeanDefinition 数据已经建立好的前提下进行的。</p>
-<p>那么 IoC容器的依赖注入是怎么实现的 ？（getBean()的过程）</p>
-<p>在bean 的创建和 对象依赖注入的过程中，需要根据BeanDefinition 中的信息来递归地完成依赖注入。</p>
-<ol>
-<li>bean 是在什么时候被创建的，有哪些规则？<br>容器初始化的时候会预先对单例和非延迟加载的对象进行预先初始化(调用 getBean()方法)。其他的都是延迟加载是在第一次调用getBean 的时候被创建。从 DefaultListableBeanFactory 的 preInstantiateSingletons 里可以看到这个规则的实现。</li>
-</ol>
-<ol start="2">
-<li>Bean 的创建过程？<br>对于 bean 的创建过程其实都是通过调用工厂的 getBean 方法来完成的。这里面将会完成对构造函数的选择、依赖注入等</li>
-</ol>
-<p>GetBean 的大概过程：</p>
-<ol>
-<li>先试着从单例缓存对象里获取。</li>
-<li>从父容器里取定义，有则由父容器创建。</li>
-<li>如果是单例，则走单例对象的创建过程：在 spring 容器里单例对象和非单例对象的创建过程是一样的。都会调用父类 AbstractAutowireCapableBeanFactory 的 createBean 方法。 不同的是单例对象只创建一次并且需要缓存起来。 DefaultListableBeanFactory 的父类 DefaultSingletonBeanRegistry 提供了对单例对象缓存等支持工作。所以是单例对象的话会调用 DefaultSingletonBeanRegistry 的 getSingleton 方法，它会间接调用AbstractAutowireCapableBeanFactory 的 createBean 方法。如果是 Prototype 多例则直接调用父类 AbstractAutowireCapableBeanFactory 的 createBean 方法。</li>
-</ol>
-<p>doCreateBean 的流程：</p>
-<ol>
-<li>会创建一个 BeanWrapper 对象 用于存放实例化对象。</li>
-<li>如果没有指定构造函数，会通过反射拿到一个默认的构造函数对象，并赋予beanDefinition.resolvedConstructorOrFactoryMethod 。</li>
-<li>调用 spring 的 BeanUtils 的 instantiateClass 方法，通过反射创建对象。</li>
-<li>applyMergedBeanDefinitionPostProcessors</li>
-<li>populateBean(beanName, mbd, instanceWrapper); 根据注入方式进行注入。根据是否有依赖检查进行依赖检查。</li>
-<li>initializeBean(beanName, exposedObject, mbd);判断是否实现了 BeanNameAware 、 BeanClassLoaderAware 等 spring 提供的接口，如果实现了，进行默认的注入。同时判断是否实现了 InitializingBean 接口，如果是的话，调用 afterPropertySet 方法。</li>
-</ol>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Spring//" class="article-tag-list-link color2">Spring</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2016/05/10/Spring/2016-05-10-spring-bean-init/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
     <article id="post-Program/2016-05-09-user-login-and-regist" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
   <div class="article-inner">
     
@@ -1180,9 +1047,97 @@
 
 
   
+    <article id="post-Think/2016-01-03-2016-my-success-and-fail" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2016/01/03/Think/2016-01-03-2016-my-success-and-fail/">二零一五，我的失败与伟大</a>
+    </h1>
+  
+
+        
+        <a href="/2016/01/03/Think/2016-01-03-2016-my-success-and-fail/" class="archive-article-date">
+  	<time datetime="2016-01-02T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2016-01-03</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>回顾2015这一年，感觉自己起起伏伏，有过激情不顾一切的奋斗，有过一蹶不振的低沉，心情的变化起伏跟这一年的股市走线很像，经历了超出预期的大牛市后，出现了看一切都绝望的段崖般跳水。现在回想起来并不一定是坏事，创业需要激情，但是激情过后需要对生存本质的思考，关键是如何从低沉期度过，寻找到下一个支撑点。</p>
+<p>####【不顾一切的加班】<br><img src="/images/posts/20160103/2015-fengqu-hard-work.jpg" alt=""><br>从去年决定加入创业团队以来，公司业务一直处于高速发展期，团队整体环境还不错，有节凑的项目规划、执行、上线，大家的注意力也是跟随的公司业务发展不断前进。这段时间一直维持到7月份。那个时候每天工作到晚上10点多，回去了可能继续工作，很多时间到2~3点才休息，第二天依然亢奋的去做事情。有一次，为了赶一个项目的进度，周日从杭州回到上海，晚上加班到第二天5点完成任务。当时没觉得这种节奏有什么问题，但是现在回归头来想想，发现问题挺多的，首先，我让我的状态变得不可持续，长时间的透支了自己的身体，致使年末身体出现各种不适，其次，过度的沉溺于业务中，忘记了自身的发展的思考，年末总结的时候哀叹“一年来没学到什么东西”，技术上的踏步更加剧了我未来的恐惧。</p>
+<p>这段时间的经历也并不是没有收获，我对我负责的项目还是比较用心的，跟产品、运营同学合作也非常融洽，大家对我也表示了一致的认可。好几个同学都说，如果今年评选优秀员工，一定会选我，这个对我的一种肯定。在阿里，它教会了我让他人变得简单，用自己的技术能力给他人以帮助，共同提高效率的工作模式；你再努力让别人工作更轻松的时候，你的工作也会在一定程度上变得轻松，这些值得坚持的事情还得继续坚持。</p>
+<p>我不反对加班，但反对沉溺于加班而忘记了为什么加班，<strong>“吾日三省吾身”，关注自身成长，在日常工作中实践成长的过程，努力了，才不会让未来的自己恐惧。保持良好的作息规律，加强锻炼，是我接下来需要做的事情，让自己找到工作和生活的一个平衡点</strong>。</p>
+<p>####【搬新家&amp;结婚】<br><img src="/images/posts/20160103/2015-jiehongzhao.jpg" alt=""><br>2015年注定是我难忘的一年，5月份的时候，我搬进了自己在杭州新家，摆脱了租房的不稳定，虽然远离市区，但小区环境确实称赞，购买这套房只为自住不为投资，一开始还会关注小区房价的走势，担心自己是不是买贵了，会不会吃了大亏，后来想想，即使我每天看24个小时房市变化，对我们小区有帮助吗，想通了也就不再关心了。</p>
+<p>在我11年第一次到杭州的时候，就被杭州的文化气息所陶醉，我跟自己说我以后一定要在这个城市落下来，这就是我奋斗的目标，这不是为了证明给大山里面的邻里街坊看，只为内心中逃离了偏僻落后的农村追求更加文明和前沿的大城市的憧憬。我一直认为我是幸运的，相比儿时的伙伴们，我拥有了更多的选择机会，他们背负了太多的压力和责任。</p>
+<p>十一，我升级了跟女朋友长达7~8年的恋爱，跟她正式步入了婚姻殿堂，虽然在没能给她豪华艳丽的结婚排场，但我以一种农村农乡的方式给她呈现了拜天地的热闹场景，现在回想起这段记忆，我都像吃了蜜一样甜。我可能不能给她大富大贵，但是我一定会努力，让自己成为一个上进的男人，让她值得依托。</p>
+<p>这一年，我一心投入到工作，似乎忘记了家庭的经营，伯昊说的很对，<strong>幸福的婚姻是需要用心去经营的，这个不比工作简单，需要花时间做，一点一滴都会成为幸福生活的影响因子</strong>。2016年，我在我的GTD工具中增加了一项，叫“生活经营”，也会像给自己布置学习任务一样，制定一些计划在与老婆的共同生活之中。这一年，我完成了人生中的2大事情，置业和婚姻，自己心底安定了很多，很多时候，我们觉得自己伟大不一定需要做出浑浑烈烈见天动地的大事情，选择舒适的生活环境、跟心爱的人生活在一起就是伟大。</p>
+<p>####【选择坚持或放弃】<br><img src="/images/posts/20160103/2015-fengqu-xiaowa.jpg" alt=""><br><strong>出发的目的已在半途中迷失了，剩下的激情便也成了迷路的飞矢。</strong>下半年，公司发展收到外部一些因素的制约，资金捉襟见肘，内部运营团队撤离，一时感觉公司遥遥可危，再加上外部一些用户和媒体对我们公司的期望值降级，更动摇了我坚持走下去的决心，不是我为了躲避危险，没有责任感不能跟公司共同度过难关，而是一时没有找到支撑我继续下去的点，一切的外部因素都告诉我回到阿里会有更好的钱途，但内心又有一颗不干的心，不愿就此放弃。但<strong>各种不愉快小事情累加在一起，聚集成了心理噪音，它在很长一段时间内成为我心理萦回不去的主旋律，甚至忘记了其他目的</strong>，而我过于简单的把问题归咎于家庭或者个人发展的原因，没有认真分析到底是什么原因形成了这些心理噪音，如何消除心理噪音，不被其蒙蔽双眼影响自身的长远发展。好的一面是现在相比半年前，我更加信任了团队，敢于跟Leader讲真话，以一种更加真诚的方式交流，只要我觉得对我们有利的事情，我就会去做。</p>
+<p>我们的团队出现了问题，值得庆幸的是大家都意识到了，都在用自己的行动力促使事情朝好的一面发展。在这件事情我做做的就不太好，没能发挥出正能量，有时候还起到了反作用。之所以出现这种情况，我认为是团队管理的缺陷，我也同样需要被管理和正确的引导。</p>
+<p>很多时候我会有一点点后悔放弃了阿里高新&amp;继续深入学习技术的机会，选择投入到创业的大潮之中，但是又想想，这点放弃算什么呢，跟其他人相比，我的放弃算是小的了，至于钱，没必要过早把自己逼到一切朝钱看得角度，工作中有更美好的事情值得追求。有一句话叫做“你今天放弃的一切，以后都会以另外一种方式馈赠给你”，不纠结，放弃舒适的环境并不一定是坏事情。</p>
+<p>当我这次再次面对选择的时候，我没有像去年从阿里离职的一时头热，而经过了更多的思考，首先我会去与留的各种利弊全部罗列出来，跟老婆进行商量，共同决策，我内心已经有了一个选择的想法，再跟老婆的沟通中稍微带一下，当然我也会尊重她得看法，毕竟以后的生活是两个人的，不再为我一个人生活。<strong>在面临选择的时候，我需要结合自己长远的发展规划，认清自己，消灭选择，然后让自己尽量进入到这个圈子，结识上赏识的人，跟着大家一起集团性的成长。</strong></p>
+<p>留在现有的团队，2016年需要学习和进步的地方还非常多，有太多的机会让我在2016年里可以快速成长，前提是我是否做好了准备。看看身边的人那些还在不停奋斗的人，我有神马理由不努力呢？</p>
+<p>总结2015年，感觉自己看书和思考的太少，这也是我感到恐惧的根本原因，消除它的唯一办法就是迎面直击，多看书，充实自己的大脑，多思考，把学到的东西转换为自己的技能。</p>
+<p>回顾、总结是为了能够走的更远，希望在轻装上阵的2016能够走的更远。</p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Think//" class="article-tag-list-link color1">Think</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2016/01/03/Think/2016-01-03-2016-my-success-and-fail/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
   
     <nav id="page-nav">
-      <a class="extend prev" rel="prev" href="/page/6/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/5/">5</a><a class="page-number" href="/page/6/">6</a><span class="page-number current">7</span><a class="page-number" href="/page/8/">8</a><a class="page-number" href="/page/9/">9</a><a class="page-number" href="/page/10/">10</a><a class="extend next" rel="next" href="/page/8/">Next &raquo;</a>
+      <a class="extend prev" rel="prev" href="/page/6/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/5/">5</a><a class="page-number" href="/page/6/">6</a><span class="page-number current">7</span><a class="page-number" href="/page/8/">8</a><a class="page-number" href="/page/9/">9</a><a class="extend next" rel="next" href="/page/8/">Next &raquo;</a>
     </nav>
   
 
@@ -1282,18 +1237,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">标签2</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">架构</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">可视化</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">系统拓扑</a>
               </li>
             
             <div class="clearfix"></div>

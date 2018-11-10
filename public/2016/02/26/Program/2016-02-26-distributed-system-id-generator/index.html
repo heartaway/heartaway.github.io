@@ -16,7 +16,7 @@
 <meta property="og:site_name" content="心静志远">
 <meta property="og:description" content="背景：在分布式系统中，对于订单ID如何保证全局唯一地高效的生成，并对性能影响不大的情况下，利于建立索引和业务使用？  方案一：使用数据库主键ID优势：实现简单；弊端：使用数据库增加写库的压力，生成订单的上限受限于数据库的写性能上限；扩展性差； 方案二：单点批量生成订单号的服务；优势：批量降低了数据库的读写压力弊端：服务单点风险； 方案三：使用UUID优势：本地生成ID，不进行远程调用，延迟低；弊">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2018-11-10T08:38:45.333Z">
+<meta property="og:updated_time" content="2018-11-10T08:47:06.286Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="分布式系统高效唯一ID生成方案">
 <meta name="twitter:description" content="背景：在分布式系统中，对于订单ID如何保证全局唯一地高效的生成，并对性能影响不大的情况下，利于建立索引和业务使用？  方案一：使用数据库主键ID优势：实现简单；弊端：使用数据库增加写库的压力，生成订单的上限受限于数据库的写性能上限；扩展性差； 方案二：单点批量生成订单号的服务；优势：批量降低了数据库的读写压力弊端：服务单点风险； 方案三：使用UUID优势：本地生成ID，不进行远程调用，延迟低；弊">
@@ -442,18 +442,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">标签2</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">架构</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">可视化</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">系统拓扑</a>
               </li>
             
             <div class="clearfix"></div>
