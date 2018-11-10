@@ -22,7 +22,7 @@
 <meta property="og:image" content="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/560998fab2c64721aa1bd9242cf8f045.png">
 <meta property="og:image" content="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/809d0ec48e7064af83c86d31449932ca.png">
 <meta property="og:image" content="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/960fa291bbd98269ee39b2eae1f74b58.png">
-<meta property="og:updated_time" content="2018-11-09T14:27:23.289Z">
+<meta property="og:updated_time" content="2018-11-10T08:38:45.333Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="商品打标签设计踩过的坑">
 <meta name="twitter:description" content="问题一：同步操作，导致批量处理过慢，锁超时现象：在批量打标过程中，由于之前设计的是同步操作，一次打标的商品数过多时，导致执行时间较长，运营以为操作失败，多次重新导入和点击，导致系统出现不可预知情况。 原因：之前为了数据的一致性，对打标过程使用了事务处理，所以当批量打标的时候，相当于对这批数据都进行了行锁，其它操作这些数据的请求都会等待事务的提交，当等待超时，就报错了，“Lock wait time">
@@ -463,6 +463,14 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
           <ul class="article-tag-list" q-show="showTags">
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">标签1</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">标签2</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">架构</a>
               </li>
              
@@ -472,14 +480,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">系统拓扑</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">标签1</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">标签2</a>
               </li>
             
             <div class="clearfix"></div>

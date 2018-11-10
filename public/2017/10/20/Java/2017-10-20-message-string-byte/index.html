@@ -18,7 +18,7 @@
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://heartaway.cn/images/posts/20171020/15084809508975.jpg">
 <meta property="og:image" content="http://heartaway.cn/images/posts/20171020/15084807485727.jpg">
-<meta property="og:updated_time" content="2018-11-09T14:24:06.308Z">
+<meta property="og:updated_time" content="2018-11-10T08:38:45.330Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="消息收发中的中文乱码">
 <meta name="twitter:description" content="背景：A发消息给B系统，A、B应用的编码均为UTF-8，但是B收到的消息出现中文乱码。  A发送消息的方式： 1new Message(TOPIC, TAG, null,          (messageContent.toString()).getBytes()) 这里消息接受二进制byte数据，我们把消息string转换为byte的时候，默认使用了getBytes()，未指定编码方式，ge">
@@ -445,6 +445,14 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
           <ul class="article-tag-list" q-show="showTags">
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">标签1</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">标签2</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">架构</a>
               </li>
              
@@ -454,14 +462,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">系统拓扑</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">标签1</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">标签2</a>
               </li>
             
             <div class="clearfix"></div>

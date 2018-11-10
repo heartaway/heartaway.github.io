@@ -19,7 +19,7 @@
 <meta property="og:image" content="http://heartaway.cn/images/posts/20160310/7BCC9F9B-0535-48BC-B247-3A13DFC9C60E.png">
 <meta property="og:image" content="http://heartaway.cn/images/posts/20160310/simpledataformat-format.png">
 <meta property="og:image" content="http://heartaway.cn/images/posts/20160310/5C6ED2A3-C1DF-4937-8C59-A03C73582185.png">
-<meta property="og:updated_time" content="2018-11-09T14:21:44.403Z">
+<meta property="og:updated_time" content="2018-11-10T08:38:45.327Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="为什么SimpleDateFormat 不是线程安全">
 <meta name="twitter:description" content="查看SimpleDateFormat类的说明，在最后一条已经明确说明了此类非线程安全，建议为每一个线程创建一个单独的实例，如果多线程共享实例，务必保证同步性；  要知道为什么不是线程安全的，首先我们需要知道SimpleDateFormat的作用和工作原理。 SimpleDateFormat继承了DateFormat,在DateFormat中定义了一个protected属性的 Calendar类的对">
@@ -457,6 +457,14 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
           <ul class="article-tag-list" q-show="showTags">
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">标签1</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">标签2</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">架构</a>
               </li>
              
@@ -466,14 +474,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">系统拓扑</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">标签1</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">标签2</a>
               </li>
             
             <div class="clearfix"></div>

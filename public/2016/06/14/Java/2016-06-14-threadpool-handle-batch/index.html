@@ -17,7 +17,7 @@
 <meta property="og:description" content="今天遇到一个场景：用于有一批数据需要批量处理，每一个任务的处理都会花费300~500ms的时间，如果列表为30个时，直接导致http请求超时了（设置的Http请求时间为10s）。所以期望服务端能够多线程执行任务，所有执行完毕后返回最终结果。  解决方案大家比较明确了，在外部接口无法被优化的场景下，只能将顺序执行的任务变为并行执行，Java提供了线程模型和线程池模型。但是要做到合理的利用线程池，必">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/10a39f5ab6ff4780007537e2e73ee106.png">
-<meta property="og:updated_time" content="2018-11-09T14:34:41.345Z">
+<meta property="og:updated_time" content="2018-11-10T08:38:45.328Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="用线程池解决批量任务执行">
 <meta name="twitter:description" content="今天遇到一个场景：用于有一批数据需要批量处理，每一个任务的处理都会花费300~500ms的时间，如果列表为30个时，直接导致http请求超时了（设置的Http请求时间为10s）。所以期望服务端能够多线程执行任务，所有执行完毕后返回最终结果。  解决方案大家比较明确了，在外部接口无法被优化的场景下，只能将顺序执行的任务变为并行执行，Java提供了线程模型和线程池模型。但是要做到合理的利用线程池，必">
@@ -462,6 +462,14 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
           <ul class="article-tag-list" q-show="showTags">
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">标签1</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">标签2</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">架构</a>
               </li>
              
@@ -471,14 +479,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">系统拓扑</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">标签1</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">标签2</a>
               </li>
             
             <div class="clearfix"></div>

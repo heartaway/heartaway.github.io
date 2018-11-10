@@ -20,7 +20,7 @@
 <meta property="og:image" content="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/17d53d36e9a5222ef2b730a9ce5c1eae.png">
 <meta property="og:image" content="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/babc327d486ccbce313f8b16ce951f7d.png">
 <meta property="og:image" content="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/31d9dbfe8fb11073e7180fbb5eb069f6.png">
-<meta property="og:updated_time" content="2018-11-09T14:21:16.140Z">
+<meta property="og:updated_time" content="2018-11-10T08:38:45.326Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="小二后台CPU使用率超高的问题排查">
 <meta name="twitter:description" content="排查方法： 首先找到cpu使用率高的进程：1top  查看进程对应的应用信息：1ps -ef |grep 进程id 发现是小二后台的进程，由于没有配置gc日志，所以看不当gc日志，但是可通过其他方法排查； 打印堆栈信息，查找占用大量CPU的线程：1jstack 查看GC情况：1jstat -gc 每列的含义： S0C Current survivor space 0 capacity (KB).">
@@ -471,6 +471,14 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
           <ul class="article-tag-list" q-show="showTags">
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">标签1</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">标签2</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">架构</a>
               </li>
              
@@ -480,14 +488,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">系统拓扑</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">标签1</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">标签2</a>
               </li>
             
             <div class="clearfix"></div>

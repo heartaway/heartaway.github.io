@@ -17,7 +17,7 @@
 <meta property="og:description" content="我们在代码编写中会进程需要使用数据截断处理，比如 30.23 我们期望获取整数部分，按照“.”进行分割； 可能的代码示例： 1&quot;30.23&quot;.split(&quot;.&quot;)[0] 如果我们这么写，那结果一定不是我们期望的，查看string 类中的split方法： 我们看到，它接收的参数 正则表达式，恰好点是正则表达式的特殊字符，命中  1&amp;quot;.$|()[&amp;#123;^?*+\\&amp;quot;.inde">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://heartaway.cn/images/posts/20170703/14990720990548.jpg">
-<meta property="og:updated_time" content="2018-11-09T14:23:35.439Z">
+<meta property="og:updated_time" content="2018-11-10T08:38:45.329Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Java split 引发的坑">
 <meta name="twitter:description" content="我们在代码编写中会进程需要使用数据截断处理，比如 30.23 我们期望获取整数部分，按照“.”进行分割； 可能的代码示例： 1&quot;30.23&quot;.split(&quot;.&quot;)[0] 如果我们这么写，那结果一定不是我们期望的，查看string 类中的split方法： 我们看到，它接收的参数 正则表达式，恰好点是正则表达式的特殊字符，命中  1&amp;quot;.$|()[&amp;#123;^?*+\\&amp;quot;.inde">
@@ -449,6 +449,14 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
           <ul class="article-tag-list" q-show="showTags">
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">标签1</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">标签2</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">架构</a>
               </li>
              
@@ -458,14 +466,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">系统拓扑</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">标签1</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">标签2</a>
               </li>
             
             <div class="clearfix"></div>

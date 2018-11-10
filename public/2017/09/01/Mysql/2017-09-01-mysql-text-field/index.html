@@ -16,7 +16,7 @@
 <meta property="og:site_name" content="心静志远">
 <meta property="og:description" content="在进行后台页面模块配置化时，需要把前段页面的部分代码保存到db中，之前mysql的数据类型使用的是text，并没有考虑到text的长度限制，认为一般不会超过此限制，但是在运行中发现其中一个复杂的页面模块在保存时报错； 1Caused by: com.mysql.jdbc.MysqlDataTruncation: Data truncation: Data too long for column &apos;">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2018-11-09T14:25:42.579Z">
+<meta property="og:updated_time" content="2018-11-10T08:38:45.332Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="How to select text data type for mysql">
 <meta name="twitter:description" content="在进行后台页面模块配置化时，需要把前段页面的部分代码保存到db中，之前mysql的数据类型使用的是text，并没有考虑到text的长度限制，认为一般不会超过此限制，但是在运行中发现其中一个复杂的页面模块在保存时报错； 1Caused by: com.mysql.jdbc.MysqlDataTruncation: Data truncation: Data too long for column &apos;">
@@ -514,6 +514,14 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
           <ul class="article-tag-list" q-show="showTags">
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">标签1</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">标签2</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">架构</a>
               </li>
              
@@ -523,14 +531,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">系统拓扑</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">标签1</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">标签2</a>
               </li>
             
             <div class="clearfix"></div>

@@ -16,7 +16,7 @@
 <meta property="og:site_name" content="心静志远">
 <meta property="og:description" content="我们在使用spring-quartz的时候，常常会遇到一个场景，那就是任务的调度会随着争取锁的先后顺序而出现不固定机器执行的场景，这在正常业务逻辑中具备了很好的容灾能力，但是在我们排查问题时，却带来了困绕，如果出现问题，我们期望任务调度固定在一台机器上进行执行，方便我们对问题的定位和排查。 这里就探讨如何扩展spring-quartz来实现任务的固定机器执行。 整体思路要指定机器运行trigger">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2018-11-09T14:24:24.761Z">
+<meta property="og:updated_time" content="2018-11-10T08:38:45.331Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="spring quartz 指定trigger的执行机器">
 <meta name="twitter:description" content="我们在使用spring-quartz的时候，常常会遇到一个场景，那就是任务的调度会随着争取锁的先后顺序而出现不固定机器执行的场景，这在正常业务逻辑中具备了很好的容灾能力，但是在我们排查问题时，却带来了困绕，如果出现问题，我们期望任务调度固定在一台机器上进行执行，方便我们对问题的定位和排查。 这里就探讨如何扩展spring-quartz来实现任务的固定机器执行。 整体思路要指定机器运行trigger">
@@ -452,6 +452,14 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
           <ul class="article-tag-list" q-show="showTags">
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">标签1</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">标签2</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">架构</a>
               </li>
              
@@ -461,14 +469,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">系统拓扑</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">标签1</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">标签2</a>
               </li>
             
             <div class="clearfix"></div>

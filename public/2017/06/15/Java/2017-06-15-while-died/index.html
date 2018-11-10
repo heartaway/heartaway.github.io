@@ -23,7 +23,7 @@
 <meta property="og:image" content="http://heartaway.cn/images/posts/20170615/jstack-grep-tid.png">
 <meta property="og:image" content="http://heartaway.cn/images/posts/20170615/changefree-while-query.png">
 <meta property="og:image" content="http://heartaway.cn/images/posts/20170615/system-monitor-line.png">
-<meta property="og:updated_time" content="2018-11-09T14:23:20.504Z">
+<meta property="og:updated_time" content="2018-11-10T08:38:45.329Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Java Load CPU MEM 飙高的一次排查">
 <meta name="twitter:description" content="问题发现：收到报警提醒： 问题排查：登录机器查看： CPU 持续高于 80%，8G内存几乎被占满； 异常报警项为 一个每隔5min执行一次的定时任务每次运行时间超过10分钟；初步判断为任务累加导致系统负载越来越重。 那为什么定时任务在5min内执行未完成呢？看看线程到底在做什么。 查看进程中线程的占用CPU时长：1top -Hp pid  可以看到有不少进程占用CPU总计时间超过100分钟，最大的">
@@ -446,6 +446,14 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
           <ul class="article-tag-list" q-show="showTags">
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">标签1</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">标签2</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">架构</a>
               </li>
              
@@ -455,14 +463,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">系统拓扑</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">标签1</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">标签2</a>
               </li>
             
             <div class="clearfix"></div>
