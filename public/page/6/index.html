@@ -149,243 +149,6 @@
           <div id="js-content" class="content-ll">
             
   
-    <article id="post-Java/2016-07-25-picture-java-concurrent" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2016/07/25/Java/2016-07-25-picture-java-concurrent/">图解《Java并发编程实战》</a>
-    </h1>
-  
-
-        
-        <a href="/2016/07/25/Java/2016-07-25-picture-java-concurrent/" class="archive-article-date">
-  	<time datetime="2016-07-24T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2016-07-25</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h4 id="基本概念："><a href="#基本概念：" class="headerlink" title="基本概念："></a>基本概念：</h4><p><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/38c5d3b75b38509879ddc5c0c5e7a9cc.png" alt=""></p>
-<h4 id="同步容器："><a href="#同步容器：" class="headerlink" title="同步容器："></a>同步容器：</h4><p><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/077c82429ae429987031d0c6255bd7ac.png" alt=""></p>
-<h4 id="线程框架："><a href="#线程框架：" class="headerlink" title="线程框架："></a>线程框架：</h4><p><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/a04edc5544d9438f7b58bb1147888260.png" alt=""></p>
-<h4 id="死锁："><a href="#死锁：" class="headerlink" title="死锁："></a>死锁：</h4><p><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/fbf70991bc2d5b328142c75915155449.png" alt=""></p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2016/07/25/Java/2016-07-25-picture-java-concurrent/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-Mysql/2016-07-16-mysql-lock-wait" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2016/07/16/Mysql/2016-07-16-mysql-lock-wait/">Lock wait timeout exceeded; try restarting transaction</a>
-    </h1>
-  
-
-        
-        <a href="/2016/07/16/Mysql/2016-07-16-mysql-lock-wait/" class="archive-article-date">
-  	<time datetime="2016-07-15T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2016-07-16</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/c853d26a0835a5f6499783c87fca2294.png" alt=""><br><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/24fb3edb62f132f30451f468d9cf77f8.png" alt=""></p>
-<h3 id="排查过程："><a href="#排查过程：" class="headerlink" title="排查过程："></a>排查过程：</h3><p>查看数据库 INNODB_LOCKS，未发现有死锁的记录。<br>查看 SHOW PROCESSLIST;  也未见异常进程；<br>通过Mysql的控制台，查询慢日志，也未找到有关此表的Mysql慢日志信息。<br>查询Mysql默认的所等待超时时间：<br>show variables like ‘innodb_lock_wait_timeout’;<br>Variable_name                          Value<br>innodb_lock_wait_timeout         50<br>那Spring事务默认的事务超时时间是-1，表示事务超时将依赖于数据库的事务超时时间，当前为50秒，也就是存在事务等待锁超过50秒还未拿到锁导致事务超时了。</p>
-<h3 id="业务重现："><a href="#业务重现：" class="headerlink" title="业务重现："></a>业务重现：</h3><p>后来我到业务控制台上进行业务重现（批量商品打标），在查看 INNODB_LOCKS：<br>product-put-tag-tx-lock<br>发现后台针对同一条数据存在两个事务，推测是第一个事务当前还在执行（可能比较慢），第二个是个事务又提交上来了（操作重复），所以对同一条数据尝试加X锁，发现已经有锁了，所以第二个事务会处于锁等待，由于我们Spring事务未配置超时时间，所以当前的事务超时时间为50秒，等待50秒之后就会出现超时，此时Mysql会抛出“Lock wait timeout exceeded; try restarting transaction”异常；除此之外，我们还需要考虑接口调用超时时间给业务带来的影响。</p>
-<h3 id="解决方案："><a href="#解决方案：" class="headerlink" title="解决方案："></a>解决方案：</h3><p>考虑到批量打标可以允许部分失败的场景，所以取出事务，捕获异常并进入异常队列；<br>由于单个打标非常耗时，批量更会增加执行时间，所以修改同步操作为异步操作；<br>把预先批量处理的业务拆分到单个业务处理逻辑中，减少预处理成功后续失败的场景；<br>由于打标可能出现网络超时，所以添加自动重试机制，减少错误概率；</p>
-<h3 id="批处理优化建议："><a href="#批处理优化建议：" class="headerlink" title="批处理优化建议："></a>批处理优化建议：</h3><p>减少批处理的最小化单元，尽量减小锁的范围；<br>修改同步执行时间为异步执行，并且捕获异常；<br>一些异常场景不影响事务整体提交，允许部分场景下的异常；<br>设置合理的超时时间；<br>设置合理的执行数量限制；</p>
-<h3 id="其它思考："><a href="#其它思考：" class="headerlink" title="其它思考："></a>其它思考：</h3><h4 id="假设一："><a href="#假设一：" class="headerlink" title="假设一："></a>假设一：</h4><p>我们的打标任务被一个要求拥有事务保证的接口调用的时候，怎么保证整体的事务性？</p>
-<p>答：这个属于分布式事务的范畴，可以参考分布式事务环节。</p>
-<h4 id="假设二："><a href="#假设二：" class="headerlink" title="假设二："></a>假设二：</h4><p>我们的批量操作为内部接口，需要保证内部的事务性，比如我们通过购物车进行下单，为了提高系统的性能，需要一次对多个SKU进行扣库存逻辑，如果存在一个SKU的库存不够扣时，就需要整体回滚，在高并发场景下，扣库存就成为了耗时操作，这种场景下我们怎么处理呢 ？</p>
-<p>答：在高并发场景下，如果我们只是采用原生Mysql的事务操作来做批量库存更新的话，会导致大量请求处于锁等待场景，为了加快处理，我们的做法是将库存数据放到redis中，把数据库操作转化为redis操作，如果使用单机版的redis，虽然redis提供事务功能，但是事务并不具备完整性，因为不支持回滚操作，其次一般公司随着业务的发展，单机不能满足性能要求，会搭建Redis-Cluster集群，Redis-Cluster不支持事务操作，multi-key操作也必须在同一个节点中才能使用，虽然我们库存操作的是Redis读操作，但是写的时候还是用的Mysql的悲观锁，也未能解决这个写入的性能问题。</p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Mysql//" class="article-tag-list-link color1">Mysql</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2016/07/16/Mysql/2016-07-16-mysql-lock-wait/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-Think/2016-07-09-think-you-work" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2016/07/09/Think/2016-07-09-think-you-work/">你的工作离赚钱近吗？</a>
-    </h1>
-  
-
-        
-        <a href="/2016/07/09/Think/2016-07-09-think-you-work/" class="archive-article-date">
-  	<time datetime="2016-07-08T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2016-07-09</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>互联网行业有一个规律，当你所做的事情离钱越近的时候，越会受到公司重视，这种重视会是资源的倾斜、价值的回报、能力的认可。所以当你选择工作的岗位的时候，想一想，你离核心业务是否够近，比如电商行业，商品的零售带来的利润就是公司非常重要的盈利手段，那么在这条链路上，你所处哪一环节，是成交转化还是仓储配送疑惑售后客服？要抓住整个链条的七寸，方能给自己争取更大的发展空间，否则你可能会成为可有可无的螺丝钉，在企业经济效应不景气需要裁员的时候，请不要说我的能力如何，我为公司付出了多少，因为你所作的事情已经决定了你在整个企业盈利体系中的价值。<br>理解商业的本质，你就会理解职业的本质，无论当下是创业还是打工，在你当前的工作中什么对你是最有价值的，你就应该努力让自己到达那里，这其中需要自知、自省、自制，不自知的努力是妄想，不自省的奋斗容易膨胀，不自制的前行可能让你迷失方向。在自身能力匹配的情况下，如果可以选择，一定要让自己更多的向产生利润的岗位靠近，这样做是什么好处呢？</p>
-<h3 id="第一、你的努力更容易拿到结果。"><a href="#第一、你的努力更容易拿到结果。" class="headerlink" title="第一、你的努力更容易拿到结果。"></a>第一、你的努力更容易拿到结果。</h3><p>没有结果的努力，可能会成为徒劳，这里面不排除一些为后续更大结果做了铺路石只是当下没有结果的事情。有好结果的事情，无论对企业还是个人都是非常大的肯定，你做的事情越多的受到肯定，大家对你会越信任，越多更具有挑战的事情会让你去承担。在阿里的文化中，结果导向是非常重要的一个做事方式，即使你做的事情后来发现可能没有预先想象的那么有趣，但是最好还是寻求一个结果，有时候这个结果可能与利益无关。</p>
-<h3 id="第二、你的价值会被逐步放大。"><a href="#第二、你的价值会被逐步放大。" class="headerlink" title="第二、你的价值会被逐步放大。"></a>第二、你的价值会被逐步放大。</h3><p>在企业中最怕那种工作越做越来默默无闻，时间长了，你就没有了存在感，你也就成了可有可无的摆设了，在这种职业路线中，你其实是在走下坡路，此时你就应该反省了，是个人的问题还是业务被边缘化，此时你需要的是变化，主动去改变这种格局。人都是渴望被认可、被信任、被认为重要，如果你工作中感受不到这点，说明你需要静下来，思考，找到适合自己的路，来让自己的价值曲线向上。</p>
-<h3 id="第三、你的发展空间会更大。"><a href="#第三、你的发展空间会更大。" class="headerlink" title="第三、你的发展空间会更大。"></a>第三、你的发展空间会更大。</h3><p>如果你做的是边缘业务或者是企业为了试错的业务，那么你需要做好业务被砍的心理准备，因为你所作的事情并不在当前企业核心价值体系之中，当企业考虑成本与利润的时候，这种业务被砍也是情理之中的事情。有人会说，被砍了可以去做其他的事情呀，这话没错，但是，这点违背了第一条，寻求结果，当业务被砍的时候，你可能无法拿到结果，这标识你过去付出的一切可能都会付诸东流，如果你去其他业务部分，也许他们也在进行人员精简，找到一个合适的位置会变得很难。我所经历的试错业务团队被砍后，带来的代价是，整个团队离职，真的很可惜，团队中有很多优秀的人未能留下来。对公司和他们个人都是一个损失。如果你的业务是核心业务，那么代表着，你不需要为业务被砍而过早担心，你做的事情会相对稳定很多，稳定带来的好处是你可以有更长的时间在这个领域里面深耕和沉淀，你积累的多了，以后的发展空间也会越大。</p>
-<p>那么对一个目前还是普通程序员来说，如何调整自己的方向呢，我认为首先需要分析自己当前在做的事情是否为业务的核心，还以电商为例，如果你做的是ERP系统、客服系统、工单系统、OA系统，如果你是刚毕业一两年的小青年，做做没什么不可，如果你是工作了四五年的程序员，那么你可以考虑换换了，我不是说这些不重要，而是这些已经不再适合你了，做这些非核心业务，那些刚毕业一两年的人的性价比比你高，企业如果可以使用更低的成本达到同样的效果为什么还要花更大的成本呢。如果你的技术水平未能匹配你的工作年限，那么你当前最重要的事情是想尽一切办法沉淀自己，让自己变得更加专业，不要眼红别人的高工资，你只需要做的是提高自身的能力。当能力与工作年限匹配的时候，你就可以选择那些离钱更近、更有发展空间的岗位了。对于一个普通程序员来说，哪些岗位可能会离钱更近呢？我认为在电商企业中有以下研发岗：导购、支付、订单、搜索、推荐、增长。BI为什么不在里面呢，虽然BI非常重要，但是你没有使用数据的决定权，至多是一个数据源。我罗列的这几个岗位中内部也是会区分重要性的，你是决策者还是执行者，如果从执行者成长为决策者，是你需要思考的问题。</p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Think//" class="article-tag-list-link color1">Think</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2016/07/09/Think/2016-07-09-think-you-work/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
     <article id="post-Java/2016-07-07-cas-work" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
   <div class="article-inner">
     
@@ -1067,6 +830,449 @@
 
 
   
+    <article id="post-Java/2016-06-12-object-mapping" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2016/06/12/Java/2016-06-12-object-mapping/">Object Mapping in Java</a>
+    </h1>
+  
+
+        
+        <a href="/2016/06/12/Java/2016-06-12-object-mapping/" class="archive-article-date">
+  	<time datetime="2016-06-11T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2016-06-12</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>我们在Java代码编写中经常会遇到DO 、DTO之间的对象隐射转换，我们在设计DO、DTO的时候一般会尽量让对象名称、对象属性保持一致，利于属性拷贝，但是现实场景中可能存在一些对象名称不一致、对象类型不一致的情况，不同的拷贝方案，性能与使用场景也可能存在不一样，那么在众多的对象拷贝框架中如何选择合适的使用呢？</p>
+<p>常用对象属性拷贝方法：</p>
+<ol>
+<li>commons-beanutils 框架中的 BeanUtils</li>
+<li>commons-beanutils 框架中的 PropertyUtils</li>
+<li>ModelMapper</li>
+<li>Cglib中提供的BeanCopier, BulkBean,BeanMap,FastClass/FastMethod</li>
+<li>Orika</li>
+<li>Dozer</li>
+<li>HardCopy，手工硬编码</li>
+</ol>
+<p>有人做了一张性能对比图：</p>
+<p><img src="http:/ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/7236b8abc31ef20753e7d002106a0caf.png" alt=""></p>
+<p><img src="/images/posts/20160612/object-mapping-per-hightchart-two.png" alt=""></p>
+<h4 id="HardCopy："><a href="#HardCopy：" class="headerlink" title="HardCopy："></a>HardCopy：</h4><p>手工硬编码的方式是基本是效率最高的方式，但是当一个类有几十个属性的时候，代码编写效率低下，而且丑陋，最重要的是，当新扩展一个字段后，往往容易忽略在mapping convert文件中添加相应的属性隐射，给业务带来一定的潜在风险（error-prone）。硬编码并不是一无是处，当对象属性比较固定，且对性能要求非常高的时候，硬编码是最好的选择方案。但是很多Object的 大量属性需要编写Convert方法时，就感觉很浪费时间，有没有更有效率的编写方法呢？当然，我自己写了一个Convert方法生成器（密码: ycag，Console输出，需要复制粘贴），这样就可以大量节省硬编码ModelConvert的时间。</p>
+<h4 id="BeanUtils："><a href="#BeanUtils：" class="headerlink" title="BeanUtils："></a>BeanUtils：</h4><p>因为我们项目中最常用的就是Spring-bean，所以最先想到使用属性拷贝的就是Apache的BeanUtils.copyProperties方法。</p>
+<h5 id="工作原理："><a href="#工作原理：" class="headerlink" title="工作原理："></a>工作原理：</h5><p>BeanUtils通过反射机制的方式从orig中获取属性信息和属性的可读、可写方法（通过get、set方法，如果属性没有get、set方法，则此属性不会被拷贝），调用orig的get方法获取属性值，将属性值写入dest的对应属性中（使用dest的set方法）。可以看出BeanUtils是严格要求orig、dest必须符合bean规范，有get、set方法，无法完成不同属性名之间的隐射拷贝。</p>
+<h5 id="对象类型转换："><a href="#对象类型转换：" class="headerlink" title="对象类型转换："></a>对象类型转换：</h5><p>BeanUtils为了方便对象类型转换，还提供了ConvertUtilsBean类，此类可以注入一系列Converter对象，提供对象的初始值或者其他转换方法，比如设置Integer的默认值为0 或 从Date 类型到long类型，我们在使用过程中一般NULL与0是不一样的，所以不期望对象转换过程中默认设置值，所以会自定义对象类型转换器。由此说明BeanUtils是对属性类型没有强一致性判断的。</p>
+<p><img src="/images/posts/20160612/bean-util-sample.png" alt=""></p>
+<p>对象拷贝深度：待测试。<br>由于大量采用反射机制&amp;严格的参数校验，所以性能较差，不建议使用。</p>
+<h4 id="PropertyUtils："><a href="#PropertyUtils：" class="headerlink" title="PropertyUtils："></a>PropertyUtils：</h4><p>PropertyUtils实际上使用的也是beanUtils，但是在初始化的时候就会发现，BeanUtils初始化了ConvertUtilsBean和PropertyUtilsBean，而PropertyUtils只初始化了PropertyUtilsBean，说明PropertyUtils不支持属性类型自动转换的功能(如果类型不同则会抛出异常)，而BeanUtils支持属性类型自动转换的功能，这也是两者的区别。</p>
+<p>性能上，PropertyUtils 与 BeanUtils稍微好一点。</p>
+<h4 id="ModelMapper："><a href="#ModelMapper：" class="headerlink" title="ModelMapper："></a>ModelMapper：</h4><p>ModelMapper能用更加紧凑的代码对Java对象进行映射，在更简单的情况下甚至可以实现零配置。它支持以下特性：</p>
+<ul>
+<li>基于名称的对象属性映射</li>
+<li>复制公开的、受保护的和私有的字段</li>
+<li>略过某些字段</li>
+<li>可用转换器来影响映射（如将字符串转换为小写）</li>
+<li>在不同类型的字段间进行映射（如将字符串转换为数字）</li>
+<li>采用不同的条件进行映射</li>
+<li>默认条件不充分时采用松散的映射策略</li>
+<li>对映射过程进行验证以确保所有字段都被处理</li>
+<li>对特殊情况下的映射过程进行完全可定制化的控制</li>
+<li>与Guice或Spring集成</li>
+</ul>
+<h4 id="Cglib：BeanCopier"><a href="#Cglib：BeanCopier" class="headerlink" title="Cglib：BeanCopier"></a>Cglib：BeanCopier</h4><p>参考：<a href="http://agapple.iteye.com/blog/799827" target="_blank" rel="noopener">http://agapple.iteye.com/blog/799827</a>，据说性能比BeanUtils优一个数量级以上，但是其提供的功能也比较简单。</p>
+<h4 id="Orika："><a href="#Orika：" class="headerlink" title="Orika："></a><a href="http://orika-mapper.github.io/orika-docs/" target="_blank" rel="noopener">Orika</a>：</h4><p>Github中的源码：<a href="https://github.com/orika-mapper/orika" target="_blank" rel="noopener">https://github.com/orika-mapper/orika</a><br>基于生成字节码的方式进行属性映射，是目前出了硬编码外性能最好的一款Object mapping工具，他比ModelMapper占用的内存会稍微多一点，空间换时间，这也符合计算机规律。不足时文档较少，API看起来有一些混乱，支持的特性不较少，其次一些属性的注册使用的是“弱类型”，当属性名称变更时容易被忽略（error-prone）。</p>
+<h4 id="Dozer："><a href="#Dozer：" class="headerlink" title="Dozer："></a><a href="http://dozer.sourceforge.net/" target="_blank" rel="noopener">Dozer</a>：</h4><p>虽然Dozer提供了丰富的特性支持，但是由于其性能较差，所以这里就不做介绍。<br>除了以上介绍的几种之外还有一些其他的Object mapping工具类，比如 mapping4java、GeDA等。</p>
+<h4 id="总结："><a href="#总结：" class="headerlink" title="总结："></a>总结：</h4><p>根据自己的需求选择一款合适且性能优雅的框架，如果觉得没有合适的，当然在时间和精力允许的情况下自己也可以去造一个轮子。</p>
+<h4 id="参考："><a href="#参考：" class="headerlink" title="参考："></a>参考：</h4><p><a href="https://prezi.com/q7pd1ad2spro/copy-of-object-mapping-in-java/" target="_blank" rel="noopener">https://prezi.com/q7pd1ad2spro/copy-of-object-mapping-in-java/</a></p>
+<p><a href="http://stackoverflow.com/questions/1432764/any-tool-for-java-object-to-object-mapping" target="_blank" rel="noopener">http://stackoverflow.com/questions/1432764/any-tool-for-java-object-to-object-mapping</a></p>
+<p><a href="http://agapple.iteye.com/blog/1075671" target="_blank" rel="noopener">http://agapple.iteye.com/blog/1075671</a></p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2016/06/12/Java/2016-06-12-object-mapping/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-Basic/2016-06-06-https-with-wireshark" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2016/06/06/Basic/2016-06-06-https-with-wireshark/">Wireshark监控分析Https的交互过程</a>
+    </h1>
+  
+
+        
+        <a href="/2016/06/06/Basic/2016-06-06-https-with-wireshark/" class="archive-article-date">
+  	<time datetime="2016-06-05T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2016-06-06</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>首先介绍一下Https在Client与Server之间的理论交互过程：<br><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/fbcfb4b7d254a68b4e39ddbeef776927.png" alt=""></p>
+<p>试想，我们期望在网络中传输的数据是被加密的，并且这个数据包在客户端和服务器端都能进行加密和解密，那么需要对称加密算法，客户端和服务端都需要有一个加解密Key（对称加密），对数据包进行加解密，那么这个Key如何产生并在在网络中安全的传递呢？假设这秘钥是有服务端产生，分配给客户端，为了保证安全，需要在派送Key的过程中进行加密，那么客户端在一无所知的情况下，是无法打开这个加密的数据包的，此方案不行。假设我们引入非对称加密算法，把公钥在网络上传输(传给客户端)，私钥只保留在服务端，让客户端生成一个加密Key，并把加密Key通过公钥进行加密，加密后的数据发送给服务端，服务端使用私钥解开数据，提取加密Key，这样服务端和客户端以后的交互都可以使用这个加密Key进行数据交互了。</p>
+<p>这个过程可以参考：<a href="http://www.jianshu.com/p/15703d8c34e9" target="_blank" rel="noopener">http://www.jianshu.com/p/15703d8c34e9</a></p>
+<h3 id="抓包监控分析："><a href="#抓包监控分析：" class="headerlink" title="抓包监控分析："></a>抓包监控分析：</h3><p>首先安装抓包工具Wireshark(最新版为2.0.3)，Mac OS 10.11版本还需要安装X11，OS X 不再随附 X11，但 XQuartz 项目提供适用于 OS X 的 X11 服务器和客户端库，所以需要下载 XQuartz。<br>打开Wireshark &gt; 捕获 &gt; 选项，选择 本地网卡，开启监控数据捕获。<br>这里以腾讯云 <a href="https://www.dnspod.cn" target="_blank" rel="noopener">https://www.dnspod.cn</a> 为例（首次打开此网站，所以可以捕获到证书获取流程），由于本地有很多其他的应用都会进行网络请求，为排除干扰，查询了腾讯云（<a href="https://www.dnspod.cn" target="_blank" rel="noopener">https://www.dnspod.cn</a> ）的IP地址：59.37.116.101，然后在Wireshark 的过滤器中输入：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ip.src==<span class="number">59.37</span>.116.101  or ip.dst==<span class="number">59.37</span>.116.101</span><br></pre></td></tr></table></figure>
+<p>表示只监控IP的起始地或者目的地为腾讯云的数据请求，如图所示：</p>
+<p><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/f3fea5e73ee24a7e97bf9f43a7e29534.png" alt=""></p>
+<p>当然，这里还是可能会有其他tcp流的干扰，找到一个Client Hello 的tcp请求，查看Transmission Control Protool,找到Stream Index 序号，这个Stream Index 是Wireshark标识一次完整的TCP通讯。</p>
+<p><img src="/images/posts/20160606/wirdshark-tencent-cloud-tcp-stream-get.png" alt=""></p>
+<p>所以，调整我们的过滤器为：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ip.src==<span class="number">59.37</span>.116.101  or ip.dst==<span class="number">59.37</span>.116.101 and tcp.stream eq <span class="number">28</span></span><br></pre></td></tr></table></figure>
+<h4 id="1-三次握手建立TCP链接："><a href="#1-三次握手建立TCP链接：" class="headerlink" title="1. 三次握手建立TCP链接："></a>1. 三次握手建立TCP链接：</h4><p>从请求流中，我们可以清晰的看到在建立TLS请求之前，进行了三次TCP请求，这就是我们常说的TCP建立连接的“三次握手”：</p>
+<p><img src="/images/posts/20160606/tcp-third-handshake.png" alt=""></p>
+<h5 id="第一次握手："><a href="#第一次握手：" class="headerlink" title="第一次握手："></a>第一次握手：</h5><p>客户端请求建立连接（Flags=SYN，Seq = 0 ）：</p>
+<p><img src="/images/posts/20160606/tcp-first-handshake.png" alt=""></p>
+<p>SYN标识初始化连接，序列号这里为0，注意括号里面的备注，说0是相对序列号，并不是真正的实际序列号，相对序列号只是方便我们查看。</p>
+<h5 id="第二次握手："><a href="#第二次握手：" class="headerlink" title="第二次握手："></a>第二次握手：</h5><p>服务端发送确认建立连接数据包给客户端（Flags=SYN，ACK，seqNum=0,ackNum=1）：</p>
+<p><img src="/images/posts/20160606/tcp-second-handshake.png" alt=""></p>
+<h5 id="第三次握手："><a href="#第三次握手：" class="headerlink" title="第三次握手："></a>第三次握手：</h5><p>客户端再次发送确认包(ACK) SYN标志位为0,ACK标志位为1.并且把服务器发来ACK的序号字段+1,放在确定字段中发送给对方.并且在数据段放写ISN的+1</p>
+<p><img src="/images/posts/20160606/tcp-third-time-handshake.png" alt=""></p>
+<p>当然还可以通过WireShark自带的统计图形工具查看链接交互过程：</p>
+<p><img src="/images/posts/20160606/https-tcp-graph.png" alt=""></p>
+<p>有关TCP建立链接和释放连接的过程，可以参考：<a href="http://mp.weixin.qq.com/s?__biz=MzAxOTc0NzExNg==&amp;mid=2665513094&amp;idx=1&amp;sn=a2accfc41107ac08d74ec3317995955e&amp;scene=23&amp;srcid=0605GAETrvLCgoti5SQnXy0o#rd" target="_blank" rel="noopener">TCP/IP 之 大明王朝邮差</a></p>
+<h4 id="2-Client-Hello："><a href="#2-Client-Hello：" class="headerlink" title="2. Client Hello："></a>2. Client Hello：</h4><p><img src="/images/posts/20160606/https-tcp-client-hello.png" alt=""></p>
+<p>我们可以看到，从浏览器发出的第一个字节为0×16（十进制的22），它表示了这是一个“握手”记录。</p>
+<p>整个握手记录被拆分为数条信息，其中第一条就是我们的客户端问候（Client Hello），即0×01。在客户端问候中，有几个需要着重注意的地方：</p>
+<h5 id="随机数（Random）："><a href="#随机数（Random）：" class="headerlink" title="随机数（Random）："></a>随机数（Random）：</h5><p><img src="/images/posts/20160606/https-tcp-client-hello-random.png" alt=""></p>
+<p>在客户端问候中，有四个字节以Unix时间格式记录了客户端的协调世界时间（UTC）。协调世界时间是从1970年1月1日开始到当前时刻所经历的秒数。在这个例子中，a1 60 cf bd 就是协调世界时间。在他后面有28字节的随机数，在后面的过程中我们会用到这个随机数。</p>
+<h5 id="SID（Session-ID）："><a href="#SID（Session-ID）：" class="headerlink" title="SID（Session ID）："></a>SID（Session ID）：</h5><p><img src="/images/posts/20160606/https-tcp-client-hello-sid.png" alt=""></p>
+<h5 id="数（Random）："><a href="#数（Random）：" class="headerlink" title="数（Random）："></a>数（Random）：</h5><p>如果出于某种原因，对话中断，就需要重新握手。为了避免重新握手而造成的访问效率低下，这时候引入了session ID的概念， session ID的思想很简单，就是每一次对话都有一个编号（session ID）。如果对话中断，下次重连的时候，只要客户端给出这个编号，且服务器有这个编号的记录，双方就可以重新使用已有的”对话密钥”，而不必重新生成一把。</p>
+<p>在这里，SID是一个空值（Null）。说明我们是第一次访问这个网站，如果我们在几秒钟之前就登陆过了<a href="http://www.baidu.com，我们有可能会恢复之前的会话，从而避免一个完整的握手过程。" target="_blank" rel="noopener">www.baidu.com，我们有可能会恢复之前的会话，从而避免一个完整的握手过程。</a></p>
+<p>session ID是目前所有浏览器都支持的方法，但是它的缺点在于session ID往往只保留在一台服务器上。所以，如果客户端的请求发到另一台服务器，就无法恢复对话。session ticket就是为了解决这个问题而诞生的，目前只有Firefox和Chrome浏览器支持。后面关于https优化部分会着重介绍session ticket。</p>
+<h5 id="密文族（Cipher-Suites）："><a href="#密文族（Cipher-Suites）：" class="headerlink" title="密文族（Cipher Suites）："></a>密文族（Cipher Suites）：</h5><p><img src="/images/posts/20160606/https-tcp-client-hello-cipher.png" alt=""></p>
+<p>密文族是浏览器所支持的加密算法的清单。RFC2246中建议了很多中组合，一般写法是”密钥交换算法-对称加密算法-哈希算法，以“TLS_RSA_WITH_AES_256_CBC_SHA”为例，TLS为协议，RSA为密钥交换的算法，AES_256_CBC是对称加密算法（其中256是密钥长度，CBC是分组方式），SHA是哈希的算法。浏览器支持的加密算法一般会比较多，而服务端会根据自身的业务情况选择比较适合的加密组合发给客户端。（比如综合安全性以及速度、性能等因素）</p>
+<h5 id="Server-name扩展："><a href="#Server-name扩展：" class="headerlink" title="Server_name扩展："></a>Server_name扩展：</h5><p><img src="/images/posts/20160606/https-tcp-client-hello-servername.png" alt=""></p>
+<p>当我们去访问一个站点时，一定是先通过DNS解析出站点对应的ip地址，通过ip地址来访问站点，由于很多时候一个ip地址是给很多的站点公用，因此如果没有server_name这个字段，server是无法给与客户端相应的数字证书的，Server_name扩展则允许服务器对浏览器的请求授予相对应的证书。</p>
+<h4 id="3-Server-Hello"><a href="#3-Server-Hello" class="headerlink" title="3. Server Hello"></a>3. Server Hello</h4><p><img src="/images/posts/20160606/https-tcp-server-hello.png" alt=""></p>
+<p>服务器在收到client hello协议的握手请求后，会先回复一个ACK，标识client hello握手数据包收到了，然后向客户端发送Server hello协议数据包，这个协议包里面包含了Session ID,Cipher Suite,Random 等数据。</p>
+<p>我们记得在client hello里面，客户端给出了21种加密族，而在我们所提供的21个加密族中，服务端挑选了“TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256”。这就意味着服务端会使用ECDHE-RSA算法进行密钥交换，通过AES_128_GCM对称加密算法来加密数据，利用SHA256哈希算法来确保数据完整性 。</p>
+<p>服务端对于session ID一般会有三种选择：</p>
+<ol>
+<li>恢复的session ID：我们之前在client hello里面已经提到，如果client hello里面的session ID在服务端有缓存，服务端会尝试恢复这个session；</li>
+<li>新的session ID：这里又分两种情况，第一种是client hello里面的session ID是空值，此时服务端会给客户端一个新的session ID，第二种是client hello里面的session ID此服务器并没有找到对应的缓存，此时也会回一个新的session ID给客户端；</li>
+<li>NULL：服务端不希望此session被恢复，因此session ID为空。</li>
+</ol>
+<h4 id="4-Certificate"><a href="#4-Certificate" class="headerlink" title="4. Certificate"></a>4. Certificate</h4><p><img src="/images/posts/20160606/https-tcp-certificate.png" alt=""></p>
+<p>我们知道为了安全的将公钥发给客户端，服务端会把公钥放入数字证书中并发给客户端（数字证书可以自签发，但是一般为了保证安全会有一个专门的CA机构签发），所以这个报文就是数字证书，3259 byte 就是证书的长度。</p>
+<p>其次，服务端还向客户端发送了协议为Server Hello Done的报文，意思是告诉客户端hello结束，并且不要求验证客户端的证书。（我们知道TLS协议中验证证书可以是双向的，即服务端也要验证客户端的身份来防止客户端的伪冒，但是这种场景在一般基于web的https中很少(通过U盾的网银是例外，U盾其实就是客户端证书，但这样也非常繁琐)，因为基于web的应用客户数量大，很难为每个客户去提供相应的数字证书。但是对于一些企业之间的对接，出于安全考虑，很多情况下会采用双向认证的方式，因为对于两个企业来说也不存在client、server端的说法。）</p>
+<h4 id="5-客户端验证证书"><a href="#5-客户端验证证书" class="headerlink" title="5. 客户端验证证书"></a>5. 客户端验证证书</h4><p>当客户端收到服务器发来的证书后会进行校验来确保证书是真实的服务器发来的，那么如何验证其真实性呢？主要靠的就是数字签名。algorithmIdentifier（签名的加密算法）为：SHA_RSA（注意这里的加密算法是证书中自带的，并非我们之间client、server里面的Cipher Suites中的算法，Cipher Suites中的算法只有密钥交换算法、对称数据加密算法、校验完整性的哈希算法，不包括相关签名的算法），而下方的encrypted部分就是数字签名，是由CA的私钥加密的，数字证书制作这块前面一篇文章已经介绍过了，这里就不多说了。客户端收到数字证书中的数字签名后，由于证书的签名都是由上一级来完成的，因此会利用上一级证书提供的公钥进行解密，解密后得到签名值和自己再次哈希证书主题的值进行比对，如果两个值是一致的话，则认证通过。</p>
+<h4 id="6-Client-Key-Exchange"><a href="#6-Client-Key-Exchange" class="headerlink" title="6. Client Key Exchange"></a>6. Client Key Exchange</h4><p>客户端验证通过证书后，客户端将采用服务器给出的加密算法以及公钥将后面用于加密数据的对称密钥进行加密并发送给服务器。其实密钥交换这步远没有想象中的那么简单，主要有以下几个步骤（以下为RSA算法密钥交换的过程，腾讯云用的密钥交换算法为ECDHE-RSA，比RSA更为复杂，这里就先介绍RSA算法）：</p>
+<ol>
+<li>客户端生成premaster_secret，首先对称密钥为了保证安全一定是随机密钥，一般的系统或者浏览器都会构建它自己的伪随机数发生器，之所以称之为伪随机数是因为真正意义上的随机数算法并不存在，这些函数还是利用大量的时变、量变参数来通过复杂的运算生成相对意义上的随机数，但是这些数之间还是存在统计学规律的，只是想要找到生成随机数的过程并不那么容易。在进行密钥交换的时候，客户端会利用server hello里面带的随机数2（client hello里面的随机数我们称为随机数1，这是为了方面后面master_secret）生成premaster_secret，premaster_secret长度为48个字节，前2个字节是协议版本号，剩下的46个字节填充随机数。</li>
+</ol>
+<ol start="2">
+<li><p>注意，对称加密不会直接用这个premaster_secret进行加密。因为这个premaster_secret完全由客户端来提供，完成没有服务端的相关信息的参与，因此客户端会利用premaster_secret生成master_secret，然后再用master_secret生成对称密钥算法、MAC 算法的密钥。</p>
+<blockquote>
+<p>master_secret =PRF(pre_master_secret, “master secret”, ClientHello.random +ServerHello.random)</p>
+</blockquote>
+<p>pre_master_secret就是我们之前传送的随机密码串，”mastersecret”是一串ASCII码，再加上之前提到的random1和random2。PRF是在规范中约定的伪随机函数，它将密钥、ASCII码标签、哈希值整合在一起。各有一半的参数分别使用MD5和SHA-1获取哈希值。这是一种十分明智的做法，即使是想要单单破解相对简单MD5和SHA-1也不是那么容易的事情。而且这个函数会将返回值传给自身直至迭代到我们需要的位数。关于PRF的具体细节问题</p>
+</li>
+</ol>
+<ol start="3">
+<li>客户端得到master_secret后，根据协议约定，我们需要利用PRF生成这个会话中所需要的各种密钥，称之为“密钥块”（key block），密钥块用于构成以下密钥：<br>client_write_MAC_secret、server_write_MAC_secret （MAC 算法的密钥）<br>client_write_key、server_write_key （对称算法密钥or会话密钥）<br>client_write_IV、server _write_IV （初始化向量，运用于分组对称加密，如果mode是CBC则需要这个值，这个后面降到算法那篇会重点介绍）<br>以上的6个密钥都是通过PRF运算出来的，具体的运算方法比较复杂，后面讲到算法那张会单独介绍。</li>
+</ol>
+<ol start="4">
+<li><p>至此，经过前几步客户端已经完成了相关密钥的生成。此时客户端通过证书中的服务端的公钥将premaster_secret加密后发给服务端，如下图报文中的Client Key Exchange，通过RSA非对称密钥算法利用数字证书中获得的公钥将premaster加密发给服务端。（这里是一个RSA作为密钥交换算法的报文，需要注意腾讯云我们从server-hello中就知道了腾讯云用了更为复杂的ECDHE_RSA算法用于密钥交换算法，所以我们在访问腾讯云的同样的报文中看到的EC Diffie-Hellman Client Params的算法。）</p>
+<p> <img src="/images/posts/20160606/https-tcp-client-key-exchanger.png" alt=""></p>
+</li>
+<li><p>在发送Client Key Exchange报文的同时，客户端还会回一个Change Cipher Spec的报文（如上图），意思就是通知服务端后续报文将采用协商好的密钥和加密套件进行加密和 MAC计算。</p>
+</li>
+</ol>
+<ol start="6">
+<li>最后，客户端计算已交互的握手消息（除 Change Cipher Spec 消息外所有已交互的消息）的 Hash值，通过前面生成的密钥client_write_MAC_secret对hash值进行加密得到MAC，并通过HandShake Messag报文发送给服务端（如上图）。</li>
+</ol>
+<ol start="7">
+<li>服务端此时会收到一个premaster_secret，以及一个客户端发来的MAC。利用Change Cipher Spec报文中协商好的密钥和算法，服务端也会计算出用于加密的数据的密钥以及MAC的加密密钥。此时服务端会用利用同样的方法计算已交互的握手消息的 Hash 值，并用client_write_MAC_secret解密客户端发来的MAC，两者进行比较，如果二者相同，且 MAC值验证成功，则证明服务端密钥交换协商成功。<br> <img src="/images/posts/20160606/https-tcp-secret-encrypted.png" alt=""></li>
+</ol>
+<ol start="8">
+<li>当服务端密钥交换协商成功的同时，会同样回客户端一个Change Cipher Spec报文（如上图），通知客户端后续报文将采用协商好的密钥和加密套件进行加密和 MAC计算。（注意，这个报文前面还有一个New Session Ticket的报文，这个是百度对于https的优化之一，后面会详细讲，在最为基础的https连接中是没有这个报文的。）</li>
+</ol>
+<ol start="9">
+<li>同样服务端也会计算已交互的握手消息的 Hash值，通过前面生成的密钥server_write_MAC_secret对hash值进行加密得到MAC，并通过HandShake Message报文（如上图）发送给客户端。</li>
+</ol>
+<ol start="10">
+<li>由于客户端在发送消息给服务端前就已经计算出了数据加密的对此密钥，因此只需要验证服务端返回的MAC即可，所以此时客户端端会用利用同样的方法计算已交互的握手消息的 Hash 值，并用server_write_MAC_secret解密服务端发来的MAC，两者进行比较，如果二者相同，且 MAC值验证成功，则证明客户端密钥交换协商成功。</li>
+</ol>
+<ol start="11">
+<li>至此，整个密钥交换的协商全部完成，开始传输应用层的数据。</li>
+</ol>
+<h4 id="7-数据传输"><a href="#7-数据传输" class="headerlink" title="7. 数据传输"></a>7. 数据传输</h4><p>经过之前6大步骤，SSL的连接建立完成，开始有客户端发起Application Data，实际上下图中的encrypted application data就是http协议的数据经过client_write_key、server_write_key进行加密后的传输，我们通过一些工具解密后，发现应用层实际就是标准的http协议，也就是说SSL实际上就是在http协议外面套了层壳</p>
+<p><img src="/images/posts/20160606/https-tcp-data-transport.png" alt=""></p>
+<p>请求链路分析文件（可直接通过wireshark打开）：<br><a href="http://pan.baidu.com/s/1hsi5U4W" target="_blank" rel="noopener">http://pan.baidu.com/s/1hsi5U4W</a></p>
+<h4 id="参考链接："><a href="#参考链接：" class="headerlink" title="参考链接："></a>参考链接：</h4><p><a href="http://www.jianshu.com/p/a766bbf31417" target="_blank" rel="noopener">http://www.jianshu.com/p/a766bbf31417</a></p>
+<p><a href="http://www.cnblogs.com/TankXiao/archive/2012/10/10/2711777.html" target="_blank" rel="noopener">http://www.cnblogs.com/TankXiao/archive/2012/10/10/2711777.html</a></p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Basic//" class="article-tag-list-link color1">Basic</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2016/06/06/Basic/2016-06-06-https-with-wireshark/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-Redis/2016-06-02-redis-conn-pool" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2016/06/02/Redis/2016-06-02-redis-conn-pool/">Redis连接池的相关问题分析与总结</a>
+    </h1>
+  
+
+        
+        <a href="/2016/06/02/Redis/2016-06-02-redis-conn-pool/" class="archive-article-date">
+  	<time datetime="2016-06-01T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2016-06-02</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <blockquote>
+<p>问题表象：服务端连接未释放</p>
+</blockquote>
+<blockquote>
+<p>问题背景：商品系统在运行过程中发生过一次Redis服务端连接数超限的问题。截图未保存，表现是：商品服务停掉，但RedisServer端看到的TCP连接任然存在，而且是 ESTABLISHED状态，导致的直接结果就是每次商品重启都会创建400个（minIdle=400）新的redis连接，而且停止的时候还不释放，重启几次之后RedisServer的连接就超过上限10000，无法再创建新的连接。</p>
+</blockquote>
+<h2 id="一、初步分析："><a href="#一、初步分析：" class="headerlink" title="一、初步分析："></a>一、初步分析：</h2><ul>
+<li>TCP是可靠协议，断开是需要经过4次挥手，既然服务端的连接未释放，那十之八九是客户端没有发送断开请求；</li>
+<li>即使客户端没有主动断开连接，但是这个连接实际上已经失效了，RedisServer为啥没有自动检测，而一直没有释放？</li>
+</ul>
+<h2 id="二、定位与排查过程："><a href="#二、定位与排查过程：" class="headerlink" title="二、定位与排查过程："></a>二、定位与排查过程：</h2><h3 id="问题一的分析："><a href="#问题一的分析：" class="headerlink" title="问题一的分析："></a>问题一的分析：</h3><p> 首先怀疑的点是商品在停止的时候没有释放Jedis的连接，所以赶紧把JedisCluster的代码看了，果然有个close方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">close</span><span class="params">()</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">  <span class="keyword">if</span> (connectionHandler != <span class="keyword">null</span>) &#123;</span><br><span class="line">    <span class="keyword">for</span> (JedisPool pool : connectionHandler.getNodes().values()) &#123;</span><br><span class="line">      <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (pool != <span class="keyword">null</span>) &#123;</span><br><span class="line">          pool.destroy();</span><br><span class="line">        &#125;</span><br><span class="line">      &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">        <span class="comment">// pass</span></span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>直接把这个方法注册到spring的destroy-method中：</p>
+<p>​<br>​<br>​<br>​<br>​<br>​<br>​<br>在性能测试环境上重新做下实现，发现此方法一直没有被调用，不解，看了下spring源码，调用destroy-method的触机有两个：</p>
+<ul>
+<li>显示的调用org.springframework.context.support.AbstractApplicationContext.close()方法；</li>
+<li>显示的调用org.springframework.context.support.AbstractApplicationContext.registerShutdownHook()，这样在程序正常停止的时候（kill，非kill -9 ）就可以触发shutdownHook的调用：</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">registerShutdownHook</span><span class="params">()</span> </span>&#123;</span><br><span class="line">   <span class="keyword">if</span> (<span class="keyword">this</span>.shutdownHook == <span class="keyword">null</span>) &#123;</span><br><span class="line">      <span class="comment">// No shutdown hook registered yet.</span></span><br><span class="line">      <span class="keyword">this</span>.shutdownHook = <span class="keyword">new</span> Thread() &#123;</span><br><span class="line">         <span class="meta">@Override</span></span><br><span class="line">         <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            doClose();</span><br><span class="line">         &#125;</span><br><span class="line">      &#125;;</span><br><span class="line">      Runtime.getRuntime().addShutdownHook(<span class="keyword">this</span>.shutdownHook);</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>check了我们的应用代码，这两个调用我们都没有做，所以如果需要触发Spring的destroy-method需要在想想办法。因为我们线上服务都是通过dubbo的Main启动，dubbo监管了Spring容器的生命周期管理，看看Dubbo的代码：(com.alibaba.dubbo.container.Main)</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span>(<span class="string">"true"</span>.equals(System.getProperty(<span class="string">"dubbo.shutdown.hook"</span>))) &#123;</span><br><span class="line">    Runtime.getRuntime().addShutdownHook(<span class="keyword">new</span> Thread() &#123;</span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            Iterator i$ = var8.iterator();</span><br><span class="line"></span><br><span class="line">            <span class="keyword">while</span>(i$.hasNext()) &#123;</span><br><span class="line">                Container container = (Container)i$.next();</span><br><span class="line"></span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    container.stop();</span><br><span class="line">                    Main.logger.info(<span class="string">"Dubbo "</span> + container.getClass().getSimpleName() + <span class="string">" stopped!"</span>);</span><br><span class="line">                &#125; <span class="keyword">catch</span> (Throwable var6) &#123;</span><br><span class="line">                    Main.logger.error(var6.getMessage(), var6);</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                Class t = Main.class;</span><br><span class="line">                <span class="keyword">synchronized</span>(Main.class) &#123;</span><br><span class="line">                    Main.running = <span class="keyword">false</span>;</span><br><span class="line">                    Main.class.notify();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里发现一段重要代码，如果应用启动的时候指定了-Ddubbo.shutdown.hook=true，就会注册一个钩子函数，在Jvm进程正常停止的时候回触发container.stop()，而这些container中有一个就是com.alibaba.dubbo.container.spring.SpringContainer</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SpringContainer</span> <span class="keyword">implements</span> <span class="title">Container</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Logger logger = LoggerFactory.getLogger(SpringContainer.class);</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String SPRING_CONFIG = <span class="string">"dubbo.spring.config"</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String DEFAULT_SPRING_CONFIG = <span class="string">"classpath*:META-INF/spring/*.xml"</span>;</span><br><span class="line">    <span class="keyword">static</span> ClassPathXmlApplicationContext context;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">SpringContainer</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> ClassPathXmlApplicationContext <span class="title">getContext</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> context;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">start</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        String configPath = ConfigUtils.getProperty(<span class="string">"dubbo.spring.config"</span>);</span><br><span class="line">        <span class="keyword">if</span>(configPath == <span class="keyword">null</span> || configPath.length() == <span class="number">0</span>) &#123;</span><br><span class="line">            configPath = <span class="string">"classpath*:META-INF/spring/*.xml"</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        context = <span class="keyword">new</span> ClassPathXmlApplicationContext(configPath.split(<span class="string">"[,\s]+"</span>));</span><br><span class="line">        context.start();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">stop</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">if</span>(context != <span class="keyword">null</span>) &#123;</span><br><span class="line">                context.stop();</span><br><span class="line">                context.close();</span><br><span class="line">                context = <span class="keyword">null</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Throwable var2) &#123;</span><br><span class="line">            logger.error(var2.getMessage(), var2);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>springContainer的stop方法就是调用spring-context的close方法，最终会遍历每个bean的destroy-method。找打原因之后修改我们的启动脚本，加上参数：-Ddubbo.shutdown.hook=true，再次实验发现连接正常释放了，至此第一个问题的解决方案找到了，但是根本原因还没有找到，接下来通过抓包方式看能不能发现什么原因。</p>
+<blockquote>
+<p>Redis客户端断开连接，服务端连接未释放的根本原因分析：</p>
+</blockquote>
+<p>这里选用了常用的抓包工具，tcpdump + wireshark（wireshark默认不支持redis协议，网上找了下，github上刚好有个同学共享了一个redis的协议解析插件：<a href="http://blog.cheyo.net/257.html" target="_blank" rel="noopener">http://blog.cheyo.net/257.html</a>，????）选用性能环境测试，在性能环境的RedisServer上抓包，同时监控RedisServier的连接数。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">tcpdump -nnnvvv -s0 -X port 6379 and host 10.163.242.152 -i eth0 -w xxx.wap</span><br><span class="line"> netstat -anp |grep ’10.163.242.152’ | wc -l</span><br></pre></td></tr></table></figure>
+<p>然后启动商品服务和停止商品服务，抓包观察。</p>
+<p>我在做实现的时候搞个两个JedisCuster实例，每个实例的初始连接数（minIdle）都是1，有个实例注册了destroy-method，另一个实例未注册。</p>
+<ol>
+<li>第一个网络包是商品服务的启动过程，6个TCP包，报内容就是简单的TCP3次握手，创建了2个TCP链接</li>
+</ol>
+<p><img src="https://gw.alipayobjects.com/zos/skylark/e83ac639-7c60-469a-8afa-96bc5718fb9f/2018/png/e5579d08-d8f9-45bd-bea9-2fdc7c3998e0.png" alt=""></p>
+<ol start="2">
+<li>第二个网络包是商品服务的停止过程，这里有看出区别了：第一个JedisCluster实例在结束的时候调用close命令，向RedisServe端发送了Quit指令，RedisServer返回OK。然后RedisServer主动发送FIN包，请求关闭连接，客户端ACK响应，然后客户端直接发送RST中断连接，这确保了服务端RedisServer可以断开连接。另一个JedisClsuter就直接给RedisServer发送一个RST，然后就没了。</li>
+</ol>
+<p><img src="https://gw.alipayobjects.com/zos/skylark/c371065a-7854-4479-b949-0de42a46ec54/2018/png/398cf6c3-e256-4025-9f3e-8a1a4a07385c.png" alt=""></p>
+<p> 这里面有两个疑问？</p>
+<p>(1). 为什么客户端没有遵循TCP的4次回收规范直接发送RST包中断连接？</p>
+<p>(2).我们线上这么长时间都没有配置JedisCluster的close函数，启动脚本也没有配置-Ddubbo.shutdown.hook=true，为啥到现在也发现大问题，除了商品系统触发了？</p>
+<p>先解答(2)的问题，我通过几次实现，发现即使我们什么都不做，直接停止服务，甚至kill -9 JVM线程，Client也会向RedisServer发送RST请求（我猜是OS自己做的，但具体没有再深入，有时间再看），但是并不是每次都发，会偶发性的丢包，一旦丢包，RedisServer就SB了，Client端私自把连接关闭了，然Server端却不知道，所以连接一直保持。</p>
+<p>kill -9的网络包:</p>
+<p><img src="https://gw.alipayobjects.com/zos/skylark/6e148bf3-cf0e-448c-9d80-a5d7eaaae54b/2018/png/363b4efc-3011-4ff8-bf9f-5e81f316e7c3.png" alt=""></p>
+<p>再看(1)的问题，为啥调用close的情况下Client还是给Server端返回RST包呢。查看了JedisCluser的源码，找到了原因：</p>
+<p>redis.clients.jedis.Connection#connect</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">socket = <span class="keyword">new</span> Socket();</span><br><span class="line"><span class="comment">// -&gt;@wjw_add</span></span><br><span class="line">socket.setReuseAddress(<span class="keyword">true</span>);</span><br><span class="line">socket.setKeepAlive(<span class="keyword">true</span>); <span class="comment">// Will monitor the TCP connection is</span></span><br><span class="line"><span class="comment">// valid</span></span><br><span class="line">socket.setTcpNoDelay(<span class="keyword">true</span>); <span class="comment">// Socket buffer Whetherclosed, to</span></span><br><span class="line"><span class="comment">// ensure timely delivery of data</span></span><br><span class="line">socket.setSoLinger(<span class="keyword">true</span>, <span class="number">0</span>); <span class="comment">// Control calls close () method,</span></span><br><span class="line"><span class="comment">// the underlying socket is closed</span></span><br><span class="line"><span class="comment">// immediately</span></span><br><span class="line"><span class="comment">// &lt;-@wjw_add</span></span><br></pre></td></tr></table></figure>
+<p>Jedis在创建Socket连接的时候配置了一个参数：socket.setSoLinger(true, 0); 这个参数的作用就是：在此socket调用close方法的时候不发送FIN包，而是直接发送RST包。</p>
+<p>为什么Jedis要特意这么做呢？</p>
+<p>简单来说就是TCP是一个可靠消息，而且TCP的4次挥手过程中存在一个半关闭状态，过程比较纠结：</p>
+<blockquote>
+<p>『假设Client端发起中断连接请求，也就是发送FIN报文。Server端接到FIN报文后，意思是说“我Client端没有数据要发给你了“，但是如果你还有数据没有发送完成，则不必急着关闭Socket，可以继续发送数据。所以你先发送ACK，“告诉Client端，你的请求我收到了，但是我还没准备好，请继续你等我的消息“。这个时候Client端就进入FIN_WAIT状态，继续等待Server端的FIN报文。当Server端确定数据已发送完成，则向Client端发送FIN报文，“告诉Client端，好了，我这边数据发完了，准备好关闭连接了“。Client端收到FIN报文后，“就知道可以关闭连接了，但是他还是不相信网络，怕Server端不知道要关闭，所以发送ACK后进入TIME_WAIT状态，如果Server端没有收到ACK则可以重传。“，Server端收到ACK后，“就知道可以断开连接了“。Client端等待了2MSL后依然没有收到回复，则证明Server端已正常关闭，那好，我Client端也可以关闭连接了。Ok，TCP连接就这样关闭了！』</p>
+</blockquote>
+<p>TCP建立连接与释放链接的流程：</p>
+<p><img src="https://gw.alipayobjects.com/zos/skylark/871df9be-0d09-4449-a858-b302159aeff2/2018/png/d4bf9da8-6201-40a4-82a8-34bf4c97c39d.png" alt=""></p>
+<p><strong>总结：</strong><br>​<br>     一句话，就是TCP的正常关闭比较磨叽，而且会导致大量存在TIME-WAIT状态的连接。相对来说RST包就比较粗暴，直接告诉你『我要关闭连接了，老子不给你发数据，也不接收你的数据，你看着办吧』，然后自己就GG了。所以看Jedis的注释：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">Control calls <span class="title">close</span> <span class="params">()</span> method,</span></span><br><span class="line"><span class="function"><span class="comment">// the underlying socket is closed</span></span></span><br><span class="line"><span class="function"><span class="comment">// immediately</span></span></span><br></pre></td></tr></table></figure>
+<p> 关于RST的这个问题大家可以参考一下两个文章：</p>
+<p><a href="http://xiaoz5919.iteye.com/blog/1685138" target="_blank" rel="noopener">http://xiaoz5919.iteye.com/blog/1685138</a>（看评论）</p>
+<p><a href="http://docs.oracle.com/javase/1.5.0/docs/guide/net/articles/connection](http://docs.oracle.com/javase/1.5.0/docs/guide/net/articles/connection)（解释的很好，建议深读）" target="_blank" rel="noopener">http://docs.oracle.com/javase/1.5.0/docs/guide/net/articles/connection](http://docs.oracle.com/javase/1.5.0/docs/guide/net/articles/connection)（解释的很好，建议深读）</a></p>
+<pre><code>至此第一个问题『因为TCP是可靠协议，断开是需要经过4次挥手，既然服务端的连接未释放，那十之八九是客户端没有发送断开请求』的根本原因基本调查清楚了，解决方案是在JVM加上启动参数：Ddubbo.shutdown.hook=true
+</code></pre><h3 id="问题二的分析："><a href="#问题二的分析：" class="headerlink" title="问题二的分析："></a>问题二的分析：</h3><p>接下来再看第二个问题『即使客户端没有主动断开连接，但是这个连接实际上已经失效了，RedisServer为啥没有自动检测，而一直没有释放？』，而且第二个问题还引发了上周我们线上的另一个问题。</p>
+<p>  在商品系统出现连接未释放的问题之后，我紧急求救了啊泉，啊泉凭靠自身多年的运维经验很快反应这是RedisServe的一个配置的问题：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># Close the connection after a client is idle for N seconds (0 to disable)</span><br><span class="line">timeout <span class="number">0</span></span><br></pre></td></tr></table></figure>
+<p>这个配置的意思是：RedisServer会自动关闭超过N seconds时间的idel连接，如果配置0那就是用不关闭。（我们现在所有的集群都是默认0）。啊泉当机立断，改成600。过了一会，Server端连接全部释放，应用恢复正常。</p>
+<p>本来故事当这里就应圆满结束了，然后面几周却不消停，最初从财务系统开始，到订单系统、积分系统都开始偶发性报Jedis错误：   </p>
+<p><img src="https://gw.alipayobjects.com/zos/skylark/5d473e6b-6c35-4da3-9b34-16e253bea9b4/2018/png/94eb98c1-e1b2-426d-9a4a-ee38ce3aa64f.png" alt=""></p>
+<p>还有商品系统一天到晚都偶发性报错：（部分原因可能是mget的原因)</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">redis.clients.jedis.exceptions.JedisClusterMaxRedirectionsException: Too many Cluster redirections?</span><br></pre></td></tr></table></figure>
+<p>我们Check了下财务、订单、积分公用的Redis集群，除了内存使用量增长之外（单机超过1.3G），其他并无任何异常，初步猜想『这个Redis集群撑不住了』？拆，第二天就把购物车的Redis-DB拆出来了，但是错误依旧。难道还是内存的问题，当晚又把新的Redis-DB的key清理了下，把不用的key全删了，把使用内存降到350M左右。</p>
+<p>公共Redis-DB的内存：</p>
+<p><img src="https://gw.alipayobjects.com/zos/skylark/9bad20ef-a810-4977-96ab-ec29b47791cf/2018/png/87ba7148-e01a-4fe0-bd05-95e17cbab107.png" alt=""></p>
+<p>购物车的Redis-DB的内存：</p>
+<p><img src="https://gw.alipayobjects.com/zos/skylark/0de79097-cb5a-4be1-a347-cc768552f1e8/2018/png/be1e459a-944e-4044-bb7a-bec234f052bc.png" alt=""></p>
+<p> 然降了内存之后错误依旧，SB了。中间翔把jedis的连接超时和请求超时时间都配置成20s，ms也解决了问题。但是我们讨论下来，这不是一个好的解决方案，这是饮鸩止渴的法子。我们需要从源头找问题，通过翻查资料和源码，初步判断是Client和Server的连接出了问题，感觉像是Jedis用了一个坏的连接去请求数据，然后Server端异常返回。Jedis官方有个贴了很详细的讨论了这个问题：</p>
+<p><a href="https://github.com/xetorthio/jedis/issues/965" target="_blank" rel="noopener">https://github.com/xetorthio/jedis/issues/965</a>。这篇文章很长，结论就是这个问题一般是RedisServer的连接坏了引发了的，坏了有几种可能：1. 网络抖动，连接失效。2. RedisServer这端主动关闭了，然Client端不知道（网络丢包）。所以解决方案有两个：</p>
+<ol>
+<li><p>RedisServer端配置timeout = 0，用不释放连接；</p>
+</li>
+<li><p>Client需要定时检测和清理死链；</p>
+</li>
+</ol>
+<p>我们目前采用的解决方式是1，2都用了（2是最优解，因为网络环境相对复杂，网络断开的情况时有发生，所以客户端需要有检测死链的机制）。1的相关配置如下，主要有两个重要参数：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> JedisPoolConfig <span class="title">getJedisPoolConfig</span><span class="params">(<span class="keyword">int</span> redisMaxTotal, <span class="keyword">int</span> redisMinIdle, <span class="keyword">int</span> redisMaxWaitTime, <span class="keyword">int</span> redisMaxIdle, <span class="keyword">boolean</span> redisTestOnBorrow)</span> </span>&#123;</span><br><span class="line">    JedisPoolConfig poolConfig = <span class="keyword">new</span> JedisPoolConfig();</span><br><span class="line">    <span class="comment">//最大连接数, 默认20个</span></span><br><span class="line">    poolConfig.setMaxTotal(redisMaxTotal);</span><br><span class="line">    <span class="comment">//最小空闲连接数, 默认0</span></span><br><span class="line">    poolConfig.setMinIdle(redisMinIdle);</span><br><span class="line">    <span class="comment">//获取连接时的最大等待毫秒数(如果设置为阻塞时BlockWhenExhausted), 如果超时就抛异常, 小于零:阻塞不确定的时间, 默认 - 1</span></span><br><span class="line">    poolConfig.setMaxWaitMillis(redisMaxWaitTime);</span><br><span class="line">    <span class="comment">//最大空闲连接数, 默认20个</span></span><br><span class="line">    poolConfig.setMaxIdle(redisMaxIdle);</span><br><span class="line">    <span class="comment">//在获取连接的时候检查有效性, 默认false</span></span><br><span class="line">    poolConfig.setTestOnBorrow(redisTestOnBorrow);</span><br><span class="line">    poolConfig.setTestOnReturn(Boolean.FALSE);</span><br><span class="line">    <span class="comment">//在空闲时检查有效性, 默认false</span></span><br><span class="line">    poolConfig.setTestWhileIdle(Boolean.TRUE);</span><br><span class="line">    <span class="comment">//逐出连接的最小空闲时间 默认1800000毫秒(30分钟)</span></span><br><span class="line">    poolConfig.setMinEvictableIdleTimeMillis(<span class="number">1800000</span>);</span><br><span class="line">    <span class="comment">//每次逐出检查时 逐出的最大数目 如果为负数就是: idleObjects.size / abs(n), 默认3</span></span><br><span class="line">    poolConfig.setNumTestsPerEvictionRun(<span class="number">3</span>);</span><br><span class="line">    <span class="comment">//对象空闲多久后逐出, 当空闲时间 &gt; 该值 且 空闲连接&gt;最大空闲数 时直接逐出, 不再根据MinEvictableIdleTimeMillis判断 (默认逐出策略)</span></span><br><span class="line">    poolConfig.setSoftMinEvictableIdleTimeMillis(<span class="number">1800000</span>);</span><br><span class="line">    <span class="comment">//逐出扫描的时间间隔(毫秒) 如果为负数, 则不运行逐出线程, 默认 - 1</span></span><br><span class="line">    poolConfig.setTimeBetweenEvictionRunsMillis(<span class="number">60000</span>);</span><br><span class="line">    <span class="keyword">return</span> poolConfig;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>配置这两个参数之后问题解决，且商品也不报错了，至此这两个问题算是解决了。</p>
+<h2 id="问题总结："><a href="#问题总结：" class="headerlink" title="问题总结："></a>问题总结：</h2><p>客户端与服务端之间的连接问题，可能存在客户端断开了连接服务端不知晓、服务端断开了连接客户端不知晓，为了解决这两个问题，需要做的就是服务端和客户端定期检查，客户端通过setTestWhileIdle(Boolean.True)、setTimeBetweenEvictionRunsMillis(xxx) 来定期检查方式死链；服务端通过设置超时时间来做到检查连接的问题。</p>
+<p>后续：昨晚看VIP的运维分享，他们不建议RedisServer端的timeout配置成0，同样一个原因，网络异常的情况不可避免（或者应用端Kill -9），所以Server端同样需要有检查和清理死链的能力。</p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Redis//" class="article-tag-list-link color1">Redis</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2016/06/02/Redis/2016-06-02-redis-conn-pool/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
   
     <nav id="page-nav">
       <a class="extend prev" rel="prev" href="/page/5/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/4/">4</a><a class="page-number" href="/page/5/">5</a><span class="page-number current">6</span><a class="page-number" href="/page/7/">7</a><a class="page-number" href="/page/8/">8</a><span class="space">&hellip;</span><a class="page-number" href="/page/10/">10</a><a class="extend next" rel="next" href="/page/7/">Next &raquo;</a>
@@ -1162,6 +1368,46 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
             <input type="checkbox" q-on="click:toggleTag(e)" q-attr="checked:showTags">
           </label>
           <ul class="article-tag-list" q-show="showTags">
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">共享变量</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">缓存</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">架构</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">可视化</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">AHAS</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">目标</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">人生</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">感悟</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">问题定位</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">稳定性</a>
+              </li>
             
             <div class="clearfix"></div>
           </ul>
