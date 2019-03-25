@@ -1,1 +1,1 @@
-hexo clean && yuque-hexo clean && yuque-hexo sync && hexo g && hexo d 
+hexo clean && hexo g && hexo d 

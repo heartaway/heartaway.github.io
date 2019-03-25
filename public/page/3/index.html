@@ -149,6 +149,412 @@
           <div id="js-content" class="content-ll">
             
   
+    <article id="post-Program/2017-12-07-architecture-design-rule" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/12/07/Program/2017-12-07-architecture-design-rule/">应用架构设计原则</a>
+    </h1>
+  
+
+        
+        <a href="/2017/12/07/Program/2017-12-07-architecture-design-rule/" class="archive-article-date">
+  	<time datetime="2017-12-06T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2017-12-07</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>软件系统架构设计原则就是把我们在各种场景下的架构设计进行抽选化提取公共特征形成过一定的方法论，这些方法论是经过严格推敲并具备移植性的，我们在设计系统时遵从这些设计规则可以为我们的体统提供更高的扩展性、稳定性。</p>
+<h2 id="抽象原则"><a href="#抽象原则" class="headerlink" title="抽象原则"></a>抽象原则</h2><p>各平台(含基础设施、中间件技术服务、各层业务服务等)需要通过合理地抽象，将内部信息、处理与扩展能力聚合成标准的服务于扩展接口，并通过统一的形式提供给使用者，屏蔽内部的实现与运行细节。</p>
+<p>以下是一些符合抽象原则的架构规范或模式：<br>架构分层(layer)/级(tier)，层、级间提供标准服务与数据接口<br>根据业务模型，统一服务标准与数据标准<br>使用服务目录屏蔽服务位置等实现细节<br>使用“逻辑库”屏蔽数据库物理细节<br>通过SLA，标准化服务的质量水平<br>提供标准插件架构支持扩展<br>使用标准数据库特性，保持厂商无关性<br>使用逻辑的网络与系统名称<br>使用商品化硬件单元</p>
+<h2 id="共享原则"><a href="#共享原则" class="headerlink" title="共享原则"></a>共享原则</h2><p>最大化重用数据、计算资源、业务组件等资产，防止数据、逻辑与技术实现不一致性带来的管理复杂性，避免重复建设成本与管理成本，通过安全机制保证共享资产的合法使用，通过业务分级保障共享资源效益最大化。<br>以下是一些符合共享原则的架构规范或模式：</p>
+<ul>
+<li>同一业务服务有唯一提供者</li>
+<li>同一技术服务有唯一提供者</li>
+<li>同一数据有唯一可信源</li>
+<li>控制技术多样性 (但需要同时防止厂商绑定)</li>
+<li>服务具备互操作性</li>
+<li>服务具备易用性</li>
+<li>统一的身份、访问控制与加解密机制</li>
+<li>为共享服务提供多租户能力 (Multi-tenancy)</li>
+<li>提供访问计量与控制能力</li>
+<li>提供业务分级能力，对不同级别的业务提供区分服务</li>
+</ul>
+<h2 id="自治原则"><a href="#自治原则" class="headerlink" title="自治原则"></a>自治原则</h2><p>每一个组件（计算资源、业务组件、信息实体等）具备最大可能的自我完备性，可独立运行、监控、部署、配置与禁用，具备确定的SLA，并与其它组件之间以松散耦合的方式进行协作。当依赖的组件不存在或者无法正常提供服务时，能够以良好的方式降级，且在故障解除后自动恢复。<br>以下是一些符合自治原则的架构规范或模式：</p>
+<ul>
+<li>基于开-闭原则(OCP)设计组件</li>
+<li>应用无启动依赖</li>
+<li>最小化运行依赖集</li>
+<li>根据运行依赖关系合理安排组件物理colocation</li>
+<li>能够隔离依赖组件的故障</li>
+<li>异步调用 (提升异常流量的承载能力，简化故障隔离的实现)</li>
+<li>具备自我健康检查能力</li>
+<li>具备自我恢复能力</li>
+<li>无状态设计</li>
+</ul>
+<h2 id="冗余原则"><a href="#冗余原则" class="headerlink" title="冗余原则"></a>冗余原则</h2><p>各组件（计算资源、业务组件、数据等）都必须有充分、合理的冗余实例，保证单一组件实例失效不影响业务正常运行（多活/热备），或可以通过切换备份实例快速恢复（温备/冷备），不会丢失不可恢复的数据。针对不同类型的组件，需要明确定义冗余量与冗余类型。<br>以下是一些符合冗余原则的架构规范或模式：</p>
+<ul>
+<li>高可用水平扩展服务器集群（负载均衡、健康检查与自动切换）</li>
+<li>无单点设计 (含逻辑单点)</li>
+<li>采用“随机写”策略的数据库水平拆分</li>
+<li>Failover数据库</li>
+<li>N+1或N+x设计</li>
+<li>“多活”数据中心</li>
+<li>数据复制</li>
+<li>灾难备份</li>
+</ul>
+<h2 id="分布原则"><a href="#分布原则" class="headerlink" title="分布原则"></a>分布原则</h2><p>整个系统拆分成职责清晰、粒度恰当、便于管理的组件，各组件（计算资源、业务组件、数据等）可分布部署运行。组件的拆分与分布可以采取复制、根据功能垂直拆分、或根据用户与访问模式水平拆分等形式。<br>以下是一些符合分布原则的架构规范或模式：</p>
+<ul>
+<li>读写分离设计</li>
+<li>垂直分拆</li>
+<li>水平分拆</li>
+<li>柔性的分布事务</li>
+</ul>
+<h2 id="自动原则"><a href="#自动原则" class="headerlink" title="自动原则"></a>自动原则</h2><p>系统设计了具备自监控、自管理、自适应与自优化能力，可以随着业务量与访问模式的变化、以及其它内、外部因素的改变，自动地对资源进行调度、调整服务策略，保障自身的稳定与服务的质量。<br>以下是一些符合自动原则的架构规范或模式：</p>
+<ul>
+<li>监控每一个服务的质量与资源的状态与报警</li>
+<li>从客户视角监控最终服务的质量</li>
+<li>统一、自动的错误报告、管理与响应</li>
+<li>提供完备的配置能力</li>
+<li>自动化系统安装</li>
+<li>自动化应用部署</li>
+<li>自动化资源分配</li>
+<li>可以mark up/mark down服务</li>
+<li>支持优雅降级</li>
+<li>自动拒绝超出SLA之外异常流量</li>
+</ul>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Program//" class="article-tag-list-link color3">Program</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2017/12/07/Program/2017-12-07-architecture-design-rule/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-Think/2017-11-24-how-to-study" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/11/24/Think/2017-11-24-how-to-study/">如何进行高效学习</a>
+    </h1>
+  
+
+        
+        <a href="/2017/11/24/Think/2017-11-24-how-to-study/" class="archive-article-date">
+  	<time datetime="2017-11-23T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2017-11-24</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <ul>
+<li><img src="/slides/how-to-study/01.jpg" alt=""></li>
+<li><img src="/slides/how-to-study/02.jpg" alt=""></li>
+<li><img src="/slides/how-to-study/03.jpg" alt=""></li>
+<li><img src="/slides/how-to-study/04.jpg" alt=""></li>
+<li><img src="/slides/how-to-study/05.jpg" alt=""></li>
+<li><img src="/slides/how-to-study/06.jpg" alt=""></li>
+<li><img src="/slides/how-to-study/07.jpg" alt=""></li>
+<li><img src="/slides/how-to-study/08.jpg" alt=""></li>
+<li><img src="/slides/how-to-study/09.jpg" alt=""></li>
+<li><img src="/slides/how-to-study/10.jpg" alt=""></li>
+<li><img src="/slides/how-to-study/11.jpg" alt=""></li>
+<li><img src="/slides/how-to-study/12.jpg" alt=""></li>
+<li><img src="/slides/how-to-study/13.jpg" alt=""></li>
+<li><img src="/slides/how-to-study/14.jpg" alt=""></li>
+<li><img src="/slides/how-to-study/15.jpg" alt=""></li>
+<li><img src="/slides/how-to-study/16.jpg" alt=""></li>
+<li><img src="/slides/how-to-study/17.jpg" alt=""></li>
+<li><img src="/slides/how-to-study/18.jpg" alt=""></li>
+<li><img src="/slides/how-to-study/19.jpg" alt=""></li>
+<li><img src="/slides/how-to-study/20.jpg" alt=""></li>
+</ul>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Think//" class="article-tag-list-link color1">Think</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2017/11/24/Think/2017-11-24-how-to-study/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-Java/2017-10-20-message-string-byte" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/10/20/Java/2017-10-20-message-string-byte/">消息收发中的中文乱码</a>
+    </h1>
+  
+
+        
+        <a href="/2017/10/20/Java/2017-10-20-message-string-byte/" class="archive-article-date">
+  	<time datetime="2017-10-19T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2017-10-20</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <blockquote>
+<p>背景：<br>A发消息给B系统，A、B应用的编码均为UTF-8，但是B收到的消息出现中文乱码。</p>
+</blockquote>
+<p>A发送消息的方式：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">new</span> Message(TOPIC, TAG, <span class="keyword">null</span>,          (messageContent.toString()).getBytes())</span><br></pre></td></tr></table></figure>
+<p>这里消息接受二进制byte数据，我们把消息string转换为byte的时候，默认使用了getBytes()，未指定编码方式，getBytes()方法的注释如下：</p>
+<p>Encodes this {@code String} into a sequence of bytes using the<br> platform’s default charset, storing the result into a new byte array.</p>
+<p>也就是会使用平台默认编码，查看StringCoding.encode方法中的Charset.defaultCharset().name()方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">  * Returns the default charset of this Java virtual machine.</span></span><br><span class="line"><span class="comment">  *</span></span><br><span class="line"><span class="comment">  * &lt;p&gt; The default charset is determined during virtual-machine startup and</span></span><br><span class="line"><span class="comment">  * typically depends upon the locale and charset of the underlying</span></span><br><span class="line"><span class="comment">  * operating system.</span></span><br><span class="line"><span class="comment">  *</span></span><br><span class="line"><span class="comment">  * <span class="doctag">@return</span>  A charset object for the default charset</span></span><br><span class="line"><span class="comment">  *</span></span><br><span class="line"><span class="comment">  * <span class="doctag">@since</span> 1.5</span></span><br><span class="line"><span class="comment">  */</span></span><br><span class="line"> <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Charset <span class="title">defaultCharset</span><span class="params">()</span> </span>&#123;</span><br><span class="line">     <span class="keyword">if</span> (defaultCharset == <span class="keyword">null</span>) &#123;</span><br><span class="line">         <span class="keyword">synchronized</span> (Charset.class) &#123;</span><br><span class="line">             String csn = AccessController.doPrivileged(</span><br><span class="line">                 <span class="keyword">new</span> GetPropertyAction(<span class="string">"file.encoding"</span>));</span><br><span class="line">             Charset cs = lookup(csn);</span><br><span class="line">             <span class="keyword">if</span> (cs != <span class="keyword">null</span>)</span><br><span class="line">                 defaultCharset = cs;</span><br><span class="line">             <span class="keyword">else</span></span><br><span class="line">                 defaultCharset = forName(<span class="string">"UTF-8"</span>);</span><br><span class="line">         &#125;</span><br><span class="line">     &#125;</span><br><span class="line">     <span class="keyword">return</span> defaultCharset;</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+<p>注释的很清楚了，返回JVM默认的字符编码，如果在jvm启动参数中指定了-Dfile.encoding 编码，则优先使用此编码，如果未指定，则使用UTF-8编码；</p>
+<p>登录服务器查看启动参数，发现A应用进程中指定了-Dfile.encoding=GB18030</p>
+<p><img src="/images/posts/20171020/15084809508975.jpg" alt=""></p>
+<p>示意图如下：<br><img src="/images/posts/20171020/15084807485727.jpg" alt=""></p>
+<p>总结：<br>在进行string与byte转换的时候，最好使用getBytes(String charsetName)方法，明确指定字符编码方式，最好编写一个编码转换的工具类，统一类型转换时的编码方式。</p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2017/10/20/Java/2017-10-20-message-string-byte/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-Java/2017-09-21-phantomjs-use" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/09/21/Java/2017-09-21-phantomjs-use/">Capture Html Content After Render</a>
+    </h1>
+  
+
+        
+        <a href="/2017/09/21/Java/2017-09-21-phantomjs-use/" class="archive-article-date">
+  	<time datetime="2017-09-20T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2017-09-21</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>在前端技术越来越注重用户体验的潮流下，异步数据渲染组件成为主流，但是异步渲染给爬虫和相关需要使用页面异步渲染后Dom结构的需求来说，变得很麻烦。要想获取渲染后的页面内容，常见的方法有：</p>
+<ol>
+<li>使用类似于PhantomJS的Headless浏览器，模拟页面渲染，获取页面HTML；</li>
+<li>分析Ajax请求，获取请求后的数据。</li>
+</ol>
+<p>对于千变万化的页面结构来说，第一种方法更具备通用性，首选需要安装PhantomJS，然后编写js脚本，最后就是运行脚本获取结果啦。</p>
+<p>比如我编写了一个loadPage.js,用于支持页面截图或者页面渲染后的HTML结构获取：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> args = require(<span class="string">'system'</span>).args;</span><br><span class="line"><span class="keyword">var</span> page = require(<span class="string">'webpage'</span>).create();</span><br><span class="line"><span class="keyword">var</span> fs = require(<span class="string">'fs'</span>);</span><br><span class="line"><span class="keyword">var</span> url;</span><br><span class="line"><span class="keyword">var</span> fileName = <span class="string">""</span>;</span><br><span class="line"><span class="keyword">var</span> cookieJson = <span class="string">""</span>;</span><br><span class="line"><span class="keyword">var</span> type = <span class="string">"html"</span>;</span><br><span class="line"><span class="keyword">var</span> viewWidth = <span class="number">1024</span>;</span><br><span class="line"><span class="keyword">var</span> viewHeight = <span class="number">768</span>;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">args.forEach(function(arg, i) &#123;</span><br><span class="line">    <span class="keyword">if</span>(i === <span class="number">1</span>)&#123;</span><br><span class="line">      url = arg;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>(i === <span class="number">2</span>)&#123;</span><br><span class="line">      type = arg;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">     <span class="keyword">if</span>(i === <span class="number">3</span>)&#123;</span><br><span class="line">      fileName = arg;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>(i === <span class="number">4</span>)&#123;</span><br><span class="line">      cookieJson = arg;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>(i === <span class="number">5</span>)&#123;</span><br><span class="line">      viewWidth = arg;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>(i === <span class="number">6</span>)&#123;</span><br><span class="line">      viewHeight = arg;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">page.viewportSize = &#123; width: viewWidth, height:viewHeight &#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span>(cookieJson != <span class="keyword">null</span> &amp;&amp; cookieJson != <span class="string">""</span>)&#123;</span><br><span class="line">    <span class="keyword">var</span> cookieArray =  JSON.parse(cookieJson);</span><br><span class="line">      <span class="keyword">for</span> (<span class="keyword">var</span> i = <span class="number">0</span>; i &lt; cookieArray.length; i++) &#123;</span><br><span class="line">          <span class="keyword">var</span> cookieObj = cookieArray[i];</span><br><span class="line">          <span class="keyword">var</span> cookie = &#123;</span><br><span class="line">            <span class="string">'name'</span>     : cookieObj.name,</span><br><span class="line">            <span class="string">'value'</span>    : cookieObj.value,</span><br><span class="line">            <span class="string">'path'</span>     : cookieObj.path,</span><br><span class="line">            <span class="string">'domain'</span>   : cookieObj.domain,</span><br><span class="line">            <span class="string">'expires'</span>  : cookieObj.expires</span><br><span class="line">          &#125;;</span><br><span class="line">        phantom.addCookie(cookie);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">page.onError = function(msg, trace) &#123;</span><br><span class="line">    console.log(<span class="string">"[Warning]This is page.onError"</span>);</span><br><span class="line">    <span class="keyword">var</span> msgStack = [<span class="string">'ERROR: '</span> + msg];</span><br><span class="line">    <span class="keyword">if</span> (trace &amp;&amp; trace.length) &#123;</span><br><span class="line">        msgStack.push(<span class="string">'TRACE:'</span>);</span><br><span class="line">        trace.forEach(function(t) &#123;</span><br><span class="line">          msgStack.push(<span class="string">' -&gt; '</span> + t.file + <span class="string">': '</span> + t.line + (t.function ? <span class="string">' (in function "'</span> + t.function +<span class="string">'")'</span> : <span class="string">''</span>));</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// console.error(msgStack.join('\n'));</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">phantom.onError = function(msg, trace) &#123;</span><br><span class="line">    console.log(<span class="string">"[Warning]This is phantom.onError"</span>);</span><br><span class="line">    <span class="keyword">var</span> msgStack = [<span class="string">'PHANTOM ERROR: '</span> + msg];</span><br><span class="line">    <span class="keyword">if</span> (trace &amp;&amp; trace.length) &#123;</span><br><span class="line">      msgStack.push(<span class="string">'TRACE:'</span>);</span><br><span class="line">      trace.forEach(function(t) &#123;</span><br><span class="line">        msgStack.push(<span class="string">' -&gt; '</span> + (t.file || t.sourceURL) + <span class="string">': '</span> + t.line + (t.function ? <span class="string">' (in function '</span> + t.function +<span class="string">')'</span> : <span class="string">''</span>));</span><br><span class="line">      &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">      console.error(msgStack.join(<span class="string">'\n'</span>));</span><br><span class="line">      phantom.exit(<span class="number">1</span>);</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">page.onLoadFinished = function() &#123;</span><br><span class="line">   setTimeout(function()&#123;</span><br><span class="line">      <span class="keyword">if</span>(type == <span class="string">"image"</span>)&#123;</span><br><span class="line">        page.render(fileName,&#123;format: <span class="string">'jpg'</span>, quality: <span class="string">'100'</span>&#125;);</span><br><span class="line">        console.log(<span class="string">"render page finished: "</span> + url);</span><br><span class="line">      &#125;</span><br><span class="line">       </span><br><span class="line">      <span class="keyword">if</span>(type == <span class="string">"html"</span>)&#123;</span><br><span class="line">         fs.write(fileName, page.content, <span class="string">'w'</span>);</span><br><span class="line">         console.log(<span class="string">"page html gen success: "</span> + url);</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      phantom.exit();         </span><br><span class="line">   &#125;,<span class="number">5000</span>);</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">page.open(url, function (status) &#123;</span><br><span class="line">    <span class="keyword">if</span> (status === <span class="string">"success"</span>) &#123;</span><br><span class="line">        console.log(<span class="string">"load status: "</span> + status);</span><br><span class="line">    &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">        phantom.exit();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>服务端通过Process类调用Linux中的shell脚本，运行截图或者页面渲染服务，然后把获取到的结果存储到文件存储系统中，返回文件存储的地址URL给业务方，业务方通过URL访问原始数据，减少网络数据传输。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">String type = <span class="string">"html"</span>;</span><br><span class="line">String[] params =</span><br><span class="line">                    <span class="keyword">new</span> String[] &#123;DiamondUtil.getPhantomJsPath(), DiamondUtil.getCaptureJsPath(), url,type , htmlName,</span><br><span class="line">                        cookieJson&#125;;</span><br><span class="line">                ShellUtil.executeShell(params, <span class="string">" capture url "</span> + url);</span><br><span class="line">                File htmlFile = <span class="keyword">new</span> File(defaultFilePath(htmlName));</span><br><span class="line">                <span class="keyword">if</span> (checkFileEixst(htmlFile)) &#123;</span><br><span class="line">                    String htmlOssUrl = fileService.updateObjectToOss(htmlName, htmlFile);</span><br><span class="line">                &#125;</span><br></pre></td></tr></table></figure>
+<p>ShellUtil中的运行代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">executeShell</span><span class="params">(String[] params, String message)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        Process process = <span class="keyword">null</span>;</span><br><span class="line">        BufferedReader stdBufferedReader = <span class="keyword">null</span>;</span><br><span class="line">        BufferedReader errorBufferedReader = <span class="keyword">null</span>;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            ProcessBuilder pb = <span class="keyword">new</span> ProcessBuilder(params);</span><br><span class="line">            pb.directory(<span class="keyword">new</span> File(DiamondUtil.getCaptureImagePath()));</span><br><span class="line">            pb.redirectErrorStream(<span class="keyword">true</span>);</span><br><span class="line">            process = pb.start();</span><br><span class="line">            stdBufferedReader = <span class="keyword">new</span> BufferedReader(<span class="keyword">new</span> InputStreamReader(process.getInputStream()));</span><br><span class="line">            errorBufferedReader = <span class="keyword">new</span> BufferedReader(<span class="keyword">new</span> InputStreamReader(process.getErrorStream()));</span><br><span class="line">            String line;</span><br><span class="line">            <span class="keyword">while</span> ((line = stdBufferedReader.readLine()) != <span class="keyword">null</span>) &#123;</span><br><span class="line">                logger.info(message + <span class="string">":"</span> + line);</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">while</span> ((line = errorBufferedReader.readLine()) != <span class="keyword">null</span>) &#123;</span><br><span class="line">                logger.error(message + <span class="string">":"</span> + line);</span><br><span class="line">            &#125;</span><br><span class="line">            process.waitFor();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            logger.error(message, e);</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (stdBufferedReader != <span class="keyword">null</span>) &#123;</span><br><span class="line">                stdBufferedReader.close();</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (errorBufferedReader != <span class="keyword">null</span>) &#123;</span><br><span class="line">                stdBufferedReader.close();</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (process != <span class="keyword">null</span>) &#123;</span><br><span class="line">                process.destroy();</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p>在截图服务中，首次出现了中文乱码，网上有同学说安装bitmap-fonts，但是并不好使，建议删除：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo yum remove bitmap-fonts bitmap-fonts-cjk</span><br></pre></td></tr></table></figure>
+<p>网页查看我们使用的字体内容：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">...&#123;  ...  font-family: Helvetica, arial, "microsoft yahei", Monaco, sans-serif;  ...&#125;</span><br></pre></td></tr></table></figure>
+<p>可以看到有 多种字体，最后的 sans-serif 默认对应是黑体，需要把这5种字体装到截图的 Linux 服务器，分别从osx和windows上copy出来，注意一下，osx 中的字体是 .ttc 和 .dfont 格式的，我们 可以借助 <a href="http://transfonter.org/ttc-unpack来转换为" target="_blank" rel="noopener">http://transfonter.org/ttc-unpack来转换为</a> Linux 支持的 .ttf 的格式。</p>
+<p>把这些文件拷到 Linux 服务器上，然后调用 fc-cache 更新一下</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo mkdir /usr/share/fonts/customsudo cp *.ttf  /usr/share/fonts/customfc-cache -fv</span><br></pre></td></tr></table></figure>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2017/09/21/Java/2017-09-21-phantomjs-use/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
     <article id="post-Java/2017-09-21-phantomjs-install" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
   <div class="article-inner">
     
@@ -926,346 +1332,9 @@ GNU/linux systems and</code>–prefix=’ (an empty prefix) for GNU/Hurd<br>syst
 
 
   
-    <article id="post-Java/2017-07-04-mysql-max-orderby-limit" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/04/Java/2017-07-04-mysql-max-orderby-limit/">Mysql MAX/MIN vs ORDER BY and LIMIT</a>
-    </h1>
-  
-
-        
-        <a href="/2017/07/04/Java/2017-07-04-mysql-max-orderby-limit/" class="archive-article-date">
-  	<time datetime="2017-07-03T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2017-07-04</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>我们在进行数据库的TOP N 操作时，又两种选择，一种使用内置的函数MAX/MIN，另外一种是采用 ORDER BY  和 LIMIT的组合，那么在什么情况下使用那种策略呢，哪种效率会更高一些呢？</p>
-<p>在最坏的情况下，如果你正在寻找在一个无索引的字段，使用min()需要全表扫描。使用order by + limit 要求一个排序后的文件。如果碰到一个大表，性能差异会非常大。在我本机上测试了一个106000行的随机数据表，min()带消耗了0.36s,而order by + limit消耗了0.84s。如果对于一个索引列，两者的差别并不是太大。</p>
-<p><strong>总的来说：</strong><br>似乎min()性能更高，它在最坏的情况下的速度更快，在最好的情况下，没有什么区别；</p>
-<p>通过“show status like ‘last_query_cost’” 查看执行成本；分别测试了在无索引列下使用max 和 order by limit 两种查询条件下的cbo，分别为 228322 和 67359，结果展示使用max的成本要比order by更高,这点还需要进一步探究；</p>
-<p>参考：<br><a href="https://stackoverflow.com/questions/426731/min-max-vs-order-by-and-limit" target="_blank" rel="noopener">https://stackoverflow.com/questions/426731/min-max-vs-order-by-and-limit</a></p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2017/07/04/Java/2017-07-04-mysql-max-orderby-limit/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-Java/2017-07-03-string-split" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/03/Java/2017-07-03-string-split/">Java split 引发的坑</a>
-    </h1>
-  
-
-        
-        <a href="/2017/07/03/Java/2017-07-03-string-split/" class="archive-article-date">
-  	<time datetime="2017-07-02T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2017-07-03</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>我们在代码编写中会进程需要使用数据截断处理，比如 30.23 我们期望获取整数部分，按照“.”进行分割；</p>
-<p>可能的代码示例：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">"30.23"</span>.split(<span class="string">"."</span>)[<span class="number">0</span>]</span><br></pre></td></tr></table></figure>
-<p>如果我们这么写，那结果一定不是我们期望的，查看string 类中的split方法：<br><img src="/images/posts/20170703/14990720990548.jpg" alt=""></p>
-<p>我们看到，它接收的参数 <strong>正则表达式</strong>，恰好点是正则表达式的特殊字符，命中 </p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&quot;.$|()[&#123;^?*+\\&quot;.indexOf(ch = regex.charAt(0))</span><br></pre></td></tr></table></figure>
-<p>条件，所以执行的实际逻辑为：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Pattern.compile(regex).split(<span class="keyword">this</span>, limit)</span><br></pre></td></tr></table></figure>
-<p>“.” 表示匹配任何字符，那么按照任何字符进行分割，将得到””空字符串数组，Pattern.split在构造结果时，由于limit=0，会把结尾的空字符串丢弃，结果就返回了一个长度为0的String对象数组 new String[0] ,此时我们使用[0]获取数据中第一个元素时，会抛出数组越界的异常：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Exception in thread <span class="string">"main"</span> java.lang.ArrayIndexOutOfBoundsException: <span class="number">0</span></span><br></pre></td></tr></table></figure>
-<p>如果我们期望使用string.split(regex)方法，对于特殊字符，需要进行转义处理，比如：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">"30.23"</span>.split(<span class="string">"\\."</span>)[<span class="number">0</span>]</span><br></pre></td></tr></table></figure>
-<p>常用的字符拆分方案有以下几种：</p>
-<h4 id="方法二：-org-apache-commons-lang-StringUtils-split"><a href="#方法二：-org-apache-commons-lang-StringUtils-split" class="headerlink" title="方法二： org.apache.commons.lang.StringUtils.split"></a>方法二： org.apache.commons.lang.StringUtils.split</h4><p>此方法使用完整的字符串作为参数，而不是regex。底层调用splitWorker方法；</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">String number = <span class="string">"30.23"</span>;</span><br><span class="line">String[] split = StringUtils.split(number, <span class="string">"."</span>);</span><br><span class="line"><span class="keyword">for</span> (String s : split) &#123;</span><br><span class="line">    System.out.println(s);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>输出结果：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">30</span></span><br><span class="line"><span class="number">23</span></span><br></pre></td></tr></table></figure>
-<h3 id="方法三：com-google-common-base-Splitter"><a href="#方法三：com-google-common-base-Splitter" class="headerlink" title="方法三：com.google.common.base.Splitter"></a>方法三：com.google.common.base.Splitter</h3><p>使用Google Guava包中提供的分割器splitter，它提供了更加丰富的分割结果处理的方法，比如对结果前后去除空格，去除空字符串等；</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">String number = <span class="string">"30.23"</span>;</span><br><span class="line">Iterable&lt;String&gt; split = Splitter.on(<span class="string">'.'</span>).trimResults().omitEmptyStrings().split(number);</span><br><span class="line"><span class="keyword">for</span> (String s : split) &#123;</span><br><span class="line">     System.out.println(s);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2017/07/03/Java/2017-07-03-string-split/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-Java/2017-06-30-study-road-line" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/06/30/Java/2017-06-30-study-road-line/">(转)史上最全的架构师图谱</a>
-    </h1>
-  
-
-        
-        <a href="/2017/06/30/Java/2017-06-30-study-road-line/" class="archive-article-date">
-  	<time datetime="2017-06-29T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2017-06-30</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>本文是笔者多年来积累和收集的知识技能图谱，有的是笔者原创总结的最佳实践，有的是小伙伴们的分享，其中每个秘籍图谱里面的内容都是互联网高并发架构师应该了解和掌握的知识，笔者索性把这些图谱收集在一起，并且归类便于查找和学习，希望能够帮助到每一位想成为架构师或者已经是架构师的小伙伴，这里我们的标题“史上最全的架构师图谱”是本文的目标，作者计划把这篇文章作为一个开放性的文章，如果读者发现更多的图谱，请联系作者本人，我们把更多的图谱、思维导图汇集在其一起，最终一定能成为互联网上“史上最全的架构师图谱”。</p>
-<h3 id="架构师系列"><a href="#架构师系列" class="headerlink" title="架构师系列"></a>架构师系列</h3><p><img src="/images/posts/20170630/4310879-f1ab820576d3d36b.png" alt=""></p>
-<p>架构师图谱<br><img src="/images/posts/20170630/4310879-51f9fe182fea724d.png" alt=""><br>Java架构师图谱<br><img src="/images/posts/20170630/4310879-4a7c08a813ffa011.png" alt=""><br>微服务架构秘籍<br><img src="/images/posts/20170630/4310879-3357bcd3cb02416b.png" alt=""><br>一致性图谱<br><img src="/images/posts/20170630/4310879-6ae60b2944c257ef.png" alt=""><br>互联网大流量的方法<br><img src="/images/posts/20170630/4310879-dedb20d5be56d989.png" alt=""><br>安全秘籍<br><img src="/images/posts/20170630/4310879-678b45d2de320746.png" alt=""><br>阿里巴巴常用小框架<br><img src="/images/posts/20170630/4310879-fc19311bc92a811d.png" alt=""><br>架构方法论图谱<br><img src="/images/posts/20170630/4310879-bb0b92f26600b59a.png" alt=""><br>设计模式秘籍图谱</p>
-<h3 id="Java系列"><a href="#Java系列" class="headerlink" title="Java系列"></a>Java系列</h3><p><img src="/images/posts/20170630/4310879-177756096b76affe.png" alt=""></p>
-<p>JVM垃圾回图谱<br><img src="/images/posts/20170630/4310879-cb86b37d1390d7b3.png" alt=""><br>Java并发图谱<br><img src="/images/posts/20170630/4310879-25474decc57eca07.png" alt=""><br>Java集合图谱<br><img src="/images/posts/20170630/4310879-d41c948490a26b54.png" alt=""><br>Java集合类图<br><img src="/images/posts/20170630/4310879-a2c3b631208d255.png" alt=""><br>Java List类图<br><img src="/images/posts/20170630/4310879-e088ada92f63d4c1.png" alt=""><br>Java Map类图<br><img src="/images/posts/20170630/4310879-4f20d68e1f4bbd33.png" alt=""><br>Java Set类图</p>
-<h3 id="大数据系列"><a href="#大数据系列" class="headerlink" title="大数据系列"></a>大数据系列</h3><p><img src="/images/posts/20170630/4310879-ccf6cae90139b1.png" alt=""></p>
-<p>Hadoop技能图谱<br><img src="/images/posts/20170630/4310879-23d0bf618f8f6f5a.png" alt=""><br>大数据技能图谱</p>
-<h3 id="云计算系列"><a href="#云计算系列" class="headerlink" title="云计算系列"></a>云计算系列</h3><p><img src="/images/posts/20170630/4310879-6d0b680ae67a8c96.png" alt=""></p>
-<p>云计算图谱<br><img src="/images/posts/20170630/4310879-4c10e03305a1f2d8.png" alt=""><br>云计算技能图谱</p>
-<h3 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h3><p><img src="/images/posts/20170630/4310879-2175f5af9eed7857.png" alt=""></p>
-<p>IOS技能图谱<br><img src="/images/posts/20170630/4310879-5ce73b40ffbe076d.png" alt=""><br>OpenResty技能图谱<br><img src="/images/posts/20170630/4310879-141e6ba51f8dc54c.png" alt=""><br>前端技能图谱<br><img src="/images/posts/20170630/4310879-6d02639ce5ae160f.png" alt=""><br>容器技能图谱<br><img src="/images/posts/20170630/4310879-f24ca8d32ad1a384.png" alt=""><br>嵌入式开发技能图谱<br><img src="/images/posts/20170630/4310879-d0375b2d590c0c34.png" alt=""><br>开发语言宝典<br><img src="/images/posts/20170630/4310879-6395c5da25e3e7fc.png" alt=""><br>移动端测试图谱<br><img src="/images/posts/20170630/4310879-350ab02c6030c235.png" alt=""><br>运维技能图谱</p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2017/06/30/Java/2017-06-30-study-road-line/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-Java/2017-06-15-while-died" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/06/15/Java/2017-06-15-while-died/">Java Load CPU MEM 飙高的一次排查</a>
-    </h1>
-  
-
-        
-        <a href="/2017/06/15/Java/2017-06-15-while-died/" class="archive-article-date">
-  	<time datetime="2017-06-14T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2017-06-15</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h3 id="问题发现："><a href="#问题发现：" class="headerlink" title="问题发现："></a>问题发现：</h3><p>收到报警提醒：<br><img src="/images/posts/20170615/sys-mail-notice.png" alt=""></p>
-<h3 id="问题排查："><a href="#问题排查：" class="headerlink" title="问题排查："></a>问题排查：</h3><p>登录机器查看：<br><img src="/images/posts/20170615/sys-load-top.png" alt=""></p>
-<p>CPU 持续高于 80%，8G内存几乎被占满；</p>
-<p>异常报警项为 一个每隔5min执行一次的定时任务每次运行时间超过10分钟；初步判断为任务累加导致系统负载越来越重。</p>
-<p>那为什么定时任务在5min内执行未完成呢？看看线程到底在做什么。</p>
-<p>查看进程中线程的占用CPU时长：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">top -Hp pid</span><br></pre></td></tr></table></figure></p>
-<p><img src="/images/posts/20170615/top-pid.png" alt=""></p>
-<p>可以看到有不少进程占用CPU总计时间超过100分钟，最大的进程257484为564分钟32.32秒；<br><img src="/images/posts/20170615/jstack-top.png" alt=""></p>
-<p>查询其它的几个占用时间比较高的进程：<br><img src="/images/posts/20170615/jstack-grep-tid.png" alt=""><br>发现都是ChangeFree的进程导致，查看相应代码后，发现最近的一次变更导致了程序在一些场景下出现了死循环：<br><img src="/images/posts/20170615/changefree-while-query.png" alt=""><br>从代码可以看出，在while循环中的累加程序放在了最后，这是一种极危险的操作，应该讲累加条件放在程序进入的第一行，保证不受后续代码逻辑的影响；</p>
-<p>问题解决后，通过系统监控发现系统负载恢复正常：<br><img src="/images/posts/20170615/system-monitor-line.png" alt=""></p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2017/06/15/Java/2017-06-15-while-died/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
   
     <nav id="page-nav">
-      <a class="extend prev" rel="prev" href="/page/2/">&laquo; Prev</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span><a class="page-number" href="/page/4/">4</a><a class="page-number" href="/page/5/">5</a><span class="space">&hellip;</span><a class="page-number" href="/page/9/">9</a><a class="extend next" rel="next" href="/page/4/">Next &raquo;</a>
+      <a class="extend prev" rel="prev" href="/page/2/">&laquo; Prev</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span><a class="page-number" href="/page/4/">4</a><a class="page-number" href="/page/5/">5</a><span class="space">&hellip;</span><a class="page-number" href="/page/10/">10</a><a class="extend next" rel="next" href="/page/4/">Next &raquo;</a>
     </nav>
   
 
@@ -1365,6 +1434,42 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">标签2</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">工作</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">目标</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">共享变量</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">缓存</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">人生</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">感悟</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">架构</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">可视化</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">AHAS</a>
               </li>
             
             <div class="clearfix"></div>

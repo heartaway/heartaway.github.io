@@ -149,6 +149,348 @@
           <div id="js-content" class="content-ll">
             
   
+    <article id="post-Java/2017-02-15-object-mapping" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/02/15/Java/2017-02-15-object-mapping/">MapStruct 代替BeanUtil 和ModelMapper</a>
+    </h1>
+  
+
+        
+        <a href="/2017/02/15/Java/2017-02-15-object-mapping/" class="archive-article-date">
+  	<time datetime="2017-02-14T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2017-02-15</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h3 id="Object-mapping-的技术分类："><a href="#Object-mapping-的技术分类：" class="headerlink" title="Object mapping 的技术分类："></a>Object mapping 的技术分类：</h3><ol>
+<li>运行期 反射调用set/get 或者是直接对成员变量赋值 。 该方式通过invoke执行赋值，实现时一般会采用beanutil, Javassist等开源库。这类的代表：Dozer,ModelMaper</li>
+<li>编译期 动态生成set/get代码的class文件 ，在运行时直接调用该class文件。该方式实际上扔会存在set/get代码，只是不需要自己写了。 这类的代表：MapStruct,Selma,Orika<h3 id="主要框架性能对比："><a href="#主要框架性能对比：" class="headerlink" title="主要框架性能对比："></a>主要框架性能对比：</h3>每秒钟执行的object mapping越多越好。<br><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/8b18840183c7caaf6f0847995a4f0c8a.png" alt=""><br>明显可以看出通过在运行期进行反射的方式执行，性能远不如编译器生成class的方式；</li>
+</ol>
+<p>MapStruct 与 Selma的对比：<a href="https://java.libhunt.com/project/mapstruct/vs/selma" target="_blank" rel="noopener">https://java.libhunt.com/project/mapstruct/vs/selma</a><br>MapStruct 与 ModelMapper的对比：<a href="https://java.libhunt.com/project/mapstruct/vs/modelmapper" target="_blank" rel="noopener">https://java.libhunt.com/project/mapstruct/vs/modelmapper</a></p>
+<p>综合比较性能、问题排查、文档、成熟度、扩展性等因素来考虑，MapStruct 是一个不错的选择；</p>
+<h3 id="Maven依赖："><a href="#Maven依赖：" class="headerlink" title="Maven依赖："></a>Maven依赖：</h3><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&lt;properties&gt;</span><br><span class="line">    &lt;java.version&gt;1.8&lt;/java.version&gt;</span><br><span class="line">    &lt;org.mapstruct.version&gt;1.1.0.Final&lt;/org.mapstruct.version&gt;</span><br><span class="line">&lt;/properties&gt;</span><br></pre></td></tr></table></figure>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&lt;dependency&gt;</span><br><span class="line">    &lt;groupId&gt;org.mapstruct&lt;/groupId&gt;</span><br><span class="line">    &lt;artifactId&gt;mapstruct-jdk8&lt;/artifactId&gt;</span><br><span class="line">    &lt;version&gt;$&#123;org.mapstruct.version&#125;&lt;/version&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br></pre></td></tr></table></figure>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">&lt;plugin&gt;</span><br><span class="line">       &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;</span><br><span class="line">       &lt;artifactId&gt;maven-compiler-plugin&lt;/artifactId&gt;</span><br><span class="line">       &lt;version&gt;3.5.1&lt;/version&gt;</span><br><span class="line">       &lt;configuration&gt;</span><br><span class="line">           &lt;source&gt;$&#123;java.version&#125;&lt;/source&gt;</span><br><span class="line">           &lt;target&gt;$&#123;java.version&#125;&lt;/target&gt;</span><br><span class="line">           &lt;encoding&gt;$&#123;java.encoding&#125;&lt;/encoding&gt;</span><br><span class="line">           &lt;annotationProcessorPaths&gt;</span><br><span class="line">               &lt;path&gt;</span><br><span class="line">                   &lt;groupId&gt;org.mapstruct&lt;/groupId&gt;</span><br><span class="line">                   &lt;artifactId&gt;mapstruct-processor&lt;/artifactId&gt;</span><br><span class="line">                   &lt;version&gt;$&#123;org.mapstruct.version&#125;&lt;/version&gt;</span><br><span class="line">               &lt;/path&gt;</span><br><span class="line">           &lt;/annotationProcessorPaths&gt;</span><br><span class="line">       &lt;/configuration&gt;</span><br><span class="line">&lt;/plugin&gt;</span><br></pre></td></tr></table></figure>
+<h3 id="MapStruct的基本使用："><a href="#MapStruct的基本使用：" class="headerlink" title="MapStruct的基本使用："></a>MapStruct的基本使用：</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Mapper</span>(componentModel = <span class="string">"spring"</span>)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">MonitorAppGroupIdcDTOMapper</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    MonitorAppGroupIdcDTOMapper MAPPER = Mappers.getMapper(MonitorAppGroupIdcDTOMapper.class);</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">mapping</span><span class="params">(MonitorAppGroupIdcDTO source, @MappingTarget MonitorAppGroupIdcDTO dest)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>编译后生成的部分代码结构：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">    <span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MonitorAppGroupIdcDTOMapperImpl</span> <span class="keyword">implements</span> <span class="title">MonitorAppGroupIdcDTOMapper</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">MonitorAppGroupIdcDTOMapperImpl</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">mapping</span><span class="params">(MonitorAppGroupIdcDTO source, MonitorAppGroupIdcDTO dest)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span>(source != <span class="keyword">null</span>) &#123;</span><br><span class="line">            dest.setId(source.getId());</span><br><span class="line">            dest.setGmtCreate(source.getGmtCreate());</span><br><span class="line">            ...</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>可以看出MapStruct还需要依赖对象的get/set方法，有时候编写一堆的get/set方法看上去很不美观，期望能通过自动生成的方式插入get/set方法，其解决方案是使用lombok。mapstrcut官网也有二者结合的例子：<a href="https://github.com/mapstruct/mapstruct/issues/510。Lombok" target="_blank" rel="noopener">https://github.com/mapstruct/mapstruct/issues/510。Lombok</a> 带来的问题是，如果我们期望通过公有的get/set方法范围私有属性时，IDE会提示方法不存在，这个时候我们可以下载安装Intellij Idea中的”Lombok plugin”来解决，但是这种方案带来了一定的繁琐性。比较好的方式是，对于DO或者DTO中的属性，如果属性为私有属性，需要通过get/set方法来访问的，那么就手工生成get/set方法，如果属性本身为共有属性的，那么就可以借助Lombok来自动生成get/set方法了。</p>
+<h3 id="MapStruct的属性与方法："><a href="#MapStruct的属性与方法：" class="headerlink" title="MapStruct的属性与方法："></a>MapStruct的属性与方法：</h3><h4 id="1-Mapper注解的componentModel属性"><a href="#1-Mapper注解的componentModel属性" class="headerlink" title="1. @Mapper注解的componentModel属性"></a>1. @Mapper注解的componentModel属性</h4><p><code>componentModel</code>属性用于指定自动生成的接口实现类的组件类型。这个属性支持四个值：</p>
+<ul>
+<li>default: 这是默认的情况，mapstruct不使用任何组件类型, 可以通过Mappers.getMapper(Class)方式获取自动生成的实例对象。</li>
+<li>cdi: the generated mapper is an application-scoped CDI bean and can be retrieved via @Inject</li>
+<li>spring: 生成的实现类上面会自动添加一个@Component注解，可以通过Spring的 @Autowired方式进行注入</li>
+<li>jsr330: 生成的实现类上会添加@javax.inject.Named 和@Singleton注解，可以通过 @Inject注解获取。</li>
+</ul>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2017/02/15/Java/2017-02-15-object-mapping/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-Middleware/2017-02-10-lsv-change-road" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/02/10/Middleware/2017-02-10-lsv-change-road/">我对负载均衡演变过程的理解</a>
+    </h1>
+  
+
+        
+        <a href="/2017/02/10/Middleware/2017-02-10-lsv-change-road/" class="archive-article-date">
+  	<time datetime="2017-02-09T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2017-02-10</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>之前看到SLB、VIP、LVS、VIPServer这些很相近的名词总不能很好的进行区分，不知道这些在负载均衡领域具体的使用场景，我期望通过这篇文章，帮大家梳理一下这些名词的区别。我们从一个域名的访问开始，挖掘一下我们的访问链路上到底出现了什么，如果业务更复杂，我们的系统改怎么演变。</p>
+<h3 id="域名解析："><a href="#域名解析：" class="headerlink" title="域名解析："></a>域名解析：</h3><p>我们在命令行模式下ping一个域名：popcorn.alibaba-inc.com<br><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/5d19975274487378d0e0b530291bc113.png" alt=""></p>
+<p>返回的IP是140.205.247.101，在PSP上查询此IP，得到：<br><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/a63dcc1b6533ff65bb654691b131f754.png" alt=""></p>
+<p>可以看到，我们拿到的是LVS的机器，也就是说，域名绑定的机器IP是我们应用专属的LVS的IP地址（DNS域名解析服务）。</p>
+<p>对这部分不理解的，可以去尝试使用阿里云服务中的域名服务，申请一个域名，然后进行域名解析服务：<br><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/6e39897cb238e853df6c99b472475257.png" alt=""></p>
+<h3 id="负载均衡演化"><a href="#负载均衡演化" class="headerlink" title="负载均衡演化"></a>负载均衡演化</h3><h4 id="DNS负载均衡"><a href="#DNS负载均衡" class="headerlink" title="DNS负载均衡"></a>DNS负载均衡</h4><p>一个域名，我们可以添加多个A记录，绑定后端多台服务器（如果没有SLB的话），这样我们可以利用DNS的负载均衡帮我们实现服务器断的负载均衡。在<strong>无负载均衡的权威 DNS</strong> 中，Local DNS 访问权威 DNS，权威 DNS 会将这 绑定的多个解析记录全部返回给 Local DNS， Local DNS 会将所有的 IP 地址返回给网站访问者，网站访问者的浏览器会随机访问其中一个 IP。<br>而在<strong>有负载均衡的权威 DNS</strong> 中，网站访问者的请求到来时，权威 DNS 会根据解析记录的权重轮询 全部 A 记录(默认权重 1:1:1)，依次返回 3 个 IP 地址，每次返回一个IP地址；当然用户可以在这里修改A记录的权重值。<br><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/fb53a3139a7c9713e7a9a64fa8b5f2cb.png" alt=""><br>我们的网站架构可能是这个样子：<br><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/3372b24d510db1616b4e3aa1a7c2cdfb.png" alt=""></p>
+<p>使用DNS负载均衡的问题是一般DNS解析都会有TTL(TTL指各地DNS缓存您域名记录信息的时间),当后端某个服务器挂掉的时候，由于TTL的缓存得不到及时清除，所以会让部分流量进入到已经宕掉的机器上，造成一定的损失。所以，这个时候，我们最好引入相比于后端应用更加稳定、相比于DNS负载均衡更加灵活的负载均衡器，前置在我们的链路中，比如LVS、F5或者Nginx。</p>
+<h4 id="引入官方LVS负载均衡"><a href="#引入官方LVS负载均衡" class="headerlink" title="引入官方LVS负载均衡"></a>引入官方LVS负载均衡</h4><p>引入官方LVS负载均衡后，我们的应用架构可能是这样子的：<br><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/192ecd3642a05c104ea3b74d753a9995.png" alt=""></p>
+<p>我们采用<a href="http://www.linuxvirtualserver.org/" target="_blank" rel="noopener">官方的LVS</a>作为软负载，并通过主备的方式达到LVS的容灾策略，LVS与Real Server之间通过heartbeat方式进行健康检查，LVS主备间通过KeepAlived进行状态检测；通过LVS，当我们Real Server 集群有机器上下线时，就不需要与DNS打交道了，只需要与LVS交互，并且LVS本身可具备对RealServer的健康检查，让我们的服务上下线变得更加容易和简单，并且我们可以在LVS中自定义相比于DNS更丰富的负载均衡策略；<br>这种架构中，同一时刻只有一台LVS对外提供服务，另外一台一直处于stand by 状态，直到提供服务LVS的挂了。在LVS中配置了Real Server的真实IP地址，用于健康检查和负载均衡，在Real Server中配置了Virtual IP地址，用于组件Virtual Server环境（LVS + Real Server统称为Virtual Server）。<br>我们可以看到Virtual IP 并不像内网或者外网IP那样绑定上去后就固定唯一了，Virtual IP 我们是可以绑定到多台机器上。即使我们LVS采用了主备模式，单点提供服务的LVS还是可能会成为性能瓶颈，无法进行横向扩张，其次，官方LVS缺乏攻击防御功能，在转发模式上，只支持NAT/DR/TUNNEL 三种，在多VLAN 网络环境下部署成本极高。<br>那么如何解决这些问题呢？阿里的负载均衡设备在官方 LVS 基础上进行了定制化和优化，比如LVS采用集群方式部署，增加攻击防御模块，新增转发模式 FULLNAT，实现 LVS-RealServer 间跨 VLAN 通讯等；<br>Ali-LVS 的开源地址： <a href="https://github.com/alibaba/LVS" target="_blank" rel="noopener">https://github.com/alibaba/LVS</a><br>虚拟IP和IP漂移：<a href="http://xiaobaoqiu.github.io/blog/2015/04/02/xu-ni-iphe-ippiao-yi/" target="_blank" rel="noopener">http://xiaobaoqiu.github.io/blog/2015/04/02/xu-ni-iphe-ippiao-yi/</a></p>
+<h4 id="引入Ali-LVS改进版负载均衡"><a href="#引入Ali-LVS改进版负载均衡" class="headerlink" title="引入Ali-LVS改进版负载均衡"></a>引入Ali-LVS改进版负载均衡</h4><p>当引入了Ali-LVS后，我们的架构变成了如下结构：<br><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/6bd1e2736ac37fae3e88f44cfb71b0ad.png" alt=""><br>我们的LVS变成了集群模式，那么就需要我们感知LVS集群中的机器服务状态并能自动进行健康检查，LVS本身也需要负载均衡；这个时候就需要引入另外一个硬件设备了-<strong>交换机</strong>，LVS和交换机间运行OSPF心跳，1个VIP（Virtual IP）配置在集群的所有LVS上，ECMP负责将数据流分发给LVS集群，当一台LVS宕机后，交换机会自动发现并将其从ECMP等价路由中剔除。外部流量到了交换机后下一步具体走哪条路径是在交换机上配置不同的hash策略控制的，一般是源IP+源端口。</p>
+<h4 id="从4层负载到7层负载"><a href="#从4层负载到7层负载" class="headerlink" title="从4层负载到7层负载"></a>从4层负载到7层负载</h4><p>当然，这种架构已经能解决我们大部分问题了，但是LVS是在四层协议上实现的负载均衡，我们有一些业务需要SLB实例服务端口使用的是7层HTTP协议，怎么办呢？我们可以引入Tengine，Tengine是当前最流行的7层负载均衡开源软件之一，且已经开源，那么我们的架构可能会演变成以下这个样子：<br><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/e25b2a68a163516cdb54481dcd4c136d.png" alt=""><br>客户端访问SLB实例VIP时，相关请求由SLB实例对应的LVS集群处理，如果相应的SLB实例服务端口使用的是4层协议（TCP或UDP），那么LVS集群内每个节点都会根据SLB实例负载均衡策略，将其承载的服务请求按策略直接分发到后端Real Server服务器，并同时维护会话保持等特性；<br>如果相应的SLB实例服务端口使用的是7层HTTP协议，那么LVS集群内每个节点会先将其承载的服务请求均分到Tengine集群；而后，Tengine集群内的每个节点再根据SLB实例负载均衡策略，将服务请求按策略最终分发到后端Real Server服务器，并同时维护会话保持等特性。</p>
+<p>针对LVS的工作原理可以参考：<a href="http://www.atatech.org/articles/48739" target="_blank" rel="noopener">LVS基础</a> 、<a href="http://www.atatech.org/articles/48571" target="_blank" rel="noopener">LVS及相关网络概念</a> 或 <a href="http://www.atatech.org/articles/50329" target="_blank" rel="noopener">负载均衡（SLB）技术原理浅析</a></p>
+<h4 id="从公网访问负载到内部访问负载"><a href="#从公网访问负载到内部访问负载" class="headerlink" title="从公网访问负载到内部访问负载"></a>从公网访问负载到内部访问负载</h4><p>我们通过LVS集群和Tengine集群解决了公网到阿里内部应用的负载均衡，随着阿里内部很多应用的集群逐渐扩大，这些应用在被访问的时候也是需要被进行负载均衡（我们默认已包含状态检查模块）的，那么我们把应用访问方式大致分为两类，一类是基于HSF的RPC远程服务调用，另外一种是基于HTTP的服务调用；基于HSF的服务调用的负载均衡是由ConfigServer完成，这部分可以参考ConfigServer的实现；基于HTTP的负载均衡是VIPServer，通过VIPServer，我们内部应用通过域名范围内部应用时，就没有必要重新走一遍公网的DNS解析，链路顶端的各种负载均衡了，通过VIPServer，我们可以与内部应用进行直连，相当于对我们的访问链路进行了优化和加速，当然，VIPServer在对HTTP的内部调用上除了可以做负载均衡、健康检查外，还做了异地容灾的调用实现、流量的控制、环境管理、灰度的发布等，有关VIPServer的功能可以参考VIPServer的功能介绍。那么，在引入这两个设备后，我们的应用架构可能会演变成这个样子：<br><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/2e9d70180eda8b4bb88b13c27ee33cd4.png" alt=""></p>
+<p>参考：</p>
+<p><a href="https://xue.alibaba-inc.com/trs/doc/learningDocDetail.htm?spm=a1z2e.8101737.list.8.aRav7f&amp;docUid=770f4104-0d89-4a5f-8237-f112c61fb006" target="_blank" rel="noopener">https://xue.alibaba-inc.com/trs/doc/learningDocDetail.htm?spm=a1z2e.8101737.list.8.aRav7f&amp;docUid=770f4104-0d89-4a5f-8237-f112c61fb006</a><br><a href="http://www.atatech.org/articles/50329" target="_blank" rel="noopener">http://www.atatech.org/articles/50329</a></p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Middleware//" class="article-tag-list-link color1">Middleware</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2017/02/10/Middleware/2017-02-10-lsv-change-road/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-Think/2017-01-02-good-life" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/01/02/Think/2017-01-02-good-life/">追求精致生活</a>
+    </h1>
+  
+
+        
+        <a href="/2017/01/02/Think/2017-01-02-good-life/" class="archive-article-date">
+  	<time datetime="2017-01-01T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2017-01-02</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <blockquote>
+<p>精致生活与金钱无关，避免懒惰，加强自律，拜托穷人思维，提升品质，体面生活。</p>
+</blockquote>
+<p>我想每个人都期望自己的生活变得越来越美好，没人喜欢脏乱差，但是在追求美好的实物上，我们是否花心思像经营爱情那样经营生活和家庭了呢？精致生活并不是花钱买来的，而是用心经营出来的。在追求精致生活的方向上有一些思维误区和方法，分享给大家，同样也告诫自己。</p>
+<h3 id="精致生活与财富关系不大。"><a href="#精致生活与财富关系不大。" class="headerlink" title="精致生活与财富关系不大。"></a>精致生活与财富关系不大。</h3><p>富有的人也存在每天蓬头垢面的生活，贫穷的人也有花园般的世界。就像罗胖在2016年的跨年演讲中提到的，他有幸去参观了一二十家千万富翁的家，发现这些有钱人，很多都不懂精致生活，快中午了，都还各个蓬头垢面，室内乱乱糟糟，这些场景让他感触很大，他认为那些人是因为对生活的懒惰导致了生活的低质。想过的更好，跟外界一点关系都没有。</p>
+<p>吴晓波出过一本书叫做《把生命浪费在美好的事物上》，值得大家一看。期望追求精致的生活，首先需要我们是一个不懒惰而又自律的人，你能像罗胖那样坚持每天六点二十发一段语音吗？至少我是做不到的。怎么让自己的生活变得紧致？有很多办法，且不需要怎么花钱，比如保持规律的饮食起居，每天洗澡，勤换衣服，保持居室整洁干净，种植花草，使用艺术品替换掉结婚照，购买具有一定设计感且价格合理的商品。</p>
+<h4 id="定期丢掉不需要且落时东西，可以提高我们的生活品质。"><a href="#定期丢掉不需要且落时东西，可以提高我们的生活品质。" class="headerlink" title="定期丢掉不需要且落时东西，可以提高我们的生活品质。"></a>定期丢掉不需要且落时东西，可以提高我们的生活品质。</h4><p> 在我的家庭中，想做到这一点比较困难，我现在还能从我家里找到我和我姐姐一岁到二十几岁的衣物和鞋子，我以前认为父母之所有还把这些不再需要的东西留着，是为了怀念，或者是想给下一代人继续使用，但是现在明白了，有些东西他们也知道不会再使用了，但是就是舍不得扔掉，因为他们是从哪个物质多么匮乏的年代走过来的，他们不舍得。其实，在他们的影响下，我也是这样的一个人，在杭州和上海的几次搬家中，卡车都是拉的满满的，每次走，都把房间里的东西收拾的干干净净，什么都不舍得扔；有时候，在外面捡到一些小螺钉、绳子或者觉得可能用得着的东西都会捡回来当宝一样藏在家中，为此，媳妇说了我多次，说我是个“破烂君”。</p>
+<p> 今天虽然是周末，我比平时上班起来的都早，洗漱后，开始打扫整理房间，丢掉了不少以前不舍得丢又用不着的东西，然后收拾自己的行头，看到整洁的家和还不错的自己，顿时感觉生活变得美好了一些。 </p>
+<h4 id="精神作了乞丐，有金钱也只能乞讨。-有人有钱了，却永远过的是穷日子。"><a href="#精神作了乞丐，有金钱也只能乞讨。-有人有钱了，却永远过的是穷日子。" class="headerlink" title="精神作了乞丐，有金钱也只能乞讨。 有人有钱了，却永远过的是穷日子。"></a>精神作了乞丐，有金钱也只能乞讨。 有人有钱了，却永远过的是穷日子。</h4><p> 我小时候，家里比较穷，不仅自己穷，连一圈的亲戚都穷，穷到买一包盐都要借钱，没错，很多人觉得不可思议，但是这真真实实的发生在我舅舅家庭中。我上小学和初中，不知道什么叫零花钱，炎炎夏日，看到别人每天能花一毛钱买一个冰袋吃，自己就跟着别人屁股后面，想办法套近乎称哥们，好让人家分我一块冰，有时候也会偷偷的从家里偷出一毛钱，像大款一般买一个冰袋，幸福的吮吸起来，有时候看到快没了的时候，还会去接一点自来水灌进去继续吸，喝完了，从咬开的小口处吹气进去，然后旋转拧好开口，放在地上，一脚下去，“啪”的一声，甭提多开心。当时的梦想就是以后每天有一个冰袋吃，就这么简单。</p>
+<p> 虽然后来日子越来越好，因贫穷而需要的节省就像肿瘤一样，在身体里面根深蒂固，因为那样的环境，让我们脆弱的神经实时陷在一种恐惧中：怕没钱，更怕回到以前的生活。包括我参加工作后的这几年，一旦手上没钱，就感觉生活没有了保障，那种不安全感有时候压的人喘不过气。不过在我媳妇的多次教导下，我逐渐在改变自己的思维，改变对钱的态度。今年为了买车，做了贷款，每个月的工资80%都会用来还贷款，如果还是以前的我，这点完全是不能接受的，怎么可以每个月没有结余呢，生活怎么过。在这里我需要感谢我媳妇，如果我找一个跟我一样用钱观的人共度一生，可能就会失去生活中一些更加美好的东西了；她帮助我看到了，除了钱，生活还可以更好，更精致。有钱不难，难的是拆掉思维禁锢的墙。</p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Think//" class="article-tag-list-link color1">Think</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2017/01/02/Think/2017-01-02-good-life/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-Think/2016-08-19-leave-entrepreneurship" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2016/08/19/Think/2016-08-19-leave-entrepreneurship/">创业，离别</a>
+    </h1>
+  
+
+        
+        <a href="/2016/08/19/Think/2016-08-19-leave-entrepreneurship/" class="archive-article-date">
+  	<time datetime="2016-08-18T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2016-08-19</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>今天2016年8月19号，我结束了为期657天的上海创业旅程，但今后无论在什么环境从事什么岗位，我的创业心态不会变。这次的离别没有来时的兴奋与激动，也没有不解和埋怨，一切都显得那么平静，宛如无风的湖面。也许是我该反思的都反思过了，也许是经过了阅历而让自己有所成长。依稀记得上一次因离职的呈现出悲情满面的场景，凄凄地写下了离别书以慰藉我视如珍贵的友情，现在看来当初略显稚嫩，但一切都是真实情感的表露，也许是我因为多情，有道是“多情自古伤离别”；而如今，没有了这种眷恋之意，经历了创业的风风雨雨，让我的生活变得略显粗糙和沧桑，不过能遇到一对不多的朋友，为真正梦想无私付出的人，还是挺值得敬佩的。</p>
+<p>如果说上一次的选择创业是主动选择，听从内心的声音，而这次选择夹杂着些许被动与无奈，当然也有理智思考后的坚定抉择，经过了长达一个多月的思考之后，我越发的明白了自己是一个什么样的人，当前应该干什么事情。原来没有我想想那么不可或缺，在别人眼中只是一个工具，但是这个工具又不是那么好使，时常还容易夹手；做一个工具没问题，但是首先要让自己成为一个好用安全的工具，其次，让自己成为一个智能工具，这才是正确的道路，而不是不断的把这个工具换到不同的新地方，让没见过这个工具的人觉得，哇哦，还有这么好用的工具。其实这个世界上很多事情你都是无法左右的，我们唯有改变我们自己，自主的寻求方向尽可能的让自己少走弯路，而不是依赖别人给你指明方向；太依赖别人的承诺就像把自己的性命托付给屠夫一样愚蠢，别人哪会关你的前途与生死，也许在他们看来，决定今天吃什么的苦恼比你的事情更让他们惦记于心。</p>
+<p>值得庆幸的是，我在相对年轻的时候经历了创业公司的浮浮沉沉，让我体会到了在上一家公司看不到的事情，以前以为的理所当然变成需要你付出极大成本去获取，以前以为的唯一原来还处在那么多的不一样，视野开阔了，思路拓宽了，也许这就是成长，有着就值了。生命中没有如果..就…, 有的是对过去错误的反思和对今后正确方向的把握。我庆幸的是能在还算可以接受的成本下进行了试错，往往很多人一次的试错可能需要N多年的补偿。</p>
+<p>看了阮一峰老师写的“<strong>你的命运不是一头骡子</strong>”，觉得套在自己过去的一年工作生活中显得“格外合适”，原来，我是一个类似于驼灯柱上山的骡子。</p>
+<p>选择离别 ，为不做骡子一样的工具而奋斗。</p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Think//" class="article-tag-list-link color1">Think</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2016/08/19/Think/2016-08-19-leave-entrepreneurship/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
     <article id="post-Java/2016-08-17-task-threadpool" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
   <div class="article-inner">
     
@@ -648,387 +990,9 @@
 
 
   
-    <article id="post-Java/2016-07-07-cas-work" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2016/07/07/Java/2016-07-07-cas-work/">CAS 操作的实现原理</a>
-    </h1>
-  
-
-        
-        <a href="/2016/07/07/Java/2016-07-07-cas-work/" class="archive-article-date">
-  	<time datetime="2016-07-06T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2016-07-07</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h3 id="CAS原子操作原理："><a href="#CAS原子操作原理：" class="headerlink" title="CAS原子操作原理："></a>CAS原子操作原理：</h3><h4 id="1-在x86-平台上，CPU提供了在指令执行期间对总线加锁的手段（多处理器）"><a href="#1-在x86-平台上，CPU提供了在指令执行期间对总线加锁的手段（多处理器）" class="headerlink" title="1. 在x86 平台上，CPU提供了在指令执行期间对总线加锁的手段（多处理器）"></a>1. 在x86 平台上，CPU提供了在指令执行期间对总线加锁的手段（多处理器）</h4><p>CPU芯片上有一条引线#HLOCK pin，如果汇编语言的程序中在一条指令前面加上前缀”LOCK”，经过汇编以后的机器代码就使CPU在执行这条指令的时候把#HLOCK pin的电位拉低，持续到这条指令结束时放开，从而把总线锁住，这样同一总线上别的CPU就暂时不能通过总线访问内存了，保证了这条指令在多处理器环境中的原子性。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">inline bool <span class="title">CAS2</span><span class="params">(pointer_t *addr, pointer_t &amp;old_value, pointer_t &amp;new_value)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">bool ret;</span><br><span class="line"><span class="function">__asm__ <span class="title">__volatile__</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params"><span class="string">"lock cmpxchg16b %1;n"</span></span></span></span><br><span class="line"><span class="function"><span class="params"><span class="string">"sete %0;n"</span></span></span></span><br><span class="line"><span class="function"><span class="params">:<span class="string">"=m"</span>(ret)</span>,"+m" <span class="params">(*(<span class="keyword">volatile</span> pointer_t *)</span> <span class="params">(addr)</span>)</span></span><br><span class="line"><span class="function">:"a" <span class="params">(old_value.ptr)</span>, "d" <span class="params">(old_value.tag)</span>, "b" <span class="params">(new_value.ptr)</span>, "c" <span class="params">(new_value.tag)</span>)</span>;</span><br><span class="line"><span class="keyword">return</span> ret;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<p>解锁来保证原子性只是保证原子性的其中一种手段而已，X86CPU保证原子性的手段有以下三种：<br>① 处理器自动保证基本内存操作的原子性。<br>一些基本的内存读写操作是本身已经被硬件提供了原子性保证（例如读写单个字节的操作）；</p>
-<p>②使用总线锁保证原子性。<br>一些需要保证原子性但是没有被第①条机制提供支持的操作（例如read-modify-write）可以通过使用”LOCK#”来锁定总线，从而保证操作的原子性。</p>
-<p>③使用缓存锁保证原子性。</p>
-<p>总线锁定把CPU和内存之间通信锁住了，这使得锁定期间，其他处理器不能操作其他内存地址的数据，所以总线锁定的开销比较大，最近的处理器在某些场合下使用缓存锁定代替总线锁定来进行优化。<br>因为很多内存数据是已经存放在L1/L2 cache中了，对这些数据的原子操作只需要与本地的cache打交道，而不需要与总线打交道，所以CPU就提供了cache coherency机制来保证其它的那些也cache了这些数据的processor能读到最新的值。<br>所谓“缓存锁定”就是如果缓存在处理器缓存行中内存区域在LOCK操作期间被锁定，当它执行锁操作回写内存时，处理器不在总线上声言LOCK＃信号，而是修改内部的内存地址，并允许它的缓存一致性机制来保证操作的原子性，因为缓存一致性机制会阻止同时修改被两个以上处理器缓存的内存区域数据，当其他处理器回写已被锁定的缓存行的数据时会起缓存行无效.<br>但是有两种情况下处理器不会使用缓存锁定。第一种情况是：当操作的数据不能被缓存在处理器内部，或操作的数据跨多个缓存行（cache line），则处理器会调用总线锁定。第二种情况是：有些处理器不支持缓存锁定。对于Inter486和奔腾处理器,就算锁定的内存区域在处理器的缓存行中也会调用总线锁定。</p>
-<p>那么哪些操作是非原子的呢？</p>
-<blockquote>
-<p>ACCESSES TO CACHEABLE MEMORY THAT ARE SPLIT ACROSS BUS WIDTHS, CACHE LINES, AND PAGE BOUNDARIES ARE NOT GUARANTEED TO BE ATOMIC BY THE INTEL CORE 2 DUO, INTEL® ATOM™, INTEL CORE DUO, PENTIUM M, PENTIUM 4, INTEL XEON, P6 FAMILY, PENTIUM, AND INTEL486 PROCESSORS.</p>
-</blockquote>
-<p>（说点简单点，那些被总线带宽、cache line以及page大小给分隔开了的内存地址的访问不是原子的，你如果想保证这些操作是原子的，你就得求助于机制②，对总线发出相应的控制信号才行）。</p>
-<h4 id="2-对于linux而言，内核提供了两组原子操作接口"><a href="#2-对于linux而言，内核提供了两组原子操作接口" class="headerlink" title="2.对于linux而言，内核提供了两组原子操作接口"></a>2.对于linux而言，内核提供了两组原子操作接口</h4><p>一组是针对整数进行操作；另一组是针对单独的位进行操作。<br>①原子整数操作：针对整数的原子操作只能对atomic_t类型的数据处理，Linux支持的所有机器上的整型数据都是32位，但是使用atomic_t的代码只能将该类型的数据当作24位来使用。这个限制完全是因为在SPARC体系结构上，原子操作的实现不同于其它体系结构：32位int类型的低8位嵌入了一个锁，因为SPARC体系结构对原子操作缺乏指令级的支持，所以只能利用该锁来避免对原子类型数据的并发访问。<br>②原子位操作：原子位操作定义在文件中。令人感到奇怪的是位操作函数是对普通的内存地址进行操作的。原子位操作在多数情况下是对一个字长的内存访问，因而位号该位于0-31之间(在64位机器上是0-63之间),但是对位号的范围没有限制。</p>
-<h3 id="为什么关注原子操作？"><a href="#为什么关注原子操作？" class="headerlink" title="为什么关注原子操作？"></a>为什么关注原子操作？</h3><p>1）在确认一个操作是原子的情况下，多线程环境里面，我们可以避免仅仅为保护这个操作在外围加上性能开销昂贵的锁。<br>2）借助于原子操作，我们可以实现互斥锁。<br>3）借助于互斥锁，我们可以把一些列操作变为原子操作。</p>
-<h3 id="CAS带来的问题："><a href="#CAS带来的问题：" class="headerlink" title="CAS带来的问题："></a>CAS带来的问题：</h3><h4 id="1-ABA问题；"><a href="#1-ABA问题；" class="headerlink" title="1). ABA问题；"></a>1). ABA问题；</h4><p>CAS的核心思想是通过比对内存值与预期值是否一样而判断内存值是否被改过，但这个判断逻辑不严谨，假如内存值原来是A，后来被一条线程改为B，最后又被改成了A，则CAS认为此内存值并没有发生改变，但实际上是有被其他线程改过的，这种情况对依赖过程值的情景的运算结果影响很大。解决的思路是引入版本号，每次变量更新都把版本号加一。在Java中提供了AtomicStampedReference解决ABA问题。</p>
-<h4 id="2-循环时间长，开销大；"><a href="#2-循环时间长，开销大；" class="headerlink" title="2). 循环时间长，开销大；"></a>2). 循环时间长，开销大；</h4><p><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/731405bbc5b0122b43c21a44dddcbedc.png" alt=""><br>自旋CAS如果长时间不成功，会给CPU带来非常大的执行开销。如果JVM能支持处理器提供的pause指令那么效率会有一定的提升，pause指令有两个作用，第一它可以延迟流水线执行指令（de-pipeline）,使CPU不会消耗过多的执行资源，延迟的时间取决于具体实现的版本，在一些处理器上延迟时间是零。第二它可以避免在退出循环的时候因内存顺序冲突（memory order violation）而引起CPU流水线被清空（CPU pipeline flush），从而提高CPU的执行效率。</p>
-<h4 id="3-只能保证一个共享变量的原子操作；"><a href="#3-只能保证一个共享变量的原子操作；" class="headerlink" title="3). 只能保证一个共享变量的原子操作；"></a>3). 只能保证一个共享变量的原子操作；</h4><p>当对一个共享变量执行操作时，我们可以使用循环CAS的方式来保证原子操作，但是对多个共享变量操作时，循环CAS就无法保证操作的原子性，这个时候就可以用锁，或者有一个取巧的办法，就是把多个共享变量合并成一个共享变量来操作。比如有两个共享变量i＝2,j=a，合并一下ij=2a，然后用CAS来操作ij。从Java1.5开始JDK提供了AtomicReference类来保证引用对象之间的原子性，你可以把多个变量放在一个对象里来进行CAS操作。</p>
-<h3 id="参考连接："><a href="#参考连接：" class="headerlink" title="参考连接："></a>参考连接：</h3><p><a href="https://software.intel.com/zh-cn/blogs/2010/01/14/cpucpu" target="_blank" rel="noopener">https://software.intel.com/zh-cn/blogs/2010/01/14/cpucpu</a><br><a href="http://blog.hesey.net/2011/09/resolve-aba-by-atomicstampedreference.html" target="_blank" rel="noopener">http://blog.hesey.net/2011/09/resolve-aba-by-atomicstampedreference.html</a><br><a href="http://www.infoq.com/cn/articles/atomic-operation" target="_blank" rel="noopener">http://www.infoq.com/cn/articles/atomic-operation</a><br><a href="http://www.infoq.com/cn/articles/java-memory-model-5" target="_blank" rel="noopener">http://www.infoq.com/cn/articles/java-memory-model-5</a><br><a href="http://www.docin.com/p-92508695.html%E3%80%82" target="_blank" rel="noopener">http://www.docin.com/p-92508695.html%E3%80%82</a></p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2016/07/07/Java/2016-07-07-cas-work/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-Program/2016-07-05-product-high-use" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2016/07/05/Program/2016-07-05-product-high-use/">高并发系统 之 降级特技</a>
-    </h1>
-  
-
-        
-        <a href="/2016/07/05/Program/2016-07-05-product-high-use/" class="archive-article-date">
-  	<time datetime="2016-07-04T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2016-07-05</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <blockquote>
-<p>高并发场景三把利器保护系统：缓存、降级、限流。当访问量剧增、服务出现问题（如响应时间慢或不响应）或非核心服务影响到核心流程的性能时，仍然需要保证服务还是可用的，即使是有损服务。系统可以根据一些关键数据进行自动降级，也可以配置开关实现人工降级。本文将介绍一些笔者在实际工作中遇到的或见到过的一些降级方案供大家参考。</p>
-</blockquote>
-<h4 id="降级按自动化程度分类："><a href="#降级按自动化程度分类：" class="headerlink" title="降级按自动化程度分类："></a>降级按自动化程度分类：</h4><ul>
-<li>系统根据关键数据自动降级;</li>
-<li>人工通过配置进行手工降级;<h4 id="自动开关降级指标："><a href="#自动开关降级指标：" class="headerlink" title="自动开关降级指标："></a>自动开关降级指标：</h4></li>
-<li>超时降级；</li>
-<li>故障降级；</li>
-<li>限流降级；<h4 id="超时降级："><a href="#超时降级：" class="headerlink" title="超时降级："></a>超时降级：</h4>当访问的数据库/http服务/远程调用响应慢或者超时（比如dubbo客户端超时），且该服务不是核心服务的话可以在超时后自动降级；比如商品详情页上有推荐内容/评价，但是推荐内容/评价暂时不展示对用户购物流程不会产生很大的影响；对于这种服务是可以超时降级的。如果是调用别人的远程服务，和对方定义一个服务响应最大时间，如果超时了则自动降级。<h4 id="故障降级："><a href="#故障降级：" class="headerlink" title="故障降级："></a>故障降级：</h4>比如要调用的远程服务挂掉了（网络故障、DNS故障、http服务返回错误的状态码、rpc服务抛出异常），则可以直接降级。降级后的处理方案有：默认值（比如库存服务挂了，返回默认现货）、兜底数据（比如广告挂了，返回提前准备好的一些静态页面）、缓存（之前暂存的一些缓存数据）。<h4 id="限流降级："><a href="#限流降级：" class="headerlink" title="限流降级："></a>限流降级：</h4>当我们去秒杀或者抢购一些限购商品时，此时可能会因为访问量太大而导致系统崩溃，此时开发者会使用限流来进行限制访问量，当达到限流阀值，后续请求会被降级；降级后的处理方案可以是：排队页面（将用户导流到排队页面等一会重试）、无货（直接告知用户没货了）、错误页（如活动太火爆了，稍后重试）。<h4 id="手动开关降级："><a href="#手动开关降级：" class="headerlink" title="手动开关降级："></a>手动开关降级：</h4>在大促期间通过监控发现线上的一些服务存在问题，这个时候需要暂时将这些服务摘掉；还有有时候通过任务系统调用一些服务，但是服务依赖的数据库可能存在：网卡被打满了、挂掉了或者很多慢查询，此时需要暂停下任务系统让服务方进行处理；还有发现突然调用量太大，可能需要改变处理方式（比如同步转换为异步）；此时就可以使用开关来完成降级。</li>
-</ul>
-<h4 id="降级按照功能分类："><a href="#降级按照功能分类：" class="headerlink" title="降级按照功能分类："></a>降级按照功能分类：</h4><ul>
-<li>读服务降级；</li>
-<li>写服务降级；<h4 id="读服务降级的思路："><a href="#读服务降级的思路：" class="headerlink" title="读服务降级的思路："></a>读服务降级的思路：</h4>1、开关集中化管理：通过推送机制把开关推送到各个应用（比如我们使用Diamond实现动态配置变更）；<br>2、后端读缓存降级（降级到读缓存、降级到走静态化）：比如只读本地缓存、只读分布式缓存、或者只读一个默认的降级数据；<br>3、前段Nginx请求降级：将开关前置到nginx的接入层，从nginx直接返回一些数据请求，请求打不到后端应用。<br>举例：<br>①我们的详情页静态HTML数据默认缓存时间是6min，超过6min就会查询DB进行刷新缓存，如果后端构造详情页的服务挂了，此时缓存又都失效了，就会导致页面出不来，所以我们可以在这里做一个缓存降级策略，如果后端服务挂了，我们是允许使用缓存数据的；用户浏览已经过期的详情页的静态数据比不能浏览要好。<br>②当一些页面请求量非常大时，一些请求直接在Nginx上做了开关拦截，返回固定数据，让主流程可以不受到影响。<br>③订单列表页中不同状态订单数查询，流量较大的时候降级为只走缓存；<br><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/65c75dcce27bf193d84787ddc1eda237.png" alt=""><h4 id="写服务降级的思路："><a href="#写服务降级的思路：" class="headerlink" title="写服务降级的思路："></a>写服务降级的思路：</h4>写服务在大多数场景下是不可降级的，不过可以通过一些迂回战术来解决问题。比如将同步操作转换为异步操作，或者限制写的量/比例。<br>举例：<br>①正常情况可以同步扣减库存，在性能扛不住时降级为异步；另外如果是秒杀场景可以直接降级为异步，从而保护系统。</li>
-</ul>
-<h4 id="参考："><a href="#参考：" class="headerlink" title="参考："></a>参考：</h4><p><a href="http://jinnianshilongnian.iteye.com/blog/2306477" target="_blank" rel="noopener">http://jinnianshilongnian.iteye.com/blog/2306477</a></p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Program//" class="article-tag-list-link color3">Program</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2016/07/05/Program/2016-07-05-product-high-use/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-Mysql/2016-07-01-mysql-lock" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2016/07/01/Mysql/2016-07-01-mysql-lock/">Mysql  中悲观锁概念和使用</a>
-    </h1>
-  
-
-        
-        <a href="/2016/07/01/Mysql/2016-07-01-mysql-lock/" class="archive-article-date">
-  	<time datetime="2016-06-30T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2016-07-01</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h3 id="悲观锁介绍（百科）："><a href="#悲观锁介绍（百科）：" class="headerlink" title="悲观锁介绍（百科）："></a>悲观锁介绍（百科）：</h3><p>悲观锁，正如其名，它指的是对数据被外界（包括本系统当前的其他事务，以及来自外部系统的事务处理）修改持保守态度，因此，在整个数据处理过程中，将数据处于锁定状态。悲观锁的实现，往往依靠数据库提供的锁机制（也只有数据库层提供的锁机制才能真正保证数据访问的排他性，否则，即使在本系统中实现了加锁机制，也无法保证外部系统不会修改数据）。</p>
-<p>在关系数据库管理系统里，悲观并发控制（又名“悲观锁”，Pessimistic Concurrency Control，缩写“PCC”）是一种并发控制的方法。它可以阻止一个事务以影响其他用户的方式来修改数据。如果一个事务执行的操作都某行数据应用了锁，那只有当这个事务把锁释放，其他事务才能够执行与该锁冲突的操作。<br>悲观并发控制主要用于数据争用激烈的环境，以及发生并发冲突时使用锁保护数据的成本要低于回滚事务的成本的环境中。</p>
-<h3 id="Mysql-InnoDB-排他锁实现悲观锁"><a href="#Mysql-InnoDB-排他锁实现悲观锁" class="headerlink" title="Mysql InnoDB 排他锁实现悲观锁"></a>Mysql InnoDB 排他锁实现悲观锁</h3><p>用法：select…for update;</p>
-<p>与普通查询不一样的是，我们使用了select…for update的方式，这样就通过数据库实现了悲观锁。此时在表X中，id为1的 那条数据就被我们锁定了，其它的事务必须等本次事务提交之后才能执行。这样我们可以保证当前的数据不会被其它事务修改。</p>
-<p>行级锁 （Row Lock）或 表级锁（Table Lock）：<br>使用select…for update会把数据给锁住，不过我们需要注意一些锁的级别，MySQL InnoDB默认Row-Level Lock，所以只有「明确」地指定主键，MySQL 才会执行Row lock (只锁住被选取的数据) ，否则MySQL 将会执行Table Lock (将整个数据表单给锁住)；<br>当然Mysql也对for update做了一些优化，并不是没有指定主键，一定会触发表级锁；比如使用索引也会影响数据库的锁定级别。行级锁都是基于索引的，如果一条SQL语句用不到索引是不会使用行级锁的，会使用表级锁把整张表锁住，注意这里只是影响。具体可以参考：mysql事务和锁InnoDB</p>
-<h3 id="Mysql-InnoDB悲观锁的使用："><a href="#Mysql-InnoDB悲观锁的使用：" class="headerlink" title="Mysql InnoDB悲观锁的使用："></a>Mysql InnoDB悲观锁的使用：</h3><p>要使用悲观锁，我们必须关闭mysql数据库的自动提交属性，因为MySQL默认使用autocommit模式，也就是说，当你执行一个更新操作后，MySQL会立刻将结果进行提交。<br>set autocommit=0;</p>
-<p>我们的电商设计中是下单扣库存，所以用户下单的时候，会调用商品系统的库存扣减服务，此时商品系统是根据库存行记录进行加悲观锁做库存扣减的，虽然这种方式比较安全，可以一定程度上减少超卖的风险，但是在下单并发非常高的时候，Mysql的悲观锁就会显得效率很低。<br>应对这种场景有几种解决方案：<br>①阿里修改了Mysql底层的源码，提高了悲观锁的效率；<br>②使用Redis进行库存计算，DB作为最终一致性的数据存储；<br>③请求端对库存扣减进行合并统一处理；</p>
-<h3 id="其它参考："><a href="#其它参考：" class="headerlink" title="其它参考："></a>其它参考：</h3><p><a href="http://www.cnblogs.com/zhaoyl/p/4121010.html" target="_blank" rel="noopener">http://www.cnblogs.com/zhaoyl/p/4121010.html</a><br><a href="http://hedengcheng.com/?p=771" target="_blank" rel="noopener">http://hedengcheng.com/?p=771</a></p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Mysql//" class="article-tag-list-link color1">Mysql</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2016/07/01/Mysql/2016-07-01-mysql-lock/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-Redis/2016-06-29-product-system-redis" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2016/06/29/Redis/2016-06-29-product-system-redis/">商品系统 之 Redis的使用</a>
-    </h1>
-  
-
-        
-        <a href="/2016/06/29/Redis/2016-06-29-product-system-redis/" class="archive-article-date">
-  	<time datetime="2016-06-28T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2016-06-29</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p> Redis在现在的电商系统中越来越多的被使用作为缓存体系，掌握基本的Redis的使用还是非常有必要的。</p>
-<h2 id="Jedis-客户端初始化："><a href="#Jedis-客户端初始化：" class="headerlink" title="Jedis 客户端初始化："></a>Jedis 客户端初始化：</h2><p> 你是如何初始化Jedis的？使用Spring Bean 或者 静态工具类？项目中有人使用在类的静态初始化块中初始化Jedis连接，有没有捕获异常，导致Jedis初始化失败后，整个类就无法进行加载，进而报ClassNotDefFound的错误，所以我们在初始化Jedis的时候是需要考虑异常场景的（当然使用原来外部资源的方式初始化静态变量就不是一个好的选择）。对于持久化Redis，当连接或请求异常的是，进行连接retry和reconnect，重试时间应该大于cluster-node-time时间，但是有一点需要考虑，当你的线程大量处于重试时，是否会达到线程池的最大值？</p>
-<h2 id="Jedis业务代码中的容灾方案："><a href="#Jedis业务代码中的容灾方案：" class="headerlink" title="Jedis业务代码中的容灾方案："></a>Jedis业务代码中的容灾方案：</h2><h3 id="①请求容灾"><a href="#①请求容灾" class="headerlink" title="①请求容灾"></a>①请求容灾</h3><p>在创业初期，一般公司都是缺乏专业的Redis运维人员，Redis的稳定性也得不到保证，所以这个时候就不能把Redis作为唯一的救命稻草，如果Redis挂了，你的业务也就跪了。在我们电商系统中，各个垂直系统之前公用Redis集群，后来发现如果一个节点出现问题就会导致整个公司的业务挂点，所以对Redis集群进行了业务拆分，不同的业务系统使用单独的Redis集群，持久化缓存和非持久化缓存进行分离。虽然这样在某种程度上降低了Redis宕机给业务带来的风险，但是如果在客户端这边没有对Redis的使用考虑容灾降级的话，也是可能给业务带来一连串的风险；比如，我们遇到了一次公共Redis集群中的几台ECS主机挂掉了，重启redis集群、重启ECS都不起作用，这个时候业务系统由于没有对Redis考虑容灾和降级，在获取Redis资源的时候就开始大量报错，导致使用了此服务的所有应用都出现了异常；如果Jedis客户端采用Spring Bean，由于拿不到Redis连接，还会让应用容器无法启动。这个时候如果通过容灾策略跳过查询Redis转为查询DB的话，大量请求直接打在DB上就可能导致DB瓶颈，但是如果Redis是集群的话，单个节点不可用只会影响落到这个Node的请求，当15s后，Node的Slave升为Master就可以解决缓存，给业务带了的不可用只是短暂的。</p>
-<h3 id="②hot-key-容灾"><a href="#②hot-key-容灾" class="headerlink" title="②hot-key 容灾"></a>②hot-key 容灾</h3><p> 避免产生hot-key，导致节点成为系统的短板；如果系统容易产生hot-key，建议系统进行本地缓存（比如使用ehcache），这种方案会对业务有侵入性，还有一种解决方案是搭建无状态的proxy，proxy具备缓存hot-key的能力，redis需要具备发现hot-key并进行主动上报proxy，这样hot-key就从单节点转移到了proxy层，同时proxy在压力大的场景下可以平滑水平扩容，当然你也需要考虑数据一致性问题。</p>
-<h3 id="③big-key-容灾"><a href="#③big-key-容灾" class="headerlink" title="③big-key 容灾"></a>③big-key 容灾</h3><p>避免产生big-key，导致网卡打爆、慢查询；</p>
-<h3 id="④TTL"><a href="#④TTL" class="headerlink" title="④TTL"></a>④TTL</h3><p>避免大量Key在同一时间段过期。最简单的办法是缓存时间随机，这对一次放入大量的Key是有效的，但是对于分散的key不起作用，而且随机不易管理，一个key到底什么时候失效我们无法做到管控。</p>
-<h3 id="⑤高并发key失效-容灾"><a href="#⑤高并发key失效-容灾" class="headerlink" title="⑤高并发key失效 容灾"></a>⑤高并发key失效 容灾</h3><p>在流量非常大的情况下，如果缓存失效，大量请求就会打到DB上，这个时候很可能达到DB的瓶颈，造成雪崩，所以为了有效防止这种场景下的雪崩，我们引入了 “分段式缓存策略”，将缓存分为缓存逻辑失效(expire)和缓存物理失效(maxExpire)；缓存物理失效时，查询数据重新刷入缓存，这点没什么变化；缓存逻辑失效后，当前线程会获取锁，并进行缓存更新，在缓存更新刷新的过程中，其它大量的请求可以直接返回老数据（只是逻辑过期，并未物理过期），从而有效防止雪崩。</p>
-<p>分段式查询缓存:</p>
-<ol>
-<li><p>缓存未命中，尝试获取更新锁:</p>
-<ul>
-<li>获取更新锁成功，执行业务并刷新缓存;</li>
-<li>获取更新锁失败，说明缓存正在被更新，直接查询DB；</li>
-</ul>
-</li>
-<li><p>缓存命中，缓存是否逻辑过期：</p>
-<ul>
-<li>缓存逻辑未过期，数据有效且正常，直接返回；</li>
-<li>缓存逻辑过期，获取更新锁：<ul>
-<li>更新锁获取成功，执行业务刷新缓存；</li>
-<li>获取更新锁失败，说明有线程在刷新缓存直接返回逻辑过期的数据；</li>
-</ul>
-</li>
-</ul>
-<p><strong>注意：</strong> 当你进行缓存更新的之前需要获取锁，这个锁一般使用Redis实现分不是锁；获取到锁后，业务处理完毕记得释放锁。</p>
-</li>
-</ol>
-<h2 id="Redis操作中Key的定义："><a href="#Redis操作中Key的定义：" class="headerlink" title="Redis操作中Key的定义："></a>Redis操作中Key的定义：</h2><p>随着业务的发展，Redis的使用越来越多，Redis的内存占用量也水涨船高，但是Redis的内存不是无限，有几种方案降低Redis机器内存占用的值:</p>
-<p>①是增加更多的节点，拉平内存占用量水位；</p>
-<p>②对数据进行压缩，解决内存碎片问题；</p>
-<p>③缩减Key或者Value对Redis的使用量，比如简化Key的占用，或者对Key进行MD5。</p>
-<p>④使用带压缩策略的Redis数据结构，比如Hash。</p>
-<p>那么如何更优雅的定义Key呢 ？一般的做法是:</p>
-<blockquote>
-<p>系统名称前缀:表名称:字段名称:版本号:业务数据</p>
-</blockquote>
-<p>设计版本号的作用是当新增字段时，需要更新缓存，只需要修改一下版本号就可以了。然后对这个规则的Key进行最大可能的字段缩减，在保证业务Key不重复的情况下，尽量减少Key的长度。</p>
-<h2 id="Redis-Cluster-中使用Multi·Key操作："><a href="#Redis-Cluster-中使用Multi·Key操作：" class="headerlink" title="Redis-Cluster 中使用Multi·Key操作："></a>Redis-Cluster 中使用Multi·Key操作：</h2><p>当然，当我们使用Redis集群的时候，一些业务场景需要让一些相同业务含义的数据落在同一个节点上，方便我们进行MSET、MGET操作（Redis Cluster跨节点点不支持MSET、MGET操作），这个时候我们可能就需要使用Redis的Hash Tag功能，它允许用key的部分字符串来计算hash；</p>
-<blockquote>
-<p>当一个key包含 {} 的时候，就不对整个key做hash，而仅对 {} 包括的字符串做hash。</p>
-</blockquote>
-<p>但是这个会带来一个问题，当流量高峰期的时候，大部分的请求都会落到固定的hash槽中，单台Redis Node的压力会非常大，因为Redis是单进程单线程模式，采用队列模式将并发访问变为串行访问，流量超过了单节点的处理能力后，触发Jedis客户端的超时，重连等错误，客户端不断报：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">JedisClusterMaxRedirectionsException: Too many Cluster redirections?</span><br></pre></td></tr></table></figure>
-<p><img src="https://gw.alipayobjects.com/zos/skylark/bddb8985-d638-41b8-8a3f-f57eeda4c8c9/2018/png/6bd4929a-22b7-4dd9-a7b6-6fe36cefb957.png" alt=""><br>首先想到最简单的办法就是针对不同的业务场景中的Multi Key操作进行拆分，尽量不要落到同一个Redis Node中，怎么操作让他们落在不同的Redis Node上呢 ？人工通过改变Hash Tag，计算key中{}内的Hash值对应的slot，来达到移动slot的目的，我们称之为<a href="http://redis.io/topics/cluster-spec#overview-of-redis-cluster-main-components" target="_blank" rel="noopener">预分桶</a>。预分桶的实现如下：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">HASH_SLOT = CRC16(key) mod <span class="number">16384</span></span><br></pre></td></tr></table></figure>
-<p>其中CRC16算法的C语言实现：<a href="http://redis.io/topics/cluster-spec#appendix" target="_blank" rel="noopener">CRC16</a>，对Crc16的原理可以参考：<a href="http://blog.csdn.net/guodongxiaren/article/details/44706613" target="_blank" rel="noopener">Redis源码中的CRC校验码</a><br>Jedis也提供了计算slot的方法：redis.clients.util.JedisClusterCRC16.getSlot()<br>但是这种方案并没有从根本上解决问题，当一个不可拆分的业务数据量达到单台Redis的瓶颈的时候怎么解决 ？参考唯品会、美团、饿了吗的Redis实践，有一些采用的增加Proxy让服务端分片的方式（<a href="https://github.com/twitter/twemproxy" target="_blank" rel="noopener">twemproxy</a>等），对于multi key操作有服务端进行多次操作来达到目的，但是之前的一次操作会被拆为多个单操作，导致QPS翻倍，好在的是我们可以通过水平扩展节点的方式来达到分担压力的目的。</p>
-<h2 id="总结："><a href="#总结：" class="headerlink" title="总结："></a>总结：</h2><p>之所以我们会自主搭建Redis-Cluster，原因是在14年阿里云还未推出KV-Store（云Redis）存储设备，所以只能自建，自建场景下，我们缺乏专业的Redis运维同学，所以导致我们在Redis的运维上除了N多问题，给人的印象是每逢大促必挂，给业务带来了很大的损失。回过头来再计算一下我们购买机器、SSD、运维等的成本，比使用阿里云的Redis还贵，所以如果能使用阿里云的服务还是尽量采用阿里云的服务。</p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Redis//" class="article-tag-list-link color1">Redis</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2016/06/29/Redis/2016-06-29-product-system-redis/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
   
     <nav id="page-nav">
-      <a class="extend prev" rel="prev" href="/page/4/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/3/">3</a><a class="page-number" href="/page/4/">4</a><span class="page-number current">5</span><a class="page-number" href="/page/6/">6</a><a class="page-number" href="/page/7/">7</a><span class="space">&hellip;</span><a class="page-number" href="/page/9/">9</a><a class="extend next" rel="next" href="/page/6/">Next &raquo;</a>
+      <a class="extend prev" rel="prev" href="/page/4/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/3/">3</a><a class="page-number" href="/page/4/">4</a><span class="page-number current">5</span><a class="page-number" href="/page/6/">6</a><a class="page-number" href="/page/7/">7</a><span class="space">&hellip;</span><a class="page-number" href="/page/10/">10</a><a class="extend next" rel="next" href="/page/6/">Next &raquo;</a>
     </nav>
   
 
@@ -1128,6 +1092,42 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">标签2</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">工作</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">目标</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">共享变量</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">缓存</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">人生</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">感悟</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">架构</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">可视化</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">AHAS</a>
               </li>
             
             <div class="clearfix"></div>

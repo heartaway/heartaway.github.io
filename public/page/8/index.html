@@ -149,6 +149,434 @@
           <div id="js-content" class="content-ll">
             
   
+    <article id="post-Java/2016-03-10-simpledateformat" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2016/03/10/Java/2016-03-10-simpledateformat/">为什么SimpleDateFormat 不是线程安全</a>
+    </h1>
+  
+
+        
+        <a href="/2016/03/10/Java/2016-03-10-simpledateformat/" class="archive-article-date">
+  	<time datetime="2016-03-09T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2016-03-10</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>查看SimpleDateFormat类的说明，在最后一条已经明确说明了此类非线程安全，建议为每一个线程创建一个单独的实例，如果多线程共享实例，务必保证同步性；</p>
+<p><img src="/images/posts/20160310/7BCC9F9B-0535-48BC-B247-3A13DFC9C60E.png" alt=""></p>
+<p>要知道为什么不是线程安全的，首先我们需要知道SimpleDateFormat的作用和工作原理。</p>
+<p>SimpleDateFormat继承了DateFormat,在DateFormat中定义了一个protected属性的 Calendar类的对象：calendar。只是因为Calendar类的概念复杂，牵扯到时区与本地化等等，Jdk的实现中使用了成员变量来传递参数，这就造成在多线程的时候会出现错误。</p>
+<p>SimpleDateFormat最重要的两个方法，一个是format，一个是parse。</p>
+<h4 id="format方法："><a href="#format方法：" class="headerlink" title="format方法："></a>format方法：</h4><p><img src="/images/posts/20160310/simpledataformat-format.png" alt=""></p>
+<p>可以看到，方法一开始就使用传入的date参数对属性calendar进行了初始化，试想如果此类是共享的，那么其它类还在使用此calendar的引用时，可能下一次获取到的值就与之前获取到的值不一样了。那format方法为什么要使用传入参数date对calendar的进行设置呢？为什么不可以把calendar作为方法参数在内部方法中传递呢？如果这里calendar是内部方法属性，并在subFormat中通过方法传递，一切问题就都解决了。作者这么做也许只是想减少一个参数的传递吧，但是这带了了诸多的线程安全问题。</p>
+<h4 id="parse方法："><a href="#parse方法：" class="headerlink" title="parse方法："></a>parse方法：</h4><p>首先从方法的注解上可以了解到parse的实现方式是通过对时间字符串逐步进行解析，然后通过java.text.CalendarBuilder.establish和calendar构建时间对象。 Date字符串解析中使用了calendar对象，在解析前，会调用Calendar#clear()方法，对引用的calendar对象的各个域进行初始化为默认值；然后把每次解析出来的时间片段设置到calendar相应的属性中，最后返回calendar中的time。</p>
+<p><img src="/images/posts/20160310/5C6ED2A3-C1DF-4937-8C59-A03C73582185.png" alt=""></p>
+<p>不难想出在高并发情况下，如果calendar是多线程共享的，一定会出现A线程中calendar进行了clear(),导致B线程受到影响。</p>
+<h4 id="无状态性："><a href="#无状态性：" class="headerlink" title="无状态性："></a>无状态性：</h4><p>思考：SimpleDateFormat类中是什么因素导致了此类不是线程安全的呢？是对calendar的引用，方法中对calendar的引用对象进行了修改，从而导致了此类是有状态的，我们一般在设计代码的时候尽量让自己的代码处于无状态，好处是，在各种情况下，无论并发掉多少次，结果总是一样的。</p>
+<h4 id="SimpleDateFormat线程安全的解决方案："><a href="#SimpleDateFormat线程安全的解决方案：" class="headerlink" title="SimpleDateFormat线程安全的解决方案："></a>SimpleDateFormat线程安全的解决方案：</h4><ol>
+<li>SimpleDateFormat设计为方法内实例；好处，从共享变为非共享，线程安全。弊端是每次创建性能开销大。</li>
+<li>在进行parse或者format时对SimpleDateFormat对象进行加锁；</li>
+<li>使用ThreadLocal，为每一个线程维护一个实例对象。</li>
+<li>使用Apache commons包中的FastDateFormat 或者 Joda-Time类库。</li>
+</ol>
+<p>下午在代码开发中使用到的时间Util，采用的是方法三：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * &lt;p&gt;</span></span><br><span class="line"><span class="comment"> * 由于SimpleDateFormat不是线程安全的，所以在作为静态工具类使用的时候需要特殊处理</span></span><br><span class="line"><span class="comment"> * &lt;/p&gt;</span></span><br><span class="line"><span class="comment"> * Date: 16/3/10</span></span><br><span class="line"><span class="comment"> * Time: 下午3:38</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">DateUtil</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Logger logger = LoggerFactory.getLogger(DateUtil.class);</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String DEF_PATTERN = <span class="string">"yyyy-MM-dd HH:mm:ss"</span>;<span class="comment">//默认时间格式</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String DATE_PATTERN = <span class="string">"yyyy-MM-dd"</span>;<span class="comment">//日期格式</span></span><br><span class="line">    <span class="comment">//注意，这里初始化会有问题，后面会讲到（自己使用时需要删除此行）</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> Date START_NULL_DATE = parseDate(<span class="string">"1970-01-01 08:00:00"</span>, DATE_PATTERN);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> ThreadLocal&lt;Map&lt;String<span class="comment">/**pattern**/</span>, DateFormat&gt;&gt; threadLocal = <span class="keyword">new</span> ThreadLocal&lt;Map&lt;String, DateFormat&gt;&gt;() &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">protected</span> Map&lt;String, DateFormat&gt; <span class="title">initialValue</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">new</span> HashMap&lt;String, DateFormat&gt;();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 获取DateFormat</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> pattern</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> DateFormat <span class="title">getDateFormat</span><span class="params">(String pattern)</span> </span>&#123;</span><br><span class="line">        DateFormat dateFormat = threadLocal.get().get(pattern);</span><br><span class="line">        <span class="keyword">if</span> (dateFormat == <span class="keyword">null</span>) &#123;</span><br><span class="line">            dateFormat = <span class="keyword">new</span> SimpleDateFormat(pattern);</span><br><span class="line">            threadLocal.get().put(pattern, dateFormat);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> dateFormat;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在生产环境中使用过程中，Runtime期间JVM报错：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">java.lang.NoClassDefFoundError: Could not initialize <span class="class"><span class="keyword">class</span> <span class="title">com</span>.<span class="title">xxxx</span>.<span class="title">vender</span>.<span class="title">util</span>.<span class="title">DateUtil</span></span></span><br></pre></td></tr></table></figure>
+<p>开始怀疑是因为把ThreadLocal作为静态初始化块导致的问题，但是查阅ThreadLocal的官方文档，给出的实例就是作为static属性使用，有同学说最好把DateUtil工具类做成单例模式进行使用，但是这个并没有找到报错的原因，后来有再本地进行了测试，发现抛出了NPE的异常，再仔细看看代码，发现有同学在ThreadLocal的初始化块之上添加了静态属性START_NULL_DATE,而START_NULL_DATE的初始化依赖threadLocal属性的初始化，抛出NPE是合乎情理的，那为什么生产环境上却出现的是java.lang.NoClassDefFoundError而不是NPE呢？</p>
+<h4 id="java-lang-NoClassDefFoundError到底是什么："><a href="#java-lang-NoClassDefFoundError到底是什么：" class="headerlink" title="java.lang.NoClassDefFoundError到底是什么："></a>java.lang.NoClassDefFoundError到底是什么：</h4><p>NoClassDefFoundError发生在JVM在动态运行时，根据你提供的类名，在classpath中找到对应的类进行加载，但当它找不到这个类或者初始化这个类（静态属性或代码块）失败时，就发生了java.lang.NoClassDefFoundError的错误。</p>
+<p>更多有关此类的解释可以参考：</p>
+<p><a href="http://blog.csdn.net/jamesjxin/article/details/46606307" target="_blank" rel="noopener">http://blog.csdn.net/jamesjxin/article/details/46606307</a></p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2016/03/10/Java/2016-03-10-simpledateformat/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-Java/2016-03-09-byte-code-java-serailze" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2016/03/09/Java/2016-03-09-byte-code-java-serailze/">透过序列化字节码看Java序列化</a>
+    </h1>
+  
+
+        
+        <a href="/2016/03/09/Java/2016-03-09-byte-code-java-serailze/" class="archive-article-date">
+  	<time datetime="2016-03-08T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2016-03-09</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Java序列化的基础知识 请参考之前的文章 ‘Java基础 之 序列化与反序列化’</p>
+<p><strong>序列化数据的存储结构：</strong></p>
+<p>Java序列化后存储的信息包括：类元数据描述、类的属性、父类信息以及属性域的值。</p>
+<p>编写一个测试类：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SerializableTest</span> <span class="keyword">implements</span> <span class="title">Serializable</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> father;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">long</span> serialVersionUID = <span class="number">1937803012639770720L</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="class"><span class="keyword">class</span> <span class="title">ObjectSaver</span>  <span class="keyword">extends</span>  <span class="title">SerializableTest</span> <span class="keyword">implements</span> <span class="title">Serializable</span></span>&#123;</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">long</span> serialVersionUID = -<span class="number">1460368089309853877L</span>;</span><br><span class="line">        <span class="keyword">public</span> String name;</span><br><span class="line">        <span class="keyword">public</span> <span class="keyword">int</span> old;</span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="title">ObjectSaver</span><span class="params">(String name, <span class="keyword">int</span> old)</span> </span>&#123;</span><br><span class="line">            <span class="keyword">super</span>.father = <span class="number">1</span>;</span><br><span class="line">            <span class="keyword">this</span>.name = name;</span><br><span class="line">            <span class="keyword">this</span>.old = old;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>通过Junit进行序列化，生成序列化后的对象：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">testWriteObject</span><span class="params">()</span> <span class="keyword">throws</span> Exception</span>&#123;</span><br><span class="line">    ObjectOutputStream objectOutputStream = <span class="keyword">new</span> ObjectOutputStream(<span class="keyword">new</span> FileOutputStream(<span class="string">"/Users/xinyuan/tmp/ObjectSaver.obj"</span>));</span><br><span class="line">    objectOutputStream.writeObject(<span class="string">"严明明"</span>);</span><br><span class="line">    objectOutputStream.writeObject(<span class="keyword">new</span> Date());</span><br><span class="line">    objectOutputStream.writeObject(<span class="keyword">new</span> ObjectSaver(<span class="string">"测试类"</span>,<span class="number">30</span>));</span><br><span class="line">    objectOutputStream.close();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>使用strings打开ObjectSaver.obj 文件，可以看到存储下来的可打印的字符信息如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">java.util.Datehj</span><br><span class="line">Scxsr</span><br><span class="line"><span class="number">7</span>com.java.demo.serializable.SerializableTest$ObjectSaver</span><br><span class="line">oldL</span><br><span class="line">namet</span><br><span class="line">Ljava/lang/String;L</span><br><span class="line"><span class="keyword">this</span>$<span class="number">0</span>t</span><br><span class="line">-Lcom/java/demo/serializable/SerializableTest;xr</span><br><span class="line">+com.java.demo.serializable.SerializableTest</span><br><span class="line">fatherxp</span><br></pre></td></tr></table></figure>
+<p>二进制内容为：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">aced <span class="number">0005</span> <span class="number">7400</span> <span class="number">09e4</span> b8a5 e698 <span class="number">8</span>ee6 <span class="number">988</span>e</span><br><span class="line"><span class="number">7372</span> <span class="number">000</span>e <span class="number">6</span>a61 <span class="number">7661</span> <span class="number">2e75</span> <span class="number">7469</span> <span class="number">6</span>c2e <span class="number">4461</span></span><br><span class="line"><span class="number">7465</span> <span class="number">686</span>a <span class="number">8101</span> <span class="number">4</span>b59 <span class="number">7419</span> <span class="number">0300</span> <span class="number">0078</span> <span class="number">7077</span></span><br><span class="line"><span class="number">0800</span> <span class="number">0001</span> <span class="number">5356</span> b659 b778 <span class="number">7372</span> <span class="number">0037</span> <span class="number">636f</span></span><br><span class="line"><span class="number">6</span>d2e <span class="number">6</span>a61 <span class="number">7661</span> <span class="number">2e64</span> <span class="number">656</span>d <span class="number">6f</span>2e <span class="number">7365</span> <span class="number">7269</span></span><br><span class="line"><span class="number">616</span>c <span class="number">697</span>a <span class="number">6162</span> <span class="number">6</span>c65 <span class="number">2e53</span> <span class="number">6572</span> <span class="number">6961</span> <span class="number">6</span>c69</span><br><span class="line"><span class="number">7</span>a61 <span class="number">626</span>c <span class="number">6554</span> <span class="number">6573</span> <span class="number">7424</span> <span class="number">4f</span>62 <span class="number">6</span>a65 <span class="number">6374</span></span><br><span class="line"><span class="number">5361</span> <span class="number">7665</span> <span class="number">72</span>eb bbba f5cb <span class="number">5</span>ec7 <span class="number">4</span>b02 <span class="number">0003</span></span><br><span class="line"><span class="number">4900</span> <span class="number">036f</span> <span class="number">6</span>c64 <span class="number">4</span>c00 <span class="number">046</span>e <span class="number">616</span>d <span class="number">6574</span> <span class="number">0012</span></span><br><span class="line"><span class="number">4</span>c6a <span class="number">6176</span> <span class="number">612f</span> <span class="number">6</span>c61 <span class="number">6e67</span> <span class="number">2f</span>53 <span class="number">7472</span> <span class="number">696</span>e</span><br><span class="line"><span class="number">673</span>b <span class="number">4</span>c00 <span class="number">0674</span> <span class="number">6869</span> <span class="number">7324</span> <span class="number">3074</span> <span class="number">002</span>d <span class="number">4</span>c63</span><br><span class="line"><span class="number">6f</span>6d <span class="number">2f</span>6a <span class="number">6176</span> <span class="number">612f</span> <span class="number">6465</span> <span class="number">6</span>d6f <span class="number">2f</span>73 <span class="number">6572</span></span><br><span class="line"><span class="number">6961</span> <span class="number">6</span>c69 <span class="number">7</span>a61 <span class="number">626</span>c <span class="number">652f</span> <span class="number">5365</span> <span class="number">7269</span> <span class="number">616</span>c</span><br><span class="line"><span class="number">697</span>a <span class="number">6162</span> <span class="number">6</span>c65 <span class="number">5465</span> <span class="number">7374</span> <span class="number">3</span>b78 <span class="number">7200</span> <span class="number">2</span>b63</span><br><span class="line"><span class="number">6f</span>6d <span class="number">2e6</span>a <span class="number">6176</span> <span class="number">612</span>e <span class="number">6465</span> <span class="number">6</span>d6f <span class="number">2e73</span> <span class="number">6572</span></span><br><span class="line"><span class="number">6961</span> <span class="number">6</span>c69 <span class="number">7</span>a61 <span class="number">626</span>c <span class="number">652</span>e <span class="number">5365</span> <span class="number">7269</span> <span class="number">616</span>c</span><br><span class="line"><span class="number">697</span>a <span class="number">6162</span> <span class="number">6</span>c65 <span class="number">5465</span> <span class="number">7374</span> <span class="number">1</span>ae4 <span class="number">7592</span> b513</span><br><span class="line"><span class="number">4860</span> <span class="number">0200</span> <span class="number">0149</span> <span class="number">0006</span> <span class="number">6661</span> <span class="number">7468</span> <span class="number">6572</span> <span class="number">7870</span></span><br><span class="line"><span class="number">0000</span> <span class="number">0001</span> <span class="number">0000</span> <span class="number">001</span>e <span class="number">7400</span> <span class="number">09e6</span> b58b e8af</span><br><span class="line"><span class="number">95e7</span> b1bb <span class="number">7371</span> <span class="number">007</span>e <span class="number">0006</span> <span class="number">0000</span> <span class="number">0000</span></span><br></pre></td></tr></table></figure>
+<h5 id="第一部分："><a href="#第一部分：" class="headerlink" title="第一部分："></a>第一部分：</h5><p><strong>aced</strong> STREAM_MAGIC 流的幻数，用于标识序列化协议；</p>
+<p><strong>0005</strong>  STREAM_VERSION 标识序列化协议的版本号；</p>
+<p>一些标识性字符可以参考类：ObjectStreamConstants<br>ObjectOutputStream.writeStreamHeader()方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">writeStreamHeader</span><span class="params">()</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">bout.writeShort(STREAM_MAGIC);</span><br><span class="line">bout.writeShort(STREAM_VERSION);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="第二部分："><a href="#第二部分：" class="headerlink" title="第二部分："></a>第二部分：</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">objectOutputStream.writeObject(“严明明”)</span><br></pre></td></tr></table></figure>
+<ol>
+<li>74  标识TC_STRING</li>
+<li>00 09 标识第一个String的长度为9个字节</li>
+<li>e4 b8a5 e698 8ee6 988e 表示String类型的值：严明明</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">objectOutputStream.writeObject(<span class="keyword">new</span> Date())</span><br></pre></td></tr></table></figure>
+<ol>
+<li>7372 标识TC_OBJECT 和 TC_CLASSDESC</li>
+<li>000e  标识类名称长度为14个字节</li>
+<li>6a61 7661 2e75 7469 6c2e 4461 7465 表示类型值：java.util.Date</li>
+<li>686a 8101 4b59 7419  标识uid对象序列化ID的类型为long型，占用8个字节</li>
+<li>03 这一个字节可能有十种值标识：参考java.io.ObjectStreamConstants#SC_*</li>
+<li>0000 标识类属性个数，因为是Date类型，所以没有自定义属性</li>
+<li>78 标识域类型TC_ENDBLOCKDATA ，因为属性个数为0，所以对象数据结束</li>
+<li>70 再没有父类的标识</li>
+<li>77  对象数据块开始，TC_BLOCKDATA</li>
+<li>08 标识数据长度为8个字节</li>
+<li>00 0001 5356 b659 b7 标识new Date()的对象时间戳long型，占用8个字节</li>
+<li>78 TC_ENDBLOCKDATA 对象数据库结束标识</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">objectOutputStream.writeObject(<span class="keyword">new</span> ObjectSaver(“测试类”,<span class="number">30</span>))</span><br></pre></td></tr></table></figure>
+<ol>
+<li>7372 0037 表示TC_OBJECT 和 TC_CLASSDESC ，且类名称长度为55个字节</li>
+<li>636f<br>  ​    6d2e 6a61 7661 2e64 656d 6f2e 7365 7269<br>  ​    616c 697a 6162 6c65 2e53 6572 6961 6c69<br>  ​    7a61 626c 6554 6573 7424 4f62 6a65 6374<br>  ​    5361 7665 72<br>  ​    表示类名值：com.java.demo.serializable.SerializableTest$ObjectSaver</li>
+<li>eb bbba f5cb 5ec7 4b 标识ObjectSaver对象序列化ID的类型为long型，占用8个字节 ，值为-1460368089309853877L，因为uid为静态属性，所以属于类元信息一部分</li>
+<li>02 这一个字节可能有十种值标识，其中02标识SC_SERIALIZABLE，此类继承了Serializable接口</li>
+<li>0003 标识类属性个数为 3 个，包含this；</li>
+<li>49 域类型，49转十进制为73，73在ASC码中对应的是 I ，因为old为int类型</li>
+<li>00 03 标识属性名称长度为3个字节</li>
+<li>6f 6c64 标识属性名称为 old</li>
+<li>4c 域类型，4c转十进制为76，76在ASC码中对应的是 L，因为name为String对象</li>
+<li>00 04 标识属性名称长度为4个字节,name字符占四个字符</li>
+<li>6e 616d 65 标识属性名称的值 name</li>
+<li>74 标识TC_STRING一个新的字符串</li>
+<li>0012 域类型长度为18个字节</li>
+<li>4c6a 6176 612f 6c61 6e67 2f53 7472 696e<br>​       673b<br>​       对象类型签名 Ljava/lang/String;  包含封号</li>
+<li>4c 域类型，4c转十进制为76，76在ASC码中对应的是 L</li>
+<li>00 06 标识属性名称长度为6个字节</li>
+<li>74 6869 7324 30  标识字符串 this$0</li>
+<li>74 标识TC_STRING一个新的字符串</li>
+<li>002d 域类型长度为45个字节</li>
+<li>4c63<br>​       6f6d 2f6a 6176 612f 6465 6d6f 2f73 6572<br>​       6961 6c69 7a61 626c 652f 5365 7269 616c<br>​       697a 6162 6c65 5465 7374 3b<br>​       Lcom/java/demo/serializable/SerializableTest;</li>
+<li>78  标识域类型TC_ENDBLOCKDATA</li>
+<li><code>上面为之类ObjectSaver的描述信息和元信息，下面为父类SerializableTest的描述信息和元信息</code></li>
+<li>72 标识TC_CLASSDESC</li>
+<li>002b 标识类名称长度为43个字节</li>
+<li>63<br>​       6f6d 2e6a 6176 612e 6465 6d6f 2e73 6572<br>​       6961 6c69 7a61 626c 652e 5365 7269 616c<br>​       697a 6162 6c65 5465 7374<br>​       标识类字符串：com.java.demo.serializable.SerializableTest</li>
+<li>1ae4 7592 b513 4860  标识ObjectSaver对象序列化ID的类型为long型，占用8个字节 ，值为-1937803012639770720L</li>
+<li>02 这一个字节可能有十种值标识，其中02标识SC_SERIALIZABLE，此类继承了Serializable接口</li>
+<li>00 01 标识类属性个数为1个</li>
+<li>49 域类型，49转十进制为73，73在ASC码中对应的是 I ，因为old为int类型</li>
+<li>0006 标识属性名称长度为6个字节</li>
+<li>6661 7468 6572 标识father六个字符；</li>
+<li>7870 TC_ENDBLOCKDATA 对象数据库结束标识，且没有父类</li>
+</ol>
+<h5 id="第三部分："><a href="#第三部分：" class="headerlink" title="第三部分："></a>第三部分：</h5><p>接下来是对象属性域的值部分，按照从父类到子类的顺序写入域的值</p>
+<ol>
+<li>0000 0001 标识的十进制为1，对应父类father的值为1</li>
+<li>0000 001e 标识十进制为30，标识之类old的值为30</li>
+<li>74 标识TC_STRING一个新的字符串</li>
+<li>0009 标识占用9个字节</li>
+<li>e6b5 8be8 af95 e7b1 bb 标识字符“测试类”</li>
+<li>73 71  标识TC_OBJECT  TC_REFERENCE</li>
+<li>007e 0006 0000 0000</li>
+</ol>
+<h4 id="总结-Java序列化算法的基本步骤"><a href="#总结-Java序列化算法的基本步骤" class="headerlink" title="总结 Java序列化算法的基本步骤"></a>总结 Java序列化算法的基本步骤</h4><ul>
+<li>输出序列化的头部信息，包括序列化协议的幻数和版本；</li>
+<li>基本类型按照一字节的类型标识、两字节类型长度、N个字节值</li>
+<li>基本对象类型，7372标识OBJECT和CLASSDESC，两字节类型长度，8字节uid，一些辅助信息</li>
+<li>复杂对象类型，第一步按照由子类到父类的顺序，递归的输出类的描述信息，知道不再有父类为止；类描述信息按照类元数据，类属性信息的顺序写入序列化流中；第二步按照由父类到之类的顺序，递归的输出对象域对象域的实际数据值；而对象的属性信息是按照基本类型到java对象类型的顺序写入序列化流中，其中java对象类型的属性会从第一步重新开始递归的输出，知道不再存在java对象类型的属性。</li>
+</ul>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2016/03/09/Java/2016-03-09-byte-code-java-serailze/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-Program/2016-02-26-distributed-system-id-generator" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2016/02/26/Program/2016-02-26-distributed-system-id-generator/">分布式系统高效唯一ID生成方案</a>
+    </h1>
+  
+
+        
+        <a href="/2016/02/26/Program/2016-02-26-distributed-system-id-generator/" class="archive-article-date">
+  	<time datetime="2016-02-25T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2016-02-26</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <blockquote>
+<p>背景：在分布式系统中，对于订单ID如何保证全局唯一地高效的生成，并对性能影响不大的情况下，利于建立索引和业务使用？</p>
+</blockquote>
+<h4 id="方案一：使用数据库主键ID"><a href="#方案一：使用数据库主键ID" class="headerlink" title="方案一：使用数据库主键ID"></a>方案一：使用数据库主键ID</h4><p>优势：实现简单；<br>弊端：使用数据库增加写库的压力，生成订单的上限受限于数据库的写性能上限；扩展性差；</p>
+<h4 id="方案二：单点批量生成订单号的服务；"><a href="#方案二：单点批量生成订单号的服务；" class="headerlink" title="方案二：单点批量生成订单号的服务；"></a>方案二：单点批量生成订单号的服务；</h4><p>优势：批量降低了数据库的读写压力<br>弊端：服务单点风险；</p>
+<h4 id="方案三：使用UUID"><a href="#方案三：使用UUID" class="headerlink" title="方案三：使用UUID"></a>方案三：使用UUID</h4><p>优势：本地生成ID，不进行远程调用，延迟低；<br>弊端：无法保证趋势增长；uuid过长且建立索引效率低下；64位太长；</p>
+<h4 id="方案四：使用毫秒数"><a href="#方案四：使用毫秒数" class="headerlink" title="方案四：使用毫秒数"></a>方案四：使用毫秒数</h4><p>优势：本地生成ID，不进行远程调用，延迟低；ID为整数利于建立索引；<br>弊端：并发超过1000，可能会重复；<br>优化方案：使用LRU Cache存储最近生成的100Key，去除后先判断是否重复；进一步降低重复的可能性；但是无法根本上解决高并发下的重复；</p>
+<h4 id="方案五：订单号分段表示具体含义"><a href="#方案五：订单号分段表示具体含义" class="headerlink" title="方案五：订单号分段表示具体含义"></a>方案五：订单号分段表示具体含义</h4><p>方案描述：使用39bit表示毫秒数、4bit表示业务线、7bit表示机器等<br>优势：实现简单，且重复可能性很低；<br>弊端：订单长度过长，不利于业务使用；<br>方案六：使用Redis服务+毫秒数双重方案<br>优势：使用redis的自增序列特性，每次获取一定数量的数据（1000个），降低了每次调用Redis的开销；当Redis挂了，使用基于毫秒数的本地生成ID优化方案；<br>弊端：redis挂了后，订单号的重复性不可避免；</p>
+<h4 id="总结："><a href="#总结：" class="headerlink" title="总结："></a>总结：</h4><p>我们在设计分布式全局唯一单号的时候，不仅需要考虑生成单号的是否重复性，还要考虑生成时的性能开销、是否有容灾方案、是否便于建立索引、是否利于业务使用等。基于这些点的考虑，我们采用了方案六作为线上的唯一生成方案，并把此方案作为一个业务隔离的二方库，可以提供给不同业务方式用；</p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Program//" class="article-tag-list-link color3">Program</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2016/02/26/Program/2016-02-26-distributed-system-id-generator/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-Think/2016-01-03-2016-my-success-and-fail" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2016/01/03/Think/2016-01-03-2016-my-success-and-fail/">二零一五，我的失败与伟大</a>
+    </h1>
+  
+
+        
+        <a href="/2016/01/03/Think/2016-01-03-2016-my-success-and-fail/" class="archive-article-date">
+  	<time datetime="2016-01-02T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2016-01-03</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>回顾2015这一年，感觉自己起起伏伏，有过激情不顾一切的奋斗，有过一蹶不振的低沉，心情的变化起伏跟这一年的股市走线很像，经历了超出预期的大牛市后，出现了看一切都绝望的段崖般跳水。现在回想起来并不一定是坏事，创业需要激情，但是激情过后需要对生存本质的思考，关键是如何从低沉期度过，寻找到下一个支撑点。</p>
+<p>####【不顾一切的加班】<br><img src="/images/posts/20160103/2015-fengqu-hard-work.jpg" alt=""><br>从去年决定加入创业团队以来，公司业务一直处于高速发展期，团队整体环境还不错，有节凑的项目规划、执行、上线，大家的注意力也是跟随的公司业务发展不断前进。这段时间一直维持到7月份。那个时候每天工作到晚上10点多，回去了可能继续工作，很多时间到2~3点才休息，第二天依然亢奋的去做事情。有一次，为了赶一个项目的进度，周日从杭州回到上海，晚上加班到第二天5点完成任务。当时没觉得这种节奏有什么问题，但是现在回归头来想想，发现问题挺多的，首先，我让我的状态变得不可持续，长时间的透支了自己的身体，致使年末身体出现各种不适，其次，过度的沉溺于业务中，忘记了自身的发展的思考，年末总结的时候哀叹“一年来没学到什么东西”，技术上的踏步更加剧了我未来的恐惧。</p>
+<p>这段时间的经历也并不是没有收获，我对我负责的项目还是比较用心的，跟产品、运营同学合作也非常融洽，大家对我也表示了一致的认可。好几个同学都说，如果今年评选优秀员工，一定会选我，这个对我的一种肯定。在阿里，它教会了我让他人变得简单，用自己的技术能力给他人以帮助，共同提高效率的工作模式；你再努力让别人工作更轻松的时候，你的工作也会在一定程度上变得轻松，这些值得坚持的事情还得继续坚持。</p>
+<p>我不反对加班，但反对沉溺于加班而忘记了为什么加班，<strong>“吾日三省吾身”，关注自身成长，在日常工作中实践成长的过程，努力了，才不会让未来的自己恐惧。保持良好的作息规律，加强锻炼，是我接下来需要做的事情，让自己找到工作和生活的一个平衡点</strong>。</p>
+<p>####【搬新家&amp;结婚】<br><img src="/images/posts/20160103/2015-jiehongzhao.jpg" alt=""><br>2015年注定是我难忘的一年，5月份的时候，我搬进了自己在杭州新家，摆脱了租房的不稳定，虽然远离市区，但小区环境确实称赞，购买这套房只为自住不为投资，一开始还会关注小区房价的走势，担心自己是不是买贵了，会不会吃了大亏，后来想想，即使我每天看24个小时房市变化，对我们小区有帮助吗，想通了也就不再关心了。</p>
+<p>在我11年第一次到杭州的时候，就被杭州的文化气息所陶醉，我跟自己说我以后一定要在这个城市落下来，这就是我奋斗的目标，这不是为了证明给大山里面的邻里街坊看，只为内心中逃离了偏僻落后的农村追求更加文明和前沿的大城市的憧憬。我一直认为我是幸运的，相比儿时的伙伴们，我拥有了更多的选择机会，他们背负了太多的压力和责任。</p>
+<p>十一，我升级了跟女朋友长达7~8年的恋爱，跟她正式步入了婚姻殿堂，虽然在没能给她豪华艳丽的结婚排场，但我以一种农村农乡的方式给她呈现了拜天地的热闹场景，现在回想起这段记忆，我都像吃了蜜一样甜。我可能不能给她大富大贵，但是我一定会努力，让自己成为一个上进的男人，让她值得依托。</p>
+<p>这一年，我一心投入到工作，似乎忘记了家庭的经营，伯昊说的很对，<strong>幸福的婚姻是需要用心去经营的，这个不比工作简单，需要花时间做，一点一滴都会成为幸福生活的影响因子</strong>。2016年，我在我的GTD工具中增加了一项，叫“生活经营”，也会像给自己布置学习任务一样，制定一些计划在与老婆的共同生活之中。这一年，我完成了人生中的2大事情，置业和婚姻，自己心底安定了很多，很多时候，我们觉得自己伟大不一定需要做出浑浑烈烈见天动地的大事情，选择舒适的生活环境、跟心爱的人生活在一起就是伟大。</p>
+<p>####【选择坚持或放弃】<br><img src="/images/posts/20160103/2015-fengqu-xiaowa.jpg" alt=""><br><strong>出发的目的已在半途中迷失了，剩下的激情便也成了迷路的飞矢。</strong>下半年，公司发展收到外部一些因素的制约，资金捉襟见肘，内部运营团队撤离，一时感觉公司遥遥可危，再加上外部一些用户和媒体对我们公司的期望值降级，更动摇了我坚持走下去的决心，不是我为了躲避危险，没有责任感不能跟公司共同度过难关，而是一时没有找到支撑我继续下去的点，一切的外部因素都告诉我回到阿里会有更好的钱途，但内心又有一颗不干的心，不愿就此放弃。但<strong>各种不愉快小事情累加在一起，聚集成了心理噪音，它在很长一段时间内成为我心理萦回不去的主旋律，甚至忘记了其他目的</strong>，而我过于简单的把问题归咎于家庭或者个人发展的原因，没有认真分析到底是什么原因形成了这些心理噪音，如何消除心理噪音，不被其蒙蔽双眼影响自身的长远发展。好的一面是现在相比半年前，我更加信任了团队，敢于跟Leader讲真话，以一种更加真诚的方式交流，只要我觉得对我们有利的事情，我就会去做。</p>
+<p>我们的团队出现了问题，值得庆幸的是大家都意识到了，都在用自己的行动力促使事情朝好的一面发展。在这件事情我做做的就不太好，没能发挥出正能量，有时候还起到了反作用。之所以出现这种情况，我认为是团队管理的缺陷，我也同样需要被管理和正确的引导。</p>
+<p>很多时候我会有一点点后悔放弃了阿里高新&amp;继续深入学习技术的机会，选择投入到创业的大潮之中，但是又想想，这点放弃算什么呢，跟其他人相比，我的放弃算是小的了，至于钱，没必要过早把自己逼到一切朝钱看得角度，工作中有更美好的事情值得追求。有一句话叫做“你今天放弃的一切，以后都会以另外一种方式馈赠给你”，不纠结，放弃舒适的环境并不一定是坏事情。</p>
+<p>当我这次再次面对选择的时候，我没有像去年从阿里离职的一时头热，而经过了更多的思考，首先我会去与留的各种利弊全部罗列出来，跟老婆进行商量，共同决策，我内心已经有了一个选择的想法，再跟老婆的沟通中稍微带一下，当然我也会尊重她得看法，毕竟以后的生活是两个人的，不再为我一个人生活。<strong>在面临选择的时候，我需要结合自己长远的发展规划，认清自己，消灭选择，然后让自己尽量进入到这个圈子，结识上赏识的人，跟着大家一起集团性的成长。</strong></p>
+<p>留在现有的团队，2016年需要学习和进步的地方还非常多，有太多的机会让我在2016年里可以快速成长，前提是我是否做好了准备。看看身边的人那些还在不停奋斗的人，我有神马理由不努力呢？</p>
+<p>总结2015年，感觉自己看书和思考的太少，这也是我感到恐惧的根本原因，消除它的唯一办法就是迎面直击，多看书，充实自己的大脑，多思考，把学到的东西转换为自己的技能。</p>
+<p>回顾、总结是为了能够走的更远，希望在轻装上阵的2016能够走的更远。</p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Think//" class="article-tag-list-link color1">Think</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2016/01/03/Think/2016-01-03-2016-my-success-and-fail/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
     <article id="post-Middleware/2015-12-20-diamond-study" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
   <div class="article-inner">
     
@@ -769,450 +1197,9 @@
 
 
   
-    <article id="post-Android/2014-09-11-layout" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2014/09/11/Android/2014-09-11-layout/">Android 高效的 Layout</a>
-    </h1>
-  
-
-        
-        <a href="/2014/09/11/Android/2014-09-11-layout/" class="archive-article-date">
-  	<time datetime="2014-09-10T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2014-09-11</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>我们知道随着我们业务越来越负责，UI布局也会越来越复杂，大量的布局信息必定会带来一定的性能损耗，那么我们怎么才能写出高效的布局呢？</p>
-<p>1.使用 <code>&lt;include&gt; &lt;merge&gt; &lt;viewStub&gt;</code>标签。<br><a href="https://developer.android.com/training/improving-layouts/optimizing-layout.html" target="_blank" rel="noopener">https://developer.android.com/training/improving-layouts/optimizing-layout.html</a></p>
-<p>2.LinearLayout中减少使用layout_weight参数，因为使用此属性会导致子元素被测量两次。</p>
-<p>3.学会测量Layout的层次结构,优化布局<br><a href="https://developer.android.com/training/improving-layouts/optimizing-layout.html" target="_blank" rel="noopener">https://developer.android.com/training/improving-layouts/optimizing-layout.html</a></p>
-<p>4.使得Layout宽而浅，而不是窄而深（在Hierarchy Viewer的Tree视图里面体现）<br>连接真机时，HierarchyVIewer报错了：无法加载设备上的窗口数据</p>
-<p>原因：若需要使用hierarchyviewer，需要手机上开启对应的ViewServer服务。Hierarchy Viewer在连接手机时，手机上必须启动一个叫View Server的客户端与其进行socket通信。而在商业手机上，是无法开启View Server的，故Hierarchy Viewer是无法连接到普通的商业手机。</p>
-<p>解决办法：</p>
-<p>方法一：使用模拟器。</p>
-<p>方法二：App中需要开启View Server，可以参考一下连个类的实现。</p>
-<p><a href="http://pan.baidu.com/s/1sjIulYl" target="_blank" rel="noopener">http://pan.baidu.com/s/1sjIulYl </a>提取码：wrc8</p>
-<p>使用方法：</p>
-<p>引入ViewServer.java 类到Util包中，在需要查看Layout层次结构的Activity类中，加入以下代码：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">(Bundle savedInstanceState)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">super</span>.onCreate(savedInstanceState);</span><br><span class="line">    …</span><br><span class="line">    ViewServer.get(<span class="keyword">this</span>).addWindow(<span class="keyword">this</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onDestroy</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">super</span>.onDestroy();</span><br><span class="line">    ViewServer.get(<span class="keyword">this</span>).removeWindow(<span class="keyword">this</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onResume</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">super</span>.onResume();</span><br><span class="line">    ViewServer.get(<span class="keyword">this</span>).setFocusedWindow(<span class="keyword">this</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>5.使用Lint工具来优化Layout</p>
-<ul>
-<li>使用merge根框架 – 如果FramLayout仅仅是一个纯粹的（没有设置背景，间距等）布局根元素，我们可以使用merge标签来当作根标签；</li>
-<li>无用的分支 – 如果一个layout并没有任何子组件，那么可以被移除，这样可以提高效率</li>
-<li>无用的父控件 – 如果一个layout只有子控件，没有兄弟控件，并且不是一个ScrollView或者根节点，而且没有设置背景，那么我们可以移除这个父控件，直接把子控件提升为父控件</li>
-<li>深层次的layout – 尽量减少内嵌的层级，考虑使用更多平级的组件 RelativeLayout or GridLayout来提升布局性能，默认最大的深度是10<br>Lint工具在android Studio中的使用:<br>Analyze → Inspect code 这个时候会自动启动Lint工具。</li>
-</ul>
-<p>6.虽然官方说LinearLayout 与 RelationLayout在性能上相差无几，但是能使用relative layout的地方尽量不要使用LinearLayout。</p>
-<p>7.有同事对比了RelationLayout 与 FrameLayout的性能，发现FrameLayout性能比RelationLayout更优。原因很简单：因为FrameLayout比RelationLayout更简单，没有那么多属性，所有效率更高。无论是使用那种布局，在都能满足需求的情况下，只要记住，使用属性跟少、更简单的布局方式一定是没错的。<br><a href="http://stackoverflow.com/questions/22875453/framelayout-vs-relativelayout-for-overlays" target="_blank" rel="noopener">http://stackoverflow.com/questions/22875453/framelayout-vs-relativelayout-for-overlays</a></p>
-<p>8.对于textview和imageview组成的layout，直接使用textview替换（drawableTop类似属性）</p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Android//" class="article-tag-list-link color3">Android</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2014/09/11/Android/2014-09-11-layout/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-Android/2014-09-01-listview" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2014/09/01/Android/2014-09-01-listview/">Android 之 Listview</a>
-    </h1>
-  
-
-        
-        <a href="/2014/09/01/Android/2014-09-01-listview/" class="archive-article-date">
-  	<time datetime="2014-08-31T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2014-09-01</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h4 id="ListView显示的三要素："><a href="#ListView显示的三要素：" class="headerlink" title="ListView显示的三要素："></a>ListView显示的三要素：</h4><ol>
-<li>ListView，用来展示列表</li>
-<li>Adapter，用来存在数据&amp;将数据与视图进行绑定</li>
-<li>数据，将被映射的字符串、图片url等等。</li>
-</ol>
-<p>关于Adapter ，请参考 Android 之 Adapter。</p>
-<h4 id="ListView-的工作原理："><a href="#ListView-的工作原理：" class="headerlink" title="ListView 的工作原理："></a>ListView 的工作原理：</h4><p>Adapter的作用就是ListView界面与数据交互的桥梁，当列表里面每一项显示到页面上时，都会调用Adapter的getView方法。<br>系统需要回执ListView时，首先会调用getCount()函数，得到要绘制的这个列表额长度，然后开始从第一行开始绘制，每行的回执方法是调用getView函数。那么Android是不是为每一行都会新创建一个View呢？试想加入行数为几万行，内存肯定会爆掉的，所以Android官方早就想到了这一点，在ListView实现中添加了视图的缓存-Recycler，每当有行移除屏幕的可视区域时，这个被移除的行的View对象就会被添加到Recycler中，也就是在渲染新行时的那个参数convertView。</p>
-<h4 id="ListView的初始化："><a href="#ListView的初始化：" class="headerlink" title="ListView的初始化："></a>ListView的初始化：</h4><p><strong>疑问一：</strong>ListView绘制时是如何获取每行的View的呢？</p>
-<p>首先ListView通过setAdapter方法，将Adapter与ListView关联起来，查看ListView的setAdater方法源码可知，setAdater将传递经来的Adapter的引用复制给了内部全局变量mAdapter，ListView在绘制每行的时候根据行号position调用父类AbsListView中的obtainView，obtainView首先会从recycler中获取是否有匹配的视图，如果存在的话，可以看到则调用adapter.getView方法，并传递了scrapView给convertView变量，否则传递的是null。</p>
-<p><strong>疑问二：</strong>ListView中数据发生变更了，我们一般会调用Adapter的 notifyDataSetChanged()方法， 那么视图是怎么发生变化的呢？</p>
-<p>ListView 中的数据适配器Adapter 采用的是观察者模式（参考之前的”观察者模式“）</p>
-<p>ListView在setAdapter时，会新建ApdateDataSetObserver，并注册此观察者。</p>
-<p>AdapterDataSetObserver类实在AbsListView中定义：</p>
-<p>AdapterView中AdapterDataSetObserver的实现如下(部分省略)：</p>
-<p>AdapterDataSetObserver 实现了DataSetObserver接口，并重写了onChanger方法，里面调用了requestLayout方法，此方法的作用是要求parent view 重新调用它的哦弄Measure onLayout方法重新布局视图，但不会重新绘制任何视图包括该调用者本身。<br>requestLayout的实现方法需要到View类中查看：可参考：<a href="http://blog.csdn.net/androiddevelop/article/details/8561076" target="_blank" rel="noopener">http://blog.csdn.net/androiddevelop/article/details/8561076</a></p>
-<p><strong>疑问三：</strong>RecyclerBin的数据结构是这样的呢？当ListView有多个视图类型（在界面上就是有不同的样式和数据类型）又是怎么选择合适的convertView的呢？<br>首先看一下RecycleBin的类定义（AbsListView中内部类）</p>
-<p>从注释中我们就可以得知 ：</p>
-<p>RecycleBin一共有两个存储结构分别是ActiveViews 和 ScrapViews<br>ActiveViews储存当前在界面(手机显示区域)中显示View，移出界面会存入ScrapViews<br>ScrapViews存储当前已经滑动出当前界面(手机显示区域)显示的View，这些view存储起来相当于回收，当再次请求的时候从此存储中取出反复使用。<br>当ListView中有N个视图类型时，RecycleBin会创建N个scrapView数组，每个类型一个view数组，后面在获取view时会先判断view的类型，然后到对应的数组中去取。</p>
-<p>怎么从ScrapViews中获取可用的view视图呢？getScrapView  → retrieveFromScrap</p>
-<p>retrieveFromScrap（这个不属于RecycleBin类，是属于外部类AbslistView中的方法）<br>   根据position，从mScrapView中找：</p>
-<pre><code>1. 如果有view.scrappedFromPosition = position的，直接返回该view；
-2. 否则返回mScrapView中最后一个；
-3. 如果缓存中没有view，则返回null；
-下面，我们来分析下这三种情况在什么条件下满足？
- a. 第三种情况，这个最简单：
- 一开始，listview稳定后，显示N个，此时mScrapView中是没有缓存view的，当我们向上滚动一小段距离（第一个此时仍显示部分），新的view将会显示，此时listview会调用Adapter.getView，但是缓存中没有，因此convertView是null，所以，我们得分配一块内存来创建新的convertView；
- b. 第二种情况：
- 在a中，我们继续向上滚动，直接第一个view完全移出屏幕（假设没有新的item），此时，第一个view就会被detach，并被加入到mScrapView中；然后，我们还继续向上滚动，直接后面又将要显示新的item view时，此时，系统会从mScrapView中找position对应的View，显然，是找不到的，则将从mScrapView中，取最后一个缓存的view传递给convertView；
-c. 第一种情况：
-紧接着在b中（标示为橙色的文字后面），第一个被完全移出，加入到mScrapView中，且没有新增的item到listview中，此时，缓存中就只有第一个view；然后，我此时向下滑动，则之前的第一个item，将被显示出来，此时，从缓存中查找position对应的view有没有，当然，肯定是找到了，就直接返回了。
-</code></pre><h4 id="ListView使用过程中遇到的问题："><a href="#ListView使用过程中遇到的问题：" class="headerlink" title="ListView使用过程中遇到的问题："></a>ListView使用过程中遇到的问题：</h4><h5 id="Listview-滑动中背景错乱："><a href="#Listview-滑动中背景错乱：" class="headerlink" title="Listview 滑动中背景错乱："></a>Listview 滑动中背景错乱：</h5><p><strong>场景：</strong></p>
-<p>我有一个listView作为菜单，当菜单选中时有一个指示器会展示出来，其他的会被隐藏，默认第一个菜单为选中状态，但是当滑动listview时，新加在出来的item中指示器也展示出来了。</p>
-<p><strong>原因：</strong></p>
-<p>理解了上面的getView和RecycleBin的工作原理之后，这个问题不难定位，肯定是在渲染新行时从scropViews中没有匹配position位置的view，此时默认返回了最后一个view（也就是场景中对应的第一个），这个view是被我们设置了指示器为可见状态，所以就引起了背景的错乱。</p>
-<p><strong>解决办法：</strong></p>
-<p>对于positon等于我们选择的下标时会指示器可见，当position不等于我们选择的下标时，防止convert被复用，我们需要设置指示器为不可见，也就是else中的代码，之前我只写了if中的代码，却忽略了else中的代码。</p>
-<p>这个问题也可以参考：<a href="http://www.myexception.cn/mobile/1612364.html" target="_blank" rel="noopener">http://www.myexception.cn/mobile/1612364.html </a></p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Android//" class="article-tag-list-link color3">Android</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2014/09/01/Android/2014-09-01-listview/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-Java/2013-07-04-httpclient" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2013/07/04/Java/2013-07-04-httpclient/">HTTP学习笔记（二）之HttpClient</a>
-    </h1>
-  
-
-        
-        <a href="/2013/07/04/Java/2013-07-04-httpclient/" class="archive-article-date">
-  	<time datetime="2013-07-03T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2013-07-04</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h4 id="HttpClient-是什么："><a href="#HttpClient-是什么：" class="headerlink" title="HttpClient 是什么："></a>HttpClient 是什么：</h4><p>HttpClient 是 Apache Jakarta Common 下的子项目，用来提供高效的、最新的、功能丰富的支持 HTTP 协议的客户端编程工具包，并且它支持 HTTP 协议最新的版本和建议。</p>
-<h4 id="HttpClient-主要功能："><a href="#HttpClient-主要功能：" class="headerlink" title="HttpClient 主要功能："></a>HttpClient 主要功能：</h4><p>实现了所有 HTTP 的方法（GET,POST,PUT,HEAD 等）<br>支持自动转向<br>支持 HTTPS 协议<br>支持代理服务器等<br>HttpClient包下面都有那些内容：</p>
-<h4 id="HttpClient-的基本使用方法："><a href="#HttpClient-的基本使用方法：" class="headerlink" title="HttpClient 的基本使用方法："></a>HttpClient 的基本使用方法：</h4><h5 id="Get方法："><a href="#Get方法：" class="headerlink" title="Get方法："></a>Get方法：</h5><p>使用 HttpClient 需要以下 6 个步骤：</p>
-<ol>
-<li>创建 HttpClient 的实例</li>
-<li>创建某种连接方法的实例，在这里是 GetMethod。在 GetMethod 的构造函数中传入待连接的地址</li>
-<li>调用第一步中创建好的实例的 execute 方法来执行第二步中创建好的 method 实例</li>
-<li>读 response</li>
-<li>释放连接。无论执行方法是否成功，都必须释放连接</li>
-<li>对得到后的内容进行处理</li>
-</ol>
-<p>Demo 示例：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//构造HttpClient的实例</span></span><br><span class="line"> HttpClient httpClient = <span class="keyword">new</span> HttpClient();</span><br><span class="line"> <span class="comment">//创建GET方法的实例</span></span><br><span class="line"> GetMethod getMethod = <span class="keyword">new</span> GetMethod(<span class="string">"http://www.ibm.com"</span>);</span><br><span class="line"> <span class="comment">//使用系统提供的默认的恢复策略</span></span><br><span class="line"> getMethod.getParams().setParameter(HttpMethodParams.RETRY_HANDLER,</span><br><span class="line">   <span class="keyword">new</span> DefaultHttpMethodRetryHandler());</span><br><span class="line"> <span class="keyword">try</span> &#123;</span><br><span class="line">  <span class="comment">//执行getMethod</span></span><br><span class="line">  <span class="keyword">int</span> statusCode = httpClient.executeMethod(getMethod);</span><br><span class="line">  <span class="keyword">if</span> (statusCode != HttpStatus.SC_OK) &#123;</span><br><span class="line">   System.err.println(<span class="string">"Method failed: "</span></span><br><span class="line">     + getMethod.getStatusLine());</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">//读取内容</span></span><br><span class="line">  <span class="keyword">byte</span>[] responseBody = getMethod.getResponseBody();</span><br><span class="line">  <span class="comment">//处理内容</span></span><br><span class="line">  System.out.println(<span class="keyword">new</span> String(responseBody));</span><br><span class="line"> &#125; <span class="keyword">catch</span> (HttpException e) &#123;</span><br><span class="line">  <span class="comment">//发生致命的异常，可能是协议不对或者返回的内容有问题</span></span><br><span class="line">  System.out.println(<span class="string">"Please check your provided http address!"</span>);</span><br><span class="line">  e.printStackTrace();</span><br><span class="line"> &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">  <span class="comment">//发生网络异常</span></span><br><span class="line">  e.printStackTrace();</span><br><span class="line"> &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">  <span class="comment">//释放连接</span></span><br><span class="line">  getMethod.releaseConnection();</span><br><span class="line"> &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>注意点：</p>
-<ol>
-<li>HttpClient的恢复策略是指在遇到异常时自动重试的机制，并且可以自定义（通过实现接口HttpMethodRetryHandler来实现）。通过httpClient的方法setParameter设置你实现的恢复策略，demo中使用的是系统提供的默认恢复策略，该策略在碰到IOException的时候将自动重试3次。</li>
-<li>用GetMethod将会自动处理重定向，如果想要把自动处理重定向去掉的话，可以调用方法setFollowRedirects(false)。</li>
-<li>executeMethod返回值是一个整数，表示了执行该方法后服务器返回的状态码；</li>
-<li>获取响应内容的方式有三种：getResponseBody(返回二进制byte流)、getResponseBodyAsString(返回String)、getResponseBodyAsStream(这个方法对返回大量数据处理效率很高)；</li>
-<li>乱码：在使用getResponseBodyAsString容易出现乱码，影响响应内容字符编码的地方有两个：第一，Response的header设置，这里的设置编码可能与html内容编码不符，通过method对象的getResponseCharSet()方法就可以得到http头中的编码信息；第二，Respone的body内容中设置了<code>&lt;meta http-equiv=”Content-Type” content=”text/html; charset=GBK”/&gt;或&lt;?xml version=”1.0″ encoding=”GBK”?&gt;</code>标签，这样也可能与header编码冲突造成乱码。</li>
-<li>释放连接。无论执行方法是否成功，都必须释放连接。</li>
-</ol>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">method.releaseConnection();</span><br></pre></td></tr></table></figure>
-<h5 id="Post方法："><a href="#Post方法：" class="headerlink" title="Post方法："></a>Post方法：</h5><p>PostMethod基本与GetMethod类似；</p>
-<p>不同点：</p>
-<ul>
-<li>POST和PUT，不支持自动重定向，因此需要自己对页面转向做处理。</li>
-</ul>
-<p>Proxy代理服务的使用(host绑定)：<br>在日常工作中很多url的访问都是需要绑定host地址的，使用httpClient如何进行绑定访问？</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">HttpClient httpclient = <span class="keyword">new</span> HttpClient();</span><br><span class="line">           <span class="comment">// 设置HTTP代理IP和端口</span></span><br><span class="line">           httpclient.getHostConfiguration().setProxy(hostIp, hostIpPort);</span><br></pre></td></tr></table></figure>
-<p>支持Https：<br>HttpClient提供了对SSL的支持，允许HttpClient来打开Https连接。</p>
-<p>有两种方法可以打开https连接，第一种就是得到服务器颁发的证书，然后导入到本地的keystore中；另外一种办法就是通过扩展HttpClient的类来实现自动接受证书。</p>
-<p>方法1参考：<a href="http://www.ibm.com/developerworks/cn/opensource/os-httpclient/#N10060" target="_blank" rel="noopener">处理HTTPS协议</a></p>
-<p>方法2：</p>
-<ol>
-<li>实现自己的socket factory，必须实现SecureProtocolSocketFactory接口。</li>
-<li>自定义私有类 TrustAnyTrustManager implements X509TrustManager。</li>
-<li>定义Protocol ，将socket factory注册到 Protocol中。</li>
-</ol>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Protocol myhttps = <span class="keyword">new</span> Protocol(<span class="string">"https"</span>, <span class="keyword">new</span> MySecureProtocolSocketFactory(), <span class="number">443</span>);</span><br><span class="line">        Protocol.registerProtocol(<span class="string">"https"</span>, myhttps);</span><br></pre></td></tr></table></figure>
-<p>Cookie处理：</p>
-<p>通过state获取cookie：httpclient.getState().getCookies();</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">CookieSpec cookiespec = CookiePolicy.getDefaultSpec();</span><br><span class="line">        cookies = cookiespec.match(<span class="string">"login.daily.taobao.net"</span>, hostIpPort, <span class="string">"/"</span>, <span class="keyword">false</span>,</span><br><span class="line">                httpClient.getState().getCookies());</span><br></pre></td></tr></table></figure>
-<p>CookieSpec接口代表了cookie管理的规范。cookiespec.match获取匹配路径下的cookie数组。</p>
-<p>通过state设置cookie:</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">httpclient.getParams().setCookiePolicy(CookiePolicy.RFC_2109);<span class="comment">//RFC_2109是支持较普遍的一个，还有其他cookie协议</span></span><br><span class="line">HttpState initialState = <span class="keyword">new</span> HttpState();</span><br><span class="line">Cookie cookie=<span class="keyword">new</span> Cookie();</span><br><span class="line">cookie.setDomain(<span class="string">"www.balblabla.com"</span>);</span><br><span class="line">cookie.setPath(<span class="string">"/"</span>);</span><br><span class="line">cookie.setName(<span class="string">"多情环"</span>);</span><br><span class="line">cookie.setValue(<span class="string">"多情即无情"</span>);</span><br><span class="line">initialState.addCookie(cookie);</span><br><span class="line">httpclient.setState(initialState);</span><br></pre></td></tr></table></figure>
-<p>cookie协议：RFC 2109（过时的严格策略）、RFC 2965（严格策略的标准符合）、best-match：最佳匹配meta（元）策略(推荐使用)。</p>
-<p>携带cookie进行页面访问：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">postMethod.setRequestHeader(<span class="string">"Cookie"</span>, cookieToString(cookies));</span><br></pre></td></tr></table></figure>
-<p>httpClient本身就可以保持cookie，可以通过同一个httpclient进行页面登录访问，但是对于有页面跳转的只能使用自带cookie进行模拟登录后访问。</p>
-<p>通过HTTP上传文件：<br>httpclient使用了单独的一个HttpMethod子类来处理文件的上传，这个类就是MultipartPostMethod，该类已经封装了文件上传的细节，我们要做的仅仅是告诉它我们要上传文件的全路径即可。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">ArrayList&lt;Part&gt; partArray = <span class="keyword">new</span> ArrayList&lt;Part&gt;();</span><br><span class="line">      <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; params.size(); i++) &#123;</span><br><span class="line">          <span class="keyword">if</span> (params.get(i) <span class="keyword">instanceof</span> FileNameValuePair) &#123;</span><br><span class="line">              partArray.add(<span class="keyword">new</span> FilePart(params.get(i).getName(), ((FileNameValuePair) params.get(i)).getFile()));</span><br><span class="line">          &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">              postMethod.addParameter(params.get(i).getName(), params.get(i).getValue());</span><br><span class="line">          &#125;</span><br><span class="line">      &#125;</span><br><span class="line">      Part[] parts = <span class="keyword">new</span> Part[partArray.size()];</span><br><span class="line">      <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; partArray.size(); i++) &#123;</span><br><span class="line">          parts[i] = partArray.get(i);</span><br><span class="line">      &#125;</span><br><span class="line">      postMethod.setRequestEntity(<span class="keyword">new</span> MultipartRequestEntity(parts, postMethod.getParams()));</span><br><span class="line"></span><br><span class="line">      <span class="keyword">int</span> statusCode = httpclient.executeMethod(postMethod);</span><br></pre></td></tr></table></figure>
-<p>通过HTTP模拟登录：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title">LoginDailyToGetPageWithHost</span><span class="params">(String nick, String psw, String scopeString, String url, List&lt;NameValuePair&gt; params, String hostIp, Integer hostIpPort)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">        Protocol myhttps = <span class="keyword">new</span> Protocol(<span class="string">"https"</span>, <span class="keyword">new</span> MySecureProtocolSocketFactory(), <span class="number">443</span>);</span><br><span class="line">        Protocol.registerProtocol(<span class="string">"https"</span>, myhttps);</span><br><span class="line">        HttpClient httpClient = <span class="keyword">new</span> HttpClient();</span><br><span class="line">        Cookie[] cookies;</span><br><span class="line">        LOGIN_URL = LOGIN_URL + <span class="string">"?redirectURL="</span> + url;</span><br><span class="line">        PostMethod postMethod = <span class="keyword">new</span> PostMethod(LOGIN_URL);</span><br><span class="line">        postMethod.getParams().setParameter(HttpMethodParams.HTTP_CONTENT_CHARSET, <span class="string">"GBK"</span>);</span><br><span class="line">        List&lt;org.apache.commons.httpclient.NameValuePair&gt; nameValues = <span class="keyword">new</span> ArrayList&lt;org.apache.commons.httpclient.NameValuePair&gt;();</span><br><span class="line">        nameValues.add(<span class="keyword">new</span> org.apache.commons.httpclient.NameValuePair(<span class="string">"TPL_username"</span>, nick));</span><br><span class="line">        nameValues.add(<span class="keyword">new</span> org.apache.commons.httpclient.NameValuePair(<span class="string">"TPL_password"</span>, psw));</span><br><span class="line">        nameValues.add(<span class="keyword">new</span> org.apache.commons.httpclient.NameValuePair(<span class="string">"action"</span>, <span class="string">"Authenticator"</span>));</span><br><span class="line">        <span class="comment">/** httpclient post不支持方式重定向,fuck */</span></span><br><span class="line"><span class="comment">//        nameValues.add(new org.apache.commons.httpclient.NameValuePair("TPL_redirect_url", url));</span></span><br><span class="line">        nameValues.add(<span class="keyword">new</span> org.apache.commons.httpclient.NameValuePair(<span class="string">"from"</span>, <span class="string">"tb"</span>));</span><br><span class="line">        nameValues.add(<span class="keyword">new</span> org.apache.commons.httpclient.NameValuePair(<span class="string">"event_submit_do_login"</span>, <span class="string">"anything"</span>));</span><br><span class="line">        nameValues.add(<span class="keyword">new</span> org.apache.commons.httpclient.NameValuePair(<span class="string">"TPL_checkcode"</span>, <span class="string">"8888"</span>));</span><br><span class="line">        nameValues.add(<span class="keyword">new</span> org.apache.commons.httpclient.NameValuePair(<span class="string">"loginType"</span>, <span class="string">"3"</span>));</span><br><span class="line"></span><br><span class="line">        postMethod.setRequestBody(nameValues.toArray(<span class="keyword">new</span> org.apache.commons.httpclient.NameValuePair[nameValues.size()]));</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">int</span> status = httpClient.executeMethod(postMethod);</span><br><span class="line">            System.out.println(status);</span><br><span class="line">            CookieSpec cookiespec = CookiePolicy.getDefaultSpec();</span><br><span class="line">            cookies = cookiespec.match(<span class="string">"login.daily.taobao.net"</span>, hostIpPort, <span class="string">"/"</span>, <span class="keyword">false</span>,</span><br><span class="line">                    httpClient.getState().getCookies());</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            System.out.println(<span class="string">"Exception: "</span> + e.toString());</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            postMethod.releaseConnection();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">int</span> postresult = -<span class="number">1</span>;</span><br><span class="line">        <span class="keyword">if</span> (scopeString != <span class="keyword">null</span>) &#123;</span><br><span class="line">            url = url + <span class="string">"&amp;"</span> + scopeString;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            URI uri = <span class="keyword">new</span> URI(url);</span><br><span class="line">            postMethod.setURI(uri);</span><br><span class="line">            <span class="comment">// 如果不使用cookie 返回状态码 302，跳到i.daily.taobao.net去了，不能直接跳转到我们自己的页面</span></span><br><span class="line">            postMethod.setRequestHeader(<span class="string">"Cookie"</span>, cookieToString(cookies));</span><br><span class="line">            <span class="comment">// 设置HTTP代理IP和端口</span></span><br><span class="line">            httpClient.getHostConfiguration().setProxy(hostIp, hostIpPort);</span><br><span class="line">            <span class="keyword">if</span> (params != <span class="keyword">null</span>) &#123;</span><br><span class="line">                <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; params.size(); i++) &#123;</span><br><span class="line">                    postMethod.addParameter(params.get(i).getName(), params.get(i).getValue());</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            postresult = httpClient.executeMethod(postMethod);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            System.out.println(<span class="string">"Exception: "</span> + e.toString());</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            postMethod.releaseConnection();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> postresult + postMethod.getResponseBodyAsString();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title">cookieToString</span><span class="params">(Cookie[] cookie)</span></span>&#123;</span><br><span class="line">        StringBuffer cookieBuf = <span class="keyword">new</span> StringBuffer(<span class="number">256</span>);</span><br><span class="line">        <span class="keyword">for</span>(Cookie tmpCookie:cookie)&#123;</span><br><span class="line">            cookieBuf.append(tmpCookie).append(<span class="string">";"</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> cookieBuf.toString();</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
-<p>MySecureProtocolSocketFactory 的实现：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MySecureProtocolSocketFactory</span> <span class="keyword">implements</span> <span class="title">SecureProtocolSocketFactory</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> SSLContext sslcontext = <span class="keyword">null</span>;</span><br><span class="line">    <span class="function"><span class="keyword">private</span> SSLContext <span class="title">createSSLContext</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        SSLContext sslcontext=<span class="keyword">null</span>;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            sslcontext = SSLContext.getInstance(<span class="string">"SSL"</span>);</span><br><span class="line">            sslcontext.init(<span class="keyword">null</span>, <span class="keyword">new</span> TrustManager[]&#123;<span class="keyword">new</span> TrustAnyTrustManager()&#125;, <span class="keyword">new</span> java.security.SecureRandom());</span><br><span class="line">        &#125; <span class="keyword">catch</span> (NoSuchAlgorithmException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (KeyManagementException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> sslcontext;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">private</span> SSLContext <span class="title">getSSLContext</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">this</span>.sslcontext == <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">this</span>.sslcontext = createSSLContext();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">this</span>.sslcontext;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> Socket <span class="title">createSocket</span><span class="params">(Socket socket, String host, <span class="keyword">int</span> port, <span class="keyword">boolean</span> autoClose)</span></span></span><br><span class="line"><span class="function">            <span class="keyword">throws</span> IOException, UnknownHostException </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> getSSLContext().getSocketFactory().createSocket(</span><br><span class="line">                socket,</span><br><span class="line">                host,</span><br><span class="line">                port,</span><br><span class="line">                autoClose);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> Socket <span class="title">createSocket</span><span class="params">(String host, <span class="keyword">int</span> port)</span> <span class="keyword">throws</span> IOException,</span></span><br><span class="line"><span class="function">            UnknownHostException </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> getSSLContext().getSocketFactory().createSocket(</span><br><span class="line">                host,</span><br><span class="line">                port);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Socket <span class="title">createSocket</span><span class="params">(String host, <span class="keyword">int</span> port, InetAddress clientHost, <span class="keyword">int</span> clientPort)</span></span></span><br><span class="line"><span class="function">            <span class="keyword">throws</span> IOException, UnknownHostException </span>&#123;</span><br><span class="line">    	<span class="keyword">return</span> getSSLContext().getSocketFactory().createSocket(host, port, clientHost, clientPort);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> Socket <span class="title">createSocket</span><span class="params">(String host, <span class="keyword">int</span> port, InetAddress localAddress,</span></span></span><br><span class="line"><span class="function"><span class="params">            <span class="keyword">int</span> localPort, HttpConnectionParams params)</span> <span class="keyword">throws</span> IOException,</span></span><br><span class="line"><span class="function">            UnknownHostException, ConnectTimeoutException </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (params == <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">"Parameters may not be null"</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">int</span> timeout = params.getConnectionTimeout();</span><br><span class="line">        SocketFactory socketfactory = getSSLContext().getSocketFactory();</span><br><span class="line">        <span class="keyword">if</span> (timeout == <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> socketfactory.createSocket(host, port, localAddress, localPort);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            Socket socket = socketfactory.createSocket();</span><br><span class="line">            SocketAddress localaddr = <span class="keyword">new</span> InetSocketAddress(localAddress, localPort);</span><br><span class="line">            SocketAddress remoteaddr = <span class="keyword">new</span> InetSocketAddress(host, port);</span><br><span class="line">            socket.bind(localaddr);</span><br><span class="line">            socket.connect(remoteaddr, timeout);</span><br><span class="line">            <span class="keyword">return</span> socket;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//自定义私有类</span></span><br><span class="line">    <span class="class"><span class="keyword">class</span> <span class="title">TrustAnyTrustManager</span> <span class="keyword">implements</span> <span class="title">X509TrustManager</span> </span>&#123;</span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">checkClientTrusted</span><span class="params">(X509Certificate[] chain, String authType)</span> <span class="keyword">throws</span> CertificateException </span>&#123;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">checkServerTrusted</span><span class="params">(X509Certificate[] chain, String authType)</span> <span class="keyword">throws</span> CertificateException </span>&#123;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">public</span> X509Certificate[] getAcceptedIssuers() &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">new</span> X509Certificate[]&#123;&#125;;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>HttpClient 使用中的坑：</p>
-<ol>
-<li><p>为什么 返回状态吗 为 200，但是 responebody = null ？<br>原因：在执行完 executeMethod 方法后，立即使用 getMethod.getResponseBodyAsString() 得到的是null，<br>通过在 executeMethod 后面打印出 返回体后在获取 返回内容，这时就能获取到了，添加 if (getresult == HttpStatus.SC_OK) 判断条件后也能获取到，说明 返回值内容不是立即写入的，有延迟。<br>解决方案： 添加 是否成功的判断。</p>
-</li>
-<li><p>在进行请求的发生时，经常会遇到构建url参数时没有添加协议头:http://,这样会抛状态异常。</p>
-</li>
-<li>new HttpGet(url) 时出现 java.net.URISyntaxException 错误？<br>原因：url 中涉及了特殊字符，如‘｜’‘&amp;’等。所以不能直接用String代替URI来访问。必须采用%0xXX方式来替代特殊字符。但这种办法不直观。所以只能先把String转成URL，再能过URL生成URI的方法来解决问题.</li>
-</ol>
-<p>解决方案①：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">URL url = <span class="keyword">new</span> URL(strUrl);</span><br><span class="line">URI  uri = <span class="keyword">new</span> URI(url.getProtocol(),<span class="keyword">null</span>, url.getHost(),url.getPort(), url.getPath(), url.getQuery(), <span class="keyword">null</span>);</span><br><span class="line">HttpClient client    = <span class="keyword">new</span> DefaultHttpClient();</span><br><span class="line">HttpGet httpget = <span class="keyword">new</span> HttpGet(uri);</span><br></pre></td></tr></table></figure>
-<p>有时候会越到 把http://头也给替换掉了，这样就会引发其它异常，所以还有一种比较保险的做法是使用queryString构建参数部分:</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">String url = <span class="string">"http://**.**.com/user/deployPackInfoDetail.htm"</span>;</span><br><span class="line">       String queryString = <span class="string">"buildPackageId="</span>+ buildPackageId;</span><br><span class="line">       GetMethod getMethod = <span class="keyword">new</span> GetMethod(url);</span><br><span class="line">       getMethod.setQueryString(queryString);</span><br></pre></td></tr></table></figure>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2013/07/04/Java/2013-07-04-httpclient/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-Java/2013-07-03-http" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2013/07/03/Java/2013-07-03-http/">HTTP学习笔记（一）之初探</a>
-    </h1>
-  
-
-        
-        <a href="/2013/07/03/Java/2013-07-03-http/" class="archive-article-date">
-  	<time datetime="2013-07-02T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2013-07-03</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h4 id="http概览"><a href="#http概览" class="headerlink" title="http概览"></a>http概览</h4><p>HTTP协议（HyperText Transfer Protocol，超文本传输协议）是用于从WWW服务器传输超文本到本地浏览器的传送协议。它可以使浏览器更加高效，使网络传输减少。它不仅保证计算机正确快速地传输超文本文档，还确定传输文档中的哪一部分，以及哪部分内容首先显示(如文本先于图形)等。</p>
-<h4 id="http特征"><a href="#http特征" class="headerlink" title="http特征"></a>http特征</h4><p>http是应用层协议，由请求和响应构成，支持客户/服务器模式。</p>
-<p>http是一个无状态的协议（每次发出的请求都是独立的，和上次的请求是没有关系的，所以如果需要通过http进行模拟登陆，就需要传递登录cookie）。</p>
-<p>无连接协议（每次连接只处理一个请求。服务器处理完客户的请求，并收到客户的应答后，即断开连接）。</p>
-<h4 id="http服务器"><a href="#http服务器" class="headerlink" title="http服务器"></a>http服务器</h4><p>Web服务器使用的基本都是http协议，所以web服务器也被称为是http服务器。</p>
-<h4 id="http服务器-与-app-服务器-的区别："><a href="#http服务器-与-app-服务器-的区别：" class="headerlink" title="http服务器 与 app 服务器 的区别："></a>http服务器 与 app 服务器 的区别：</h4><p>Web服务器的基本功能就是提供Web信息浏览服务。它只需支持HTTP协议、HTML文档格式及URL。与客户端的网络浏览器配合。</p>
-<p>应用程序服务器(简称应用服务器)，我们先看一下微软对它的定义：”我们把应用程序服务器定义为“作为服务器执行共享业务应用程序的底层的系统软件”。</p>
-<p>通俗的讲，Web服务器传送(serves)页面使浏览器可以浏览，然而应用程序服务器提供的是客户端应用程序可以调用(call)的方法(methods)。确切一点，你可以说:Web服务器专门处理HTTP请求(request)，但是应用程序服务器是通过很多协议来为应用程序提供(serves)商业逻辑 (business logic)。</p>
-<p>Apache是纯粹的web服务器，而Tomcat和IIS因为具有了解释执行服务器端代码的能力，可以称作为轻量级应用服务器或带有服务器功能的Web服务器。</p>
-<p>详细可参考：<a href="http://blog.csdn.net/gideal_wang/article/details/4442525" target="_blank" rel="noopener">http://blog.csdn.net/gideal_wang/article/details/4442525</a></p>
-<h4 id="一个http请求过程："><a href="#一个http请求过程：" class="headerlink" title="一个http请求过程："></a>一个http请求过程：</h4><blockquote>
-<p>用户在浏览器中输入一个URL，浏览器首先回去查host文件，如果此域名有对应的ip，如果没有就会根据网络连接里面的DNS地址去查选此URL对于的IP地址，再根据这个IP地址和默认80端口与远程服务器建立socket连接，然后浏览器根据这个URL组装成一个get类型的HTTP请求头，通过outputStream.write 发送到目标服务器，服务器等待inputStream.read返回数据，最后断开连接。</p>
-</blockquote>
-<p>一张HTTP请求过程图示：</p>
-<p>http 请求头 和 相应头的组成：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">Request Header:</span><br><span class="line">Request URL:http://www.taobao.com/</span><br><span class="line">Request Method:GET</span><br><span class="line">Status Code:200 OK200 OK</span><br><span class="line">Request Headersview source</span><br><span class="line">Accept:text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8</span><br><span class="line">Accept-Encoding:gzip,deflate,sdch</span><br><span class="line">Accept-Language:zh-CN,zh;q=0.8</span><br><span class="line">Cache-Control:max-age=0</span><br><span class="line">Connection:keep-alive</span><br><span class="line">Cookie:miid=.....</span><br><span class="line">Host:www.taobao.com</span><br><span class="line">User-Agent:Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/28.0.1469.0 Safari/537.36</span><br><span class="line"></span><br><span class="line">Respone Header:</span><br><span class="line">Cache-Control:max-age=3600</span><br><span class="line">Connection:keep-alive</span><br><span class="line">Content-Encoding:gzip</span><br><span class="line">Content-Type:text/html; charset=gbk</span><br><span class="line">Date:Wed, 03 Jul 2013 02:03:28 GMT</span><br><span class="line">Expires:Wed, 03 Jul 2013 03:03:28 GMT</span><br><span class="line">Server:Tengine</span><br><span class="line">Transfer-Encoding:chunked</span><br><span class="line">Vary:Accept-Encoding</span><br></pre></td></tr></table></figure>
-<h4 id="http-与-TCP-关系："><a href="#http-与-TCP-关系：" class="headerlink" title="http  与 TCP 关系："></a>http  与 TCP 关系：</h4><p>参考之前写的一片文章<a href="http://heartaway.cn/2013/05/02/websocket/">《Websocket 探究》</a></p>
-<h4 id="http-与socket关系："><a href="#http-与socket关系：" class="headerlink" title="http 与socket关系："></a>http 与socket关系：</h4><p>首先说一下什么是socket，Socket是应用层与TCP/IP协议族通信的中间软件抽象层，它是一组接口，而不是协议。在设计模式中，Socket其实就是一个门面模式，它把复杂的TCP/IP协议族隐藏在Socket接口后面，对用户来说，一组简单的接口就是全部，让Socket去组织数据，以符合指定的协议。Socket 可以支持不同的传输层协议（TCP 或UDP ）。</p>
-<p>http连接：是基于TCP协议之上的协议，是短连接；</p>
-<p>socket连接：socket连接就是所谓的长连接，理论上客户端和服务器端一旦建立起连接将不会主动断掉，但会由于网络因素断开，所以经常使用轮询心跳来保持连接；</p>
-<p>HTTP 是基于Socket 通信的子协议, Socket 收发信息自由, 协议都可由使用者定义。 HTTP 在Socket 基础上做了协议规范, 通信只能按照特定的格式去做, 用户可在HTTP 上做自己的子协议, 如网页浏览,webservice 等.</p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2013/07/03/Java/2013-07-03-http/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
   
     <nav id="page-nav">
-      <a class="extend prev" rel="prev" href="/page/7/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/6/">6</a><a class="page-number" href="/page/7/">7</a><span class="page-number current">8</span><a class="page-number" href="/page/9/">9</a><a class="extend next" rel="next" href="/page/9/">Next &raquo;</a>
+      <a class="extend prev" rel="prev" href="/page/7/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/6/">6</a><a class="page-number" href="/page/7/">7</a><span class="page-number current">8</span><a class="page-number" href="/page/9/">9</a><a class="page-number" href="/page/10/">10</a><a class="extend next" rel="next" href="/page/9/">Next &raquo;</a>
     </nav>
   
 
@@ -1312,6 +1299,42 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">标签2</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">工作</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">目标</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">共享变量</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">缓存</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">人生</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">感悟</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">架构</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">可视化</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">AHAS</a>
               </li>
             
             <div class="clearfix"></div>

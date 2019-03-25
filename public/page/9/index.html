@@ -149,6 +149,447 @@
           <div id="js-content" class="content-ll">
             
   
+    <article id="post-Android/2014-09-11-layout" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2014/09/11/Android/2014-09-11-layout/">Android 高效的 Layout</a>
+    </h1>
+  
+
+        
+        <a href="/2014/09/11/Android/2014-09-11-layout/" class="archive-article-date">
+  	<time datetime="2014-09-10T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2014-09-11</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>我们知道随着我们业务越来越负责，UI布局也会越来越复杂，大量的布局信息必定会带来一定的性能损耗，那么我们怎么才能写出高效的布局呢？</p>
+<p>1.使用 <code>&lt;include&gt; &lt;merge&gt; &lt;viewStub&gt;</code>标签。<br><a href="https://developer.android.com/training/improving-layouts/optimizing-layout.html" target="_blank" rel="noopener">https://developer.android.com/training/improving-layouts/optimizing-layout.html</a></p>
+<p>2.LinearLayout中减少使用layout_weight参数，因为使用此属性会导致子元素被测量两次。</p>
+<p>3.学会测量Layout的层次结构,优化布局<br><a href="https://developer.android.com/training/improving-layouts/optimizing-layout.html" target="_blank" rel="noopener">https://developer.android.com/training/improving-layouts/optimizing-layout.html</a></p>
+<p>4.使得Layout宽而浅，而不是窄而深（在Hierarchy Viewer的Tree视图里面体现）<br>连接真机时，HierarchyVIewer报错了：无法加载设备上的窗口数据</p>
+<p>原因：若需要使用hierarchyviewer，需要手机上开启对应的ViewServer服务。Hierarchy Viewer在连接手机时，手机上必须启动一个叫View Server的客户端与其进行socket通信。而在商业手机上，是无法开启View Server的，故Hierarchy Viewer是无法连接到普通的商业手机。</p>
+<p>解决办法：</p>
+<p>方法一：使用模拟器。</p>
+<p>方法二：App中需要开启View Server，可以参考一下连个类的实现。</p>
+<p><a href="http://pan.baidu.com/s/1sjIulYl" target="_blank" rel="noopener">http://pan.baidu.com/s/1sjIulYl </a>提取码：wrc8</p>
+<p>使用方法：</p>
+<p>引入ViewServer.java 类到Util包中，在需要查看Layout层次结构的Activity类中，加入以下代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">(Bundle savedInstanceState)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">super</span>.onCreate(savedInstanceState);</span><br><span class="line">    …</span><br><span class="line">    ViewServer.get(<span class="keyword">this</span>).addWindow(<span class="keyword">this</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onDestroy</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">super</span>.onDestroy();</span><br><span class="line">    ViewServer.get(<span class="keyword">this</span>).removeWindow(<span class="keyword">this</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onResume</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">super</span>.onResume();</span><br><span class="line">    ViewServer.get(<span class="keyword">this</span>).setFocusedWindow(<span class="keyword">this</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>5.使用Lint工具来优化Layout</p>
+<ul>
+<li>使用merge根框架 – 如果FramLayout仅仅是一个纯粹的（没有设置背景，间距等）布局根元素，我们可以使用merge标签来当作根标签；</li>
+<li>无用的分支 – 如果一个layout并没有任何子组件，那么可以被移除，这样可以提高效率</li>
+<li>无用的父控件 – 如果一个layout只有子控件，没有兄弟控件，并且不是一个ScrollView或者根节点，而且没有设置背景，那么我们可以移除这个父控件，直接把子控件提升为父控件</li>
+<li>深层次的layout – 尽量减少内嵌的层级，考虑使用更多平级的组件 RelativeLayout or GridLayout来提升布局性能，默认最大的深度是10<br>Lint工具在android Studio中的使用:<br>Analyze → Inspect code 这个时候会自动启动Lint工具。</li>
+</ul>
+<p>6.虽然官方说LinearLayout 与 RelationLayout在性能上相差无几，但是能使用relative layout的地方尽量不要使用LinearLayout。</p>
+<p>7.有同事对比了RelationLayout 与 FrameLayout的性能，发现FrameLayout性能比RelationLayout更优。原因很简单：因为FrameLayout比RelationLayout更简单，没有那么多属性，所有效率更高。无论是使用那种布局，在都能满足需求的情况下，只要记住，使用属性跟少、更简单的布局方式一定是没错的。<br><a href="http://stackoverflow.com/questions/22875453/framelayout-vs-relativelayout-for-overlays" target="_blank" rel="noopener">http://stackoverflow.com/questions/22875453/framelayout-vs-relativelayout-for-overlays</a></p>
+<p>8.对于textview和imageview组成的layout，直接使用textview替换（drawableTop类似属性）</p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Android//" class="article-tag-list-link color3">Android</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2014/09/11/Android/2014-09-11-layout/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-Android/2014-09-01-listview" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2014/09/01/Android/2014-09-01-listview/">Android 之 Listview</a>
+    </h1>
+  
+
+        
+        <a href="/2014/09/01/Android/2014-09-01-listview/" class="archive-article-date">
+  	<time datetime="2014-08-31T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2014-09-01</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h4 id="ListView显示的三要素："><a href="#ListView显示的三要素：" class="headerlink" title="ListView显示的三要素："></a>ListView显示的三要素：</h4><ol>
+<li>ListView，用来展示列表</li>
+<li>Adapter，用来存在数据&amp;将数据与视图进行绑定</li>
+<li>数据，将被映射的字符串、图片url等等。</li>
+</ol>
+<p>关于Adapter ，请参考 Android 之 Adapter。</p>
+<h4 id="ListView-的工作原理："><a href="#ListView-的工作原理：" class="headerlink" title="ListView 的工作原理："></a>ListView 的工作原理：</h4><p>Adapter的作用就是ListView界面与数据交互的桥梁，当列表里面每一项显示到页面上时，都会调用Adapter的getView方法。<br>系统需要回执ListView时，首先会调用getCount()函数，得到要绘制的这个列表额长度，然后开始从第一行开始绘制，每行的回执方法是调用getView函数。那么Android是不是为每一行都会新创建一个View呢？试想加入行数为几万行，内存肯定会爆掉的，所以Android官方早就想到了这一点，在ListView实现中添加了视图的缓存-Recycler，每当有行移除屏幕的可视区域时，这个被移除的行的View对象就会被添加到Recycler中，也就是在渲染新行时的那个参数convertView。</p>
+<h4 id="ListView的初始化："><a href="#ListView的初始化：" class="headerlink" title="ListView的初始化："></a>ListView的初始化：</h4><p><strong>疑问一：</strong>ListView绘制时是如何获取每行的View的呢？</p>
+<p>首先ListView通过setAdapter方法，将Adapter与ListView关联起来，查看ListView的setAdater方法源码可知，setAdater将传递经来的Adapter的引用复制给了内部全局变量mAdapter，ListView在绘制每行的时候根据行号position调用父类AbsListView中的obtainView，obtainView首先会从recycler中获取是否有匹配的视图，如果存在的话，可以看到则调用adapter.getView方法，并传递了scrapView给convertView变量，否则传递的是null。</p>
+<p><strong>疑问二：</strong>ListView中数据发生变更了，我们一般会调用Adapter的 notifyDataSetChanged()方法， 那么视图是怎么发生变化的呢？</p>
+<p>ListView 中的数据适配器Adapter 采用的是观察者模式（参考之前的”观察者模式“）</p>
+<p>ListView在setAdapter时，会新建ApdateDataSetObserver，并注册此观察者。</p>
+<p>AdapterDataSetObserver类实在AbsListView中定义：</p>
+<p>AdapterView中AdapterDataSetObserver的实现如下(部分省略)：</p>
+<p>AdapterDataSetObserver 实现了DataSetObserver接口，并重写了onChanger方法，里面调用了requestLayout方法，此方法的作用是要求parent view 重新调用它的哦弄Measure onLayout方法重新布局视图，但不会重新绘制任何视图包括该调用者本身。<br>requestLayout的实现方法需要到View类中查看：可参考：<a href="http://blog.csdn.net/androiddevelop/article/details/8561076" target="_blank" rel="noopener">http://blog.csdn.net/androiddevelop/article/details/8561076</a></p>
+<p><strong>疑问三：</strong>RecyclerBin的数据结构是这样的呢？当ListView有多个视图类型（在界面上就是有不同的样式和数据类型）又是怎么选择合适的convertView的呢？<br>首先看一下RecycleBin的类定义（AbsListView中内部类）</p>
+<p>从注释中我们就可以得知 ：</p>
+<p>RecycleBin一共有两个存储结构分别是ActiveViews 和 ScrapViews<br>ActiveViews储存当前在界面(手机显示区域)中显示View，移出界面会存入ScrapViews<br>ScrapViews存储当前已经滑动出当前界面(手机显示区域)显示的View，这些view存储起来相当于回收，当再次请求的时候从此存储中取出反复使用。<br>当ListView中有N个视图类型时，RecycleBin会创建N个scrapView数组，每个类型一个view数组，后面在获取view时会先判断view的类型，然后到对应的数组中去取。</p>
+<p>怎么从ScrapViews中获取可用的view视图呢？getScrapView  → retrieveFromScrap</p>
+<p>retrieveFromScrap（这个不属于RecycleBin类，是属于外部类AbslistView中的方法）<br>   根据position，从mScrapView中找：</p>
+<pre><code>1. 如果有view.scrappedFromPosition = position的，直接返回该view；
+2. 否则返回mScrapView中最后一个；
+3. 如果缓存中没有view，则返回null；
+下面，我们来分析下这三种情况在什么条件下满足？
+ a. 第三种情况，这个最简单：
+ 一开始，listview稳定后，显示N个，此时mScrapView中是没有缓存view的，当我们向上滚动一小段距离（第一个此时仍显示部分），新的view将会显示，此时listview会调用Adapter.getView，但是缓存中没有，因此convertView是null，所以，我们得分配一块内存来创建新的convertView；
+ b. 第二种情况：
+ 在a中，我们继续向上滚动，直接第一个view完全移出屏幕（假设没有新的item），此时，第一个view就会被detach，并被加入到mScrapView中；然后，我们还继续向上滚动，直接后面又将要显示新的item view时，此时，系统会从mScrapView中找position对应的View，显然，是找不到的，则将从mScrapView中，取最后一个缓存的view传递给convertView；
+c. 第一种情况：
+紧接着在b中（标示为橙色的文字后面），第一个被完全移出，加入到mScrapView中，且没有新增的item到listview中，此时，缓存中就只有第一个view；然后，我此时向下滑动，则之前的第一个item，将被显示出来，此时，从缓存中查找position对应的view有没有，当然，肯定是找到了，就直接返回了。
+</code></pre><h4 id="ListView使用过程中遇到的问题："><a href="#ListView使用过程中遇到的问题：" class="headerlink" title="ListView使用过程中遇到的问题："></a>ListView使用过程中遇到的问题：</h4><h5 id="Listview-滑动中背景错乱："><a href="#Listview-滑动中背景错乱：" class="headerlink" title="Listview 滑动中背景错乱："></a>Listview 滑动中背景错乱：</h5><p><strong>场景：</strong></p>
+<p>我有一个listView作为菜单，当菜单选中时有一个指示器会展示出来，其他的会被隐藏，默认第一个菜单为选中状态，但是当滑动listview时，新加在出来的item中指示器也展示出来了。</p>
+<p><strong>原因：</strong></p>
+<p>理解了上面的getView和RecycleBin的工作原理之后，这个问题不难定位，肯定是在渲染新行时从scropViews中没有匹配position位置的view，此时默认返回了最后一个view（也就是场景中对应的第一个），这个view是被我们设置了指示器为可见状态，所以就引起了背景的错乱。</p>
+<p><strong>解决办法：</strong></p>
+<p>对于positon等于我们选择的下标时会指示器可见，当position不等于我们选择的下标时，防止convert被复用，我们需要设置指示器为不可见，也就是else中的代码，之前我只写了if中的代码，却忽略了else中的代码。</p>
+<p>这个问题也可以参考：<a href="http://www.myexception.cn/mobile/1612364.html" target="_blank" rel="noopener">http://www.myexception.cn/mobile/1612364.html </a></p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Android//" class="article-tag-list-link color3">Android</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2014/09/01/Android/2014-09-01-listview/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-Java/2013-07-04-httpclient" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2013/07/04/Java/2013-07-04-httpclient/">HTTP学习笔记（二）之HttpClient</a>
+    </h1>
+  
+
+        
+        <a href="/2013/07/04/Java/2013-07-04-httpclient/" class="archive-article-date">
+  	<time datetime="2013-07-03T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2013-07-04</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h4 id="HttpClient-是什么："><a href="#HttpClient-是什么：" class="headerlink" title="HttpClient 是什么："></a>HttpClient 是什么：</h4><p>HttpClient 是 Apache Jakarta Common 下的子项目，用来提供高效的、最新的、功能丰富的支持 HTTP 协议的客户端编程工具包，并且它支持 HTTP 协议最新的版本和建议。</p>
+<h4 id="HttpClient-主要功能："><a href="#HttpClient-主要功能：" class="headerlink" title="HttpClient 主要功能："></a>HttpClient 主要功能：</h4><p>实现了所有 HTTP 的方法（GET,POST,PUT,HEAD 等）<br>支持自动转向<br>支持 HTTPS 协议<br>支持代理服务器等<br>HttpClient包下面都有那些内容：</p>
+<h4 id="HttpClient-的基本使用方法："><a href="#HttpClient-的基本使用方法：" class="headerlink" title="HttpClient 的基本使用方法："></a>HttpClient 的基本使用方法：</h4><h5 id="Get方法："><a href="#Get方法：" class="headerlink" title="Get方法："></a>Get方法：</h5><p>使用 HttpClient 需要以下 6 个步骤：</p>
+<ol>
+<li>创建 HttpClient 的实例</li>
+<li>创建某种连接方法的实例，在这里是 GetMethod。在 GetMethod 的构造函数中传入待连接的地址</li>
+<li>调用第一步中创建好的实例的 execute 方法来执行第二步中创建好的 method 实例</li>
+<li>读 response</li>
+<li>释放连接。无论执行方法是否成功，都必须释放连接</li>
+<li>对得到后的内容进行处理</li>
+</ol>
+<p>Demo 示例：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//构造HttpClient的实例</span></span><br><span class="line"> HttpClient httpClient = <span class="keyword">new</span> HttpClient();</span><br><span class="line"> <span class="comment">//创建GET方法的实例</span></span><br><span class="line"> GetMethod getMethod = <span class="keyword">new</span> GetMethod(<span class="string">"http://www.ibm.com"</span>);</span><br><span class="line"> <span class="comment">//使用系统提供的默认的恢复策略</span></span><br><span class="line"> getMethod.getParams().setParameter(HttpMethodParams.RETRY_HANDLER,</span><br><span class="line">   <span class="keyword">new</span> DefaultHttpMethodRetryHandler());</span><br><span class="line"> <span class="keyword">try</span> &#123;</span><br><span class="line">  <span class="comment">//执行getMethod</span></span><br><span class="line">  <span class="keyword">int</span> statusCode = httpClient.executeMethod(getMethod);</span><br><span class="line">  <span class="keyword">if</span> (statusCode != HttpStatus.SC_OK) &#123;</span><br><span class="line">   System.err.println(<span class="string">"Method failed: "</span></span><br><span class="line">     + getMethod.getStatusLine());</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">//读取内容</span></span><br><span class="line">  <span class="keyword">byte</span>[] responseBody = getMethod.getResponseBody();</span><br><span class="line">  <span class="comment">//处理内容</span></span><br><span class="line">  System.out.println(<span class="keyword">new</span> String(responseBody));</span><br><span class="line"> &#125; <span class="keyword">catch</span> (HttpException e) &#123;</span><br><span class="line">  <span class="comment">//发生致命的异常，可能是协议不对或者返回的内容有问题</span></span><br><span class="line">  System.out.println(<span class="string">"Please check your provided http address!"</span>);</span><br><span class="line">  e.printStackTrace();</span><br><span class="line"> &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">  <span class="comment">//发生网络异常</span></span><br><span class="line">  e.printStackTrace();</span><br><span class="line"> &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">  <span class="comment">//释放连接</span></span><br><span class="line">  getMethod.releaseConnection();</span><br><span class="line"> &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>注意点：</p>
+<ol>
+<li>HttpClient的恢复策略是指在遇到异常时自动重试的机制，并且可以自定义（通过实现接口HttpMethodRetryHandler来实现）。通过httpClient的方法setParameter设置你实现的恢复策略，demo中使用的是系统提供的默认恢复策略，该策略在碰到IOException的时候将自动重试3次。</li>
+<li>用GetMethod将会自动处理重定向，如果想要把自动处理重定向去掉的话，可以调用方法setFollowRedirects(false)。</li>
+<li>executeMethod返回值是一个整数，表示了执行该方法后服务器返回的状态码；</li>
+<li>获取响应内容的方式有三种：getResponseBody(返回二进制byte流)、getResponseBodyAsString(返回String)、getResponseBodyAsStream(这个方法对返回大量数据处理效率很高)；</li>
+<li>乱码：在使用getResponseBodyAsString容易出现乱码，影响响应内容字符编码的地方有两个：第一，Response的header设置，这里的设置编码可能与html内容编码不符，通过method对象的getResponseCharSet()方法就可以得到http头中的编码信息；第二，Respone的body内容中设置了<code>&lt;meta http-equiv=”Content-Type” content=”text/html; charset=GBK”/&gt;或&lt;?xml version=”1.0″ encoding=”GBK”?&gt;</code>标签，这样也可能与header编码冲突造成乱码。</li>
+<li>释放连接。无论执行方法是否成功，都必须释放连接。</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">method.releaseConnection();</span><br></pre></td></tr></table></figure>
+<h5 id="Post方法："><a href="#Post方法：" class="headerlink" title="Post方法："></a>Post方法：</h5><p>PostMethod基本与GetMethod类似；</p>
+<p>不同点：</p>
+<ul>
+<li>POST和PUT，不支持自动重定向，因此需要自己对页面转向做处理。</li>
+</ul>
+<p>Proxy代理服务的使用(host绑定)：<br>在日常工作中很多url的访问都是需要绑定host地址的，使用httpClient如何进行绑定访问？</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">HttpClient httpclient = <span class="keyword">new</span> HttpClient();</span><br><span class="line">           <span class="comment">// 设置HTTP代理IP和端口</span></span><br><span class="line">           httpclient.getHostConfiguration().setProxy(hostIp, hostIpPort);</span><br></pre></td></tr></table></figure>
+<p>支持Https：<br>HttpClient提供了对SSL的支持，允许HttpClient来打开Https连接。</p>
+<p>有两种方法可以打开https连接，第一种就是得到服务器颁发的证书，然后导入到本地的keystore中；另外一种办法就是通过扩展HttpClient的类来实现自动接受证书。</p>
+<p>方法1参考：<a href="http://www.ibm.com/developerworks/cn/opensource/os-httpclient/#N10060" target="_blank" rel="noopener">处理HTTPS协议</a></p>
+<p>方法2：</p>
+<ol>
+<li>实现自己的socket factory，必须实现SecureProtocolSocketFactory接口。</li>
+<li>自定义私有类 TrustAnyTrustManager implements X509TrustManager。</li>
+<li>定义Protocol ，将socket factory注册到 Protocol中。</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Protocol myhttps = <span class="keyword">new</span> Protocol(<span class="string">"https"</span>, <span class="keyword">new</span> MySecureProtocolSocketFactory(), <span class="number">443</span>);</span><br><span class="line">        Protocol.registerProtocol(<span class="string">"https"</span>, myhttps);</span><br></pre></td></tr></table></figure>
+<p>Cookie处理：</p>
+<p>通过state获取cookie：httpclient.getState().getCookies();</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">CookieSpec cookiespec = CookiePolicy.getDefaultSpec();</span><br><span class="line">        cookies = cookiespec.match(<span class="string">"login.daily.taobao.net"</span>, hostIpPort, <span class="string">"/"</span>, <span class="keyword">false</span>,</span><br><span class="line">                httpClient.getState().getCookies());</span><br></pre></td></tr></table></figure>
+<p>CookieSpec接口代表了cookie管理的规范。cookiespec.match获取匹配路径下的cookie数组。</p>
+<p>通过state设置cookie:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">httpclient.getParams().setCookiePolicy(CookiePolicy.RFC_2109);<span class="comment">//RFC_2109是支持较普遍的一个，还有其他cookie协议</span></span><br><span class="line">HttpState initialState = <span class="keyword">new</span> HttpState();</span><br><span class="line">Cookie cookie=<span class="keyword">new</span> Cookie();</span><br><span class="line">cookie.setDomain(<span class="string">"www.balblabla.com"</span>);</span><br><span class="line">cookie.setPath(<span class="string">"/"</span>);</span><br><span class="line">cookie.setName(<span class="string">"多情环"</span>);</span><br><span class="line">cookie.setValue(<span class="string">"多情即无情"</span>);</span><br><span class="line">initialState.addCookie(cookie);</span><br><span class="line">httpclient.setState(initialState);</span><br></pre></td></tr></table></figure>
+<p>cookie协议：RFC 2109（过时的严格策略）、RFC 2965（严格策略的标准符合）、best-match：最佳匹配meta（元）策略(推荐使用)。</p>
+<p>携带cookie进行页面访问：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">postMethod.setRequestHeader(<span class="string">"Cookie"</span>, cookieToString(cookies));</span><br></pre></td></tr></table></figure>
+<p>httpClient本身就可以保持cookie，可以通过同一个httpclient进行页面登录访问，但是对于有页面跳转的只能使用自带cookie进行模拟登录后访问。</p>
+<p>通过HTTP上传文件：<br>httpclient使用了单独的一个HttpMethod子类来处理文件的上传，这个类就是MultipartPostMethod，该类已经封装了文件上传的细节，我们要做的仅仅是告诉它我们要上传文件的全路径即可。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">ArrayList&lt;Part&gt; partArray = <span class="keyword">new</span> ArrayList&lt;Part&gt;();</span><br><span class="line">      <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; params.size(); i++) &#123;</span><br><span class="line">          <span class="keyword">if</span> (params.get(i) <span class="keyword">instanceof</span> FileNameValuePair) &#123;</span><br><span class="line">              partArray.add(<span class="keyword">new</span> FilePart(params.get(i).getName(), ((FileNameValuePair) params.get(i)).getFile()));</span><br><span class="line">          &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">              postMethod.addParameter(params.get(i).getName(), params.get(i).getValue());</span><br><span class="line">          &#125;</span><br><span class="line">      &#125;</span><br><span class="line">      Part[] parts = <span class="keyword">new</span> Part[partArray.size()];</span><br><span class="line">      <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; partArray.size(); i++) &#123;</span><br><span class="line">          parts[i] = partArray.get(i);</span><br><span class="line">      &#125;</span><br><span class="line">      postMethod.setRequestEntity(<span class="keyword">new</span> MultipartRequestEntity(parts, postMethod.getParams()));</span><br><span class="line"></span><br><span class="line">      <span class="keyword">int</span> statusCode = httpclient.executeMethod(postMethod);</span><br></pre></td></tr></table></figure>
+<p>通过HTTP模拟登录：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title">LoginDailyToGetPageWithHost</span><span class="params">(String nick, String psw, String scopeString, String url, List&lt;NameValuePair&gt; params, String hostIp, Integer hostIpPort)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">        Protocol myhttps = <span class="keyword">new</span> Protocol(<span class="string">"https"</span>, <span class="keyword">new</span> MySecureProtocolSocketFactory(), <span class="number">443</span>);</span><br><span class="line">        Protocol.registerProtocol(<span class="string">"https"</span>, myhttps);</span><br><span class="line">        HttpClient httpClient = <span class="keyword">new</span> HttpClient();</span><br><span class="line">        Cookie[] cookies;</span><br><span class="line">        LOGIN_URL = LOGIN_URL + <span class="string">"?redirectURL="</span> + url;</span><br><span class="line">        PostMethod postMethod = <span class="keyword">new</span> PostMethod(LOGIN_URL);</span><br><span class="line">        postMethod.getParams().setParameter(HttpMethodParams.HTTP_CONTENT_CHARSET, <span class="string">"GBK"</span>);</span><br><span class="line">        List&lt;org.apache.commons.httpclient.NameValuePair&gt; nameValues = <span class="keyword">new</span> ArrayList&lt;org.apache.commons.httpclient.NameValuePair&gt;();</span><br><span class="line">        nameValues.add(<span class="keyword">new</span> org.apache.commons.httpclient.NameValuePair(<span class="string">"TPL_username"</span>, nick));</span><br><span class="line">        nameValues.add(<span class="keyword">new</span> org.apache.commons.httpclient.NameValuePair(<span class="string">"TPL_password"</span>, psw));</span><br><span class="line">        nameValues.add(<span class="keyword">new</span> org.apache.commons.httpclient.NameValuePair(<span class="string">"action"</span>, <span class="string">"Authenticator"</span>));</span><br><span class="line">        <span class="comment">/** httpclient post不支持方式重定向,fuck */</span></span><br><span class="line"><span class="comment">//        nameValues.add(new org.apache.commons.httpclient.NameValuePair("TPL_redirect_url", url));</span></span><br><span class="line">        nameValues.add(<span class="keyword">new</span> org.apache.commons.httpclient.NameValuePair(<span class="string">"from"</span>, <span class="string">"tb"</span>));</span><br><span class="line">        nameValues.add(<span class="keyword">new</span> org.apache.commons.httpclient.NameValuePair(<span class="string">"event_submit_do_login"</span>, <span class="string">"anything"</span>));</span><br><span class="line">        nameValues.add(<span class="keyword">new</span> org.apache.commons.httpclient.NameValuePair(<span class="string">"TPL_checkcode"</span>, <span class="string">"8888"</span>));</span><br><span class="line">        nameValues.add(<span class="keyword">new</span> org.apache.commons.httpclient.NameValuePair(<span class="string">"loginType"</span>, <span class="string">"3"</span>));</span><br><span class="line"></span><br><span class="line">        postMethod.setRequestBody(nameValues.toArray(<span class="keyword">new</span> org.apache.commons.httpclient.NameValuePair[nameValues.size()]));</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">int</span> status = httpClient.executeMethod(postMethod);</span><br><span class="line">            System.out.println(status);</span><br><span class="line">            CookieSpec cookiespec = CookiePolicy.getDefaultSpec();</span><br><span class="line">            cookies = cookiespec.match(<span class="string">"login.daily.taobao.net"</span>, hostIpPort, <span class="string">"/"</span>, <span class="keyword">false</span>,</span><br><span class="line">                    httpClient.getState().getCookies());</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            System.out.println(<span class="string">"Exception: "</span> + e.toString());</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            postMethod.releaseConnection();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">int</span> postresult = -<span class="number">1</span>;</span><br><span class="line">        <span class="keyword">if</span> (scopeString != <span class="keyword">null</span>) &#123;</span><br><span class="line">            url = url + <span class="string">"&amp;"</span> + scopeString;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            URI uri = <span class="keyword">new</span> URI(url);</span><br><span class="line">            postMethod.setURI(uri);</span><br><span class="line">            <span class="comment">// 如果不使用cookie 返回状态码 302，跳到i.daily.taobao.net去了，不能直接跳转到我们自己的页面</span></span><br><span class="line">            postMethod.setRequestHeader(<span class="string">"Cookie"</span>, cookieToString(cookies));</span><br><span class="line">            <span class="comment">// 设置HTTP代理IP和端口</span></span><br><span class="line">            httpClient.getHostConfiguration().setProxy(hostIp, hostIpPort);</span><br><span class="line">            <span class="keyword">if</span> (params != <span class="keyword">null</span>) &#123;</span><br><span class="line">                <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; params.size(); i++) &#123;</span><br><span class="line">                    postMethod.addParameter(params.get(i).getName(), params.get(i).getValue());</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            postresult = httpClient.executeMethod(postMethod);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            System.out.println(<span class="string">"Exception: "</span> + e.toString());</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            postMethod.releaseConnection();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> postresult + postMethod.getResponseBodyAsString();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title">cookieToString</span><span class="params">(Cookie[] cookie)</span></span>&#123;</span><br><span class="line">        StringBuffer cookieBuf = <span class="keyword">new</span> StringBuffer(<span class="number">256</span>);</span><br><span class="line">        <span class="keyword">for</span>(Cookie tmpCookie:cookie)&#123;</span><br><span class="line">            cookieBuf.append(tmpCookie).append(<span class="string">";"</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> cookieBuf.toString();</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p>MySecureProtocolSocketFactory 的实现：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MySecureProtocolSocketFactory</span> <span class="keyword">implements</span> <span class="title">SecureProtocolSocketFactory</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> SSLContext sslcontext = <span class="keyword">null</span>;</span><br><span class="line">    <span class="function"><span class="keyword">private</span> SSLContext <span class="title">createSSLContext</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        SSLContext sslcontext=<span class="keyword">null</span>;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            sslcontext = SSLContext.getInstance(<span class="string">"SSL"</span>);</span><br><span class="line">            sslcontext.init(<span class="keyword">null</span>, <span class="keyword">new</span> TrustManager[]&#123;<span class="keyword">new</span> TrustAnyTrustManager()&#125;, <span class="keyword">new</span> java.security.SecureRandom());</span><br><span class="line">        &#125; <span class="keyword">catch</span> (NoSuchAlgorithmException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (KeyManagementException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> sslcontext;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">private</span> SSLContext <span class="title">getSSLContext</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">this</span>.sslcontext == <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">this</span>.sslcontext = createSSLContext();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">this</span>.sslcontext;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> Socket <span class="title">createSocket</span><span class="params">(Socket socket, String host, <span class="keyword">int</span> port, <span class="keyword">boolean</span> autoClose)</span></span></span><br><span class="line"><span class="function">            <span class="keyword">throws</span> IOException, UnknownHostException </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> getSSLContext().getSocketFactory().createSocket(</span><br><span class="line">                socket,</span><br><span class="line">                host,</span><br><span class="line">                port,</span><br><span class="line">                autoClose);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> Socket <span class="title">createSocket</span><span class="params">(String host, <span class="keyword">int</span> port)</span> <span class="keyword">throws</span> IOException,</span></span><br><span class="line"><span class="function">            UnknownHostException </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> getSSLContext().getSocketFactory().createSocket(</span><br><span class="line">                host,</span><br><span class="line">                port);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Socket <span class="title">createSocket</span><span class="params">(String host, <span class="keyword">int</span> port, InetAddress clientHost, <span class="keyword">int</span> clientPort)</span></span></span><br><span class="line"><span class="function">            <span class="keyword">throws</span> IOException, UnknownHostException </span>&#123;</span><br><span class="line">    	<span class="keyword">return</span> getSSLContext().getSocketFactory().createSocket(host, port, clientHost, clientPort);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> Socket <span class="title">createSocket</span><span class="params">(String host, <span class="keyword">int</span> port, InetAddress localAddress,</span></span></span><br><span class="line"><span class="function"><span class="params">            <span class="keyword">int</span> localPort, HttpConnectionParams params)</span> <span class="keyword">throws</span> IOException,</span></span><br><span class="line"><span class="function">            UnknownHostException, ConnectTimeoutException </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (params == <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">"Parameters may not be null"</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">int</span> timeout = params.getConnectionTimeout();</span><br><span class="line">        SocketFactory socketfactory = getSSLContext().getSocketFactory();</span><br><span class="line">        <span class="keyword">if</span> (timeout == <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> socketfactory.createSocket(host, port, localAddress, localPort);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            Socket socket = socketfactory.createSocket();</span><br><span class="line">            SocketAddress localaddr = <span class="keyword">new</span> InetSocketAddress(localAddress, localPort);</span><br><span class="line">            SocketAddress remoteaddr = <span class="keyword">new</span> InetSocketAddress(host, port);</span><br><span class="line">            socket.bind(localaddr);</span><br><span class="line">            socket.connect(remoteaddr, timeout);</span><br><span class="line">            <span class="keyword">return</span> socket;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//自定义私有类</span></span><br><span class="line">    <span class="class"><span class="keyword">class</span> <span class="title">TrustAnyTrustManager</span> <span class="keyword">implements</span> <span class="title">X509TrustManager</span> </span>&#123;</span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">checkClientTrusted</span><span class="params">(X509Certificate[] chain, String authType)</span> <span class="keyword">throws</span> CertificateException </span>&#123;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">checkServerTrusted</span><span class="params">(X509Certificate[] chain, String authType)</span> <span class="keyword">throws</span> CertificateException </span>&#123;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">public</span> X509Certificate[] getAcceptedIssuers() &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">new</span> X509Certificate[]&#123;&#125;;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>HttpClient 使用中的坑：</p>
+<ol>
+<li><p>为什么 返回状态吗 为 200，但是 responebody = null ？<br>原因：在执行完 executeMethod 方法后，立即使用 getMethod.getResponseBodyAsString() 得到的是null，<br>通过在 executeMethod 后面打印出 返回体后在获取 返回内容，这时就能获取到了，添加 if (getresult == HttpStatus.SC_OK) 判断条件后也能获取到，说明 返回值内容不是立即写入的，有延迟。<br>解决方案： 添加 是否成功的判断。</p>
+</li>
+<li><p>在进行请求的发生时，经常会遇到构建url参数时没有添加协议头:http://,这样会抛状态异常。</p>
+</li>
+<li>new HttpGet(url) 时出现 java.net.URISyntaxException 错误？<br>原因：url 中涉及了特殊字符，如‘｜’‘&amp;’等。所以不能直接用String代替URI来访问。必须采用%0xXX方式来替代特殊字符。但这种办法不直观。所以只能先把String转成URL，再能过URL生成URI的方法来解决问题.</li>
+</ol>
+<p>解决方案①：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">URL url = <span class="keyword">new</span> URL(strUrl);</span><br><span class="line">URI  uri = <span class="keyword">new</span> URI(url.getProtocol(),<span class="keyword">null</span>, url.getHost(),url.getPort(), url.getPath(), url.getQuery(), <span class="keyword">null</span>);</span><br><span class="line">HttpClient client    = <span class="keyword">new</span> DefaultHttpClient();</span><br><span class="line">HttpGet httpget = <span class="keyword">new</span> HttpGet(uri);</span><br></pre></td></tr></table></figure>
+<p>有时候会越到 把http://头也给替换掉了，这样就会引发其它异常，所以还有一种比较保险的做法是使用queryString构建参数部分:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">String url = <span class="string">"http://**.**.com/user/deployPackInfoDetail.htm"</span>;</span><br><span class="line">       String queryString = <span class="string">"buildPackageId="</span>+ buildPackageId;</span><br><span class="line">       GetMethod getMethod = <span class="keyword">new</span> GetMethod(url);</span><br><span class="line">       getMethod.setQueryString(queryString);</span><br></pre></td></tr></table></figure>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2013/07/04/Java/2013-07-04-httpclient/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-Java/2013-07-03-http" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2013/07/03/Java/2013-07-03-http/">HTTP学习笔记（一）之初探</a>
+    </h1>
+  
+
+        
+        <a href="/2013/07/03/Java/2013-07-03-http/" class="archive-article-date">
+  	<time datetime="2013-07-02T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2013-07-03</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h4 id="http概览"><a href="#http概览" class="headerlink" title="http概览"></a>http概览</h4><p>HTTP协议（HyperText Transfer Protocol，超文本传输协议）是用于从WWW服务器传输超文本到本地浏览器的传送协议。它可以使浏览器更加高效，使网络传输减少。它不仅保证计算机正确快速地传输超文本文档，还确定传输文档中的哪一部分，以及哪部分内容首先显示(如文本先于图形)等。</p>
+<h4 id="http特征"><a href="#http特征" class="headerlink" title="http特征"></a>http特征</h4><p>http是应用层协议，由请求和响应构成，支持客户/服务器模式。</p>
+<p>http是一个无状态的协议（每次发出的请求都是独立的，和上次的请求是没有关系的，所以如果需要通过http进行模拟登陆，就需要传递登录cookie）。</p>
+<p>无连接协议（每次连接只处理一个请求。服务器处理完客户的请求，并收到客户的应答后，即断开连接）。</p>
+<h4 id="http服务器"><a href="#http服务器" class="headerlink" title="http服务器"></a>http服务器</h4><p>Web服务器使用的基本都是http协议，所以web服务器也被称为是http服务器。</p>
+<h4 id="http服务器-与-app-服务器-的区别："><a href="#http服务器-与-app-服务器-的区别：" class="headerlink" title="http服务器 与 app 服务器 的区别："></a>http服务器 与 app 服务器 的区别：</h4><p>Web服务器的基本功能就是提供Web信息浏览服务。它只需支持HTTP协议、HTML文档格式及URL。与客户端的网络浏览器配合。</p>
+<p>应用程序服务器(简称应用服务器)，我们先看一下微软对它的定义：”我们把应用程序服务器定义为“作为服务器执行共享业务应用程序的底层的系统软件”。</p>
+<p>通俗的讲，Web服务器传送(serves)页面使浏览器可以浏览，然而应用程序服务器提供的是客户端应用程序可以调用(call)的方法(methods)。确切一点，你可以说:Web服务器专门处理HTTP请求(request)，但是应用程序服务器是通过很多协议来为应用程序提供(serves)商业逻辑 (business logic)。</p>
+<p>Apache是纯粹的web服务器，而Tomcat和IIS因为具有了解释执行服务器端代码的能力，可以称作为轻量级应用服务器或带有服务器功能的Web服务器。</p>
+<p>详细可参考：<a href="http://blog.csdn.net/gideal_wang/article/details/4442525" target="_blank" rel="noopener">http://blog.csdn.net/gideal_wang/article/details/4442525</a></p>
+<h4 id="一个http请求过程："><a href="#一个http请求过程：" class="headerlink" title="一个http请求过程："></a>一个http请求过程：</h4><blockquote>
+<p>用户在浏览器中输入一个URL，浏览器首先回去查host文件，如果此域名有对应的ip，如果没有就会根据网络连接里面的DNS地址去查选此URL对于的IP地址，再根据这个IP地址和默认80端口与远程服务器建立socket连接，然后浏览器根据这个URL组装成一个get类型的HTTP请求头，通过outputStream.write 发送到目标服务器，服务器等待inputStream.read返回数据，最后断开连接。</p>
+</blockquote>
+<p>一张HTTP请求过程图示：</p>
+<p>http 请求头 和 相应头的组成：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">Request Header:</span><br><span class="line">Request URL:http://www.taobao.com/</span><br><span class="line">Request Method:GET</span><br><span class="line">Status Code:200 OK200 OK</span><br><span class="line">Request Headersview source</span><br><span class="line">Accept:text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8</span><br><span class="line">Accept-Encoding:gzip,deflate,sdch</span><br><span class="line">Accept-Language:zh-CN,zh;q=0.8</span><br><span class="line">Cache-Control:max-age=0</span><br><span class="line">Connection:keep-alive</span><br><span class="line">Cookie:miid=.....</span><br><span class="line">Host:www.taobao.com</span><br><span class="line">User-Agent:Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/28.0.1469.0 Safari/537.36</span><br><span class="line"></span><br><span class="line">Respone Header:</span><br><span class="line">Cache-Control:max-age=3600</span><br><span class="line">Connection:keep-alive</span><br><span class="line">Content-Encoding:gzip</span><br><span class="line">Content-Type:text/html; charset=gbk</span><br><span class="line">Date:Wed, 03 Jul 2013 02:03:28 GMT</span><br><span class="line">Expires:Wed, 03 Jul 2013 03:03:28 GMT</span><br><span class="line">Server:Tengine</span><br><span class="line">Transfer-Encoding:chunked</span><br><span class="line">Vary:Accept-Encoding</span><br></pre></td></tr></table></figure>
+<h4 id="http-与-TCP-关系："><a href="#http-与-TCP-关系：" class="headerlink" title="http  与 TCP 关系："></a>http  与 TCP 关系：</h4><p>参考之前写的一片文章<a href="http://heartaway.cn/2013/05/02/websocket/">《Websocket 探究》</a></p>
+<h4 id="http-与socket关系："><a href="#http-与socket关系：" class="headerlink" title="http 与socket关系："></a>http 与socket关系：</h4><p>首先说一下什么是socket，Socket是应用层与TCP/IP协议族通信的中间软件抽象层，它是一组接口，而不是协议。在设计模式中，Socket其实就是一个门面模式，它把复杂的TCP/IP协议族隐藏在Socket接口后面，对用户来说，一组简单的接口就是全部，让Socket去组织数据，以符合指定的协议。Socket 可以支持不同的传输层协议（TCP 或UDP ）。</p>
+<p>http连接：是基于TCP协议之上的协议，是短连接；</p>
+<p>socket连接：socket连接就是所谓的长连接，理论上客户端和服务器端一旦建立起连接将不会主动断掉，但会由于网络因素断开，所以经常使用轮询心跳来保持连接；</p>
+<p>HTTP 是基于Socket 通信的子协议, Socket 收发信息自由, 协议都可由使用者定义。 HTTP 在Socket 基础上做了协议规范, 通信只能按照特定的格式去做, 用户可在HTTP 上做自己的子协议, 如网页浏览,webservice 等.</p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2013/07/03/Java/2013-07-03-http/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
     <article id="post-Basic/2013-05-02-websocket" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
   <div class="article-inner">
     
@@ -778,461 +1219,9 @@
 
 
   
-    <article id="post-Java/2013-03-05-java-class-load" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2013/03/05/Java/2013-03-05-java-class-load/">Java基础 之 类的加载与对象初始化</a>
-    </h1>
-  
-
-        
-        <a href="/2013/03/05/Java/2013-03-05-java-class-load/" class="archive-article-date">
-  	<time datetime="2013-03-04T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2013-03-05</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="类的加载"><a href="#类的加载" class="headerlink" title="类的加载"></a>类的加载</h2><h4 id="基本原理"><a href="#基本原理" class="headerlink" title="基本原理"></a>基本原理</h4><p>所有类都由类装载器载入，载入内存中的类对应一个 java.lang.Class 实例。<br>已被加载的类由该类的类加载器实例与该类的全路径名的组合标识。设有 packagename.A Class ，分别被类加载器 CL1 和 CL2 加载，则系统中有两个不同的 java.lang.Class 实例： &lt;CL1, packagename.A&gt; 和 &lt;CL2, packagename.A&gt; 。</p>
-<h4 id="Java类加载器"><a href="#Java类加载器" class="headerlink" title="Java类加载器"></a>Java类加载器</h4><p>存在一个 Bootstrap Loader （以下简称为 BL ），由 C++ 写成，负责在虚拟机启动后一次性加载 Java 基础类库中的所有类。其他的类装载器由 Java 写成，都是 java.lang.ClassLoader 的子类。除 BL 之外的所有类装载器都有一个 parent 属性，指向其父装载器。查阅 java.lang.ClassLoader 的源码，不难发现类装载器的委托装载方式。如果用户没有使用自定义类加载器，那么默认使用系统类加载器SystemClassLoader(SystemClassLoader)</p>
-<p>Java 加载器的委派模型：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">                           ---------------</span><br><span class="line">                          | Bootstrap     |</span><br><span class="line">                          | Class Loader  |  <span class="keyword">null</span></span><br><span class="line">                            ---------------</span><br><span class="line">                                  ↑</span><br><span class="line">                           -----parent----</span><br><span class="line">                          | Extension     |</span><br><span class="line">            ----------→   | Class Loader  |</span><br><span class="line">            |              ---------------</span><br><span class="line">            |                     ↑</span><br><span class="line"> -----parent----           ------parent-----</span><br><span class="line">|    URL        |         |  AppClassLoader|</span><br><span class="line">|   Class Loader|         | Class Loader   |</span><br><span class="line"> ---------------           -----------------</span><br><span class="line">                                  ↑</span><br><span class="line">                            ------parent-----</span><br><span class="line">                          |      System        |</span><br><span class="line">                          | Class Loader     |</span><br><span class="line">                            -----------------</span><br><span class="line">             ----------------------|-------------------------</span><br><span class="line">                ------parent----            -----parent-----</span><br><span class="line">                |   User-def    |          |    User-def    |</span><br><span class="line">                | Class Loader  |          | Class Loader   |</span><br><span class="line">                -----------------           -----------------</span><br></pre></td></tr></table></figure>
-<p>同时，上图还说明了类加载器在Java语言中发挥的很重要的2点作用：</p>
-<h5 id="1-类加载器的委派模型："><a href="#1-类加载器的委派模型：" class="headerlink" title="1. 类加载器的委派模型："></a>1. 类加载器的委派模型：</h5><p>假设AppClassLoader需要加载一个类，它会首先委托其父加载器ExtClassLoader来加载此 类，ExtClassLoader也会递归性的委托其父加载器(而不是Super，不是继承关系)Bootstrap Loader来加载此类，如果Bootstrap Loader在sun.boot.class.path下找到被加载类时即加载，如果无法找到时再依次由子类加载器去加载。查找顺序是：cache→parent→self .委派模型是针对Java安全而 设计的，这也印证了Java语言的设计初衷：面向网络的编程语言。</p>
-<p>但是 我们通过 getParent 方法获取当前加载器的加载器时，如果当前加载器是 ExtClassLoader  通过getParent 会得到null，并不意味着他没有parent，而是这个parent就是由C++编写的bootstrap class loader，他并不是classloader的子类，也就无法使用getParent()方法获得返回了。。Initiating class loader是指那些直接被程序要求加载某类的加载器，而defining class loader就是真正加载了某类的加载器。</p>
-<h5 id="2-命名空间"><a href="#2-命名空间" class="headerlink" title="2. 命名空间"></a>2. 命名空间</h5><p>由同一个类加载器所加载的类只能引用该加载器和其父加载器所加载的其他类，这也是类加载器的命令空间的作用。</p>
-<h5 id="理解-委派加载的原因："><a href="#理解-委派加载的原因：" class="headerlink" title="理解 委派加载的原因："></a>理解 委派加载的原因：</h5><p>为什么要设计的这么复杂呢？其中一个重要原因就是安全性。比如在Applet中，如果编写了一个java.lang.String类并具有破坏性。假如不采用这种委托机制，就会将这个具有破坏性的String加载到了用户机器上，导致破坏用户安全。但采用这种委托机制则不会出现这种情况。因为要加载 java.lang.String类时，系统最终会由Bootstrap进行加载，这个具有破坏性的String永远没有机会加载。</p>
-<p>类的加载的三大步骤：</p>
-<ul>
-<li>装载</li>
-<li>连接</li>
-<li>初始化</li>
-</ul>
-<h6 id="装载"><a href="#装载" class="headerlink" title="装载"></a>装载</h6><p>这个过程就是把一个类型的二进制数据解析为方法区中的内部数据结构，并在堆上建立一个 java.lang.Class 对象的过程。</p>
-<h6 id="连接"><a href="#连接" class="headerlink" title="连接"></a>连接</h6><pre><code>验证：确定类型符合java语言的语义；
-准备：创建Java类中的静态域（静态域存在常量区），并将这些域的值设为默认值。
-解析：在类型的常量池中寻找类，接口，字段和方法的符合引用把这些符号引用替换成直接引用的过程。
-</code></pre><h6 id="初始化"><a href="#初始化" class="headerlink" title="初始化"></a>初始化</h6><p>初始化静态变量、静态代码块。（这里的初始化是指 类的初始化，只初始化静态变量；非静态变量的初始化是属于对象初始化，是在类被使用时通过构造函数进行初始化的。类初始化并不会在类加载到内存中后自动完成，是需要类主动触发的）</p>
-<p>类的初始化操作 是需要触发的,并且只会执行一次，主要使用场景：</p>
-<ol>
-<li>调用了类的main方法</li>
-<li>通过反射构建了类的对象</li>
-<li>调用了类的静态方法</li>
-<li>访问了类的静态属性（如果直接访问父类的静态属性，那么只能导致父类被初始化，子类不会被初始化）</li>
-<li>通过new关键字直接构建对象</li>
-<li>在顶层Java类中执行assert语句</li>
-</ol>
-<h5 id="理解初始化："><a href="#理解初始化：" class="headerlink" title="理解初始化："></a>理解初始化：</h5><p>① 类被加载完成后 只是表明这个类在内存中可以进行调用了。</p>
-<p>② 建立的 java.lang.Class对象作用（参考）；<br>Class 没有公共构造方法。Class 对象是在加载类时由 Java 虚拟机以及通过调用类加载器中的 defineClass 方法自动构造的，因此不能显式地声明一个Class对象。 虚拟机为每种类型管理一个独一无二的Class对象。也就是说，每个类（型）都有一个Class对象。运行程序时，Java虚拟机(JVM)首先检查是否所要加载的类对应的Class对象是否已经加载。如果没有加载，JVM就会根据类名查找.class文件，并将其Class对象载入。基本的 Java 类型（boolean、byte、char、short、int、long、float 和 double）和关键字 void 也都对应一个 Class 对象。 每个数组属于被映射为 Class 对象的一个类，所有具有相同元素类型和维数的数组都共享该 Class 对象。一个堆上的class实例：是连接类实例与方法区数据结构的桥梁，通过class实例，类的实例能够知道类本身的详细构成信息。一般某个类的Class对象被载入内存，它就用来创建这个类的所有对象。</p>
-<p>完成类的加载后，被加载的类在内存中是个什么样子呢 ？</p>
-<h2 id="初始化-1"><a href="#初始化-1" class="headerlink" title="初始化"></a>初始化</h2><p>初始化 分为 类初始化 和 对象初始化（<a href="http://www.hh010.com/developer/html/41-2/2739.htm" target="_blank" rel="noopener">参考</a>）：</p>
-<p><strong>类初始化：</strong></p>
-<p>类初始化是需要触发，在上面已经讲到；<br>类初始化只会初始化类的静态变量、静态代码块。而且是按照先父类 后子类的顺序；类的初始化一定是在对象初始化之前完成(静态成员初始化先于非静态成员初始化)；</p>
-<p><strong>对象初始化：</strong></p>
-<p>(原则：类的非静态变量在编译为class文件之后，都会被移到构造函数中初始化；)<br>new 一个对象A，首先会寻找类A的构造函数，系统默认在构造函数最前面添加了super();除非显示声明；<br>执行super();前会为对象的成员变量在堆中分配内存，并且声明变量。（注意这里只是声明）<br>执行super();查找父类的构造函数，原则与2相同，一直到object对象。<br>然后从父类到子类依此顺序执行构造函数；</p>
-<p>例如：   A  a = new A();</p>
-<p>备注：类的成员变量，不管程序有没有显式的进行初始化，Java虚拟机都会先自动给它初始化为默认值。但是方法里面的局部变量声明之后，Java虚拟机就不会自动给它初始化为默认值，因此局部变量的使用必须先经过显式的初始化（基本数据类型作为局部变量是放在栈中）。</p>
-<h5 id="理解-继承关系："><a href="#理解-继承关系：" class="headerlink" title="理解 继承关系："></a>理解 继承关系：</h5><p>子类会继承父类的所有域和方法。在一个子类被创建的时候，首先会在内存中创建一个父类对象，然后在父类对象外部放上子类独有的属性，两者合起来形成一个子类的对象。所以所谓的继承使子类拥有父类所有的属性和方法其实可以这样理解，子类对象确实拥有父类对象中所有的属性和方法，但是父类对象中的私有属性和方法，子类是无法访问到的，只是拥有，但不能使用。</p>
-<h5 id="理解对象在内存中的资源分配："><a href="#理解对象在内存中的资源分配：" class="headerlink" title="理解对象在内存中的资源分配："></a>理解对象在内存中的资源分配：</h5><p>请参考：<a href="http://www.importnew.com/1305.html" target="_blank" rel="noopener">Java对象内存结构</a></p>
-<h5 id="理解方法重载："><a href="#理解方法重载：" class="headerlink" title="理解方法重载："></a>理解方法重载：</h5><p>初始化子类时，为什么父类中的方法被子类重载后，父类构造函数调用的这个重载方法却是子类中的那个重载方法？</p>
-<p>请参考：  <a href="http://grzrt.iteye.com/blog/1754904" target="_blank" rel="noopener">Java中的继承分析</a> 和 Java 的动态绑定</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Parent p1 = <span class="keyword">new</span> Parent();</span><br><span class="line">Parent c1 = <span class="keyword">new</span> Chield();</span><br></pre></td></tr></table></figure>
-<p>通过 p1、c1 调用的属性成员，都会自动到Parent中找（属性绑定到定义的类型），调用的方法，回到new出来的对象中找（方法绑定到对象）<br>原因是：在Java中，属性绑定到类型，方法绑定到对象！<br>备注： 如果方法是private、static、final的，或者是一个构造器，那么编译器能准确地判断应该调用那个方法，这称为静态绑定，而对其他的方法，要调用那个方法只有根据隐式参数的实际类型来决定，并且在运行时使用动态绑定。</p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2013/03/05/Java/2013-03-05-java-class-load/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-Java/2013-03-04-java-init" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2013/03/04/Java/2013-03-04-java-init/">Java基础 之 类的初始化顺序和陷阱</a>
-    </h1>
-  
-
-        
-        <a href="/2013/03/04/Java/2013-03-04-java-init/" class="archive-article-date">
-  	<time datetime="2013-03-03T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2013-03-04</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>在阅读之前 建议先了解一下  <a href="http://www.cnblogs.com/o-andy-o/archive/2012/04/11/2442109.html" target="_blank" rel="noopener">Java运行原理</a>  和 <a href="http://blog.csdn.net/shimiso/article/details/8595564" target="_blank" rel="noopener">Java内存分配机制</a>；</p>
-<h4 id="JAVA类的初始化顺序"><a href="#JAVA类的初始化顺序" class="headerlink" title="JAVA类的初始化顺序"></a>JAVA类的初始化顺序</h4><p>给你两个类的代码，它们之间是继承的关系，每个类里只有构造器方法和一些变量，构造器里可能还有一段代码对变量值进行了某种运算，另外还有一些将变量值输出到控制台的代码，然后让我们判断输出的结果。这实际上是在考查我们对于继承情况下类的初始化顺序的了解。</p>
-<p>我们大家都知道，对于静态变量、静态初始化块、变量、初始化块、构造器，它们的初始化顺序依次是（静态变量、静态初始化块）&gt;（变量、初始化块）&gt;构造器。我们也可以通过下面的测试代码来验证这一点:</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">InitialOrderTest</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 静态变量</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> String staticField = <span class="string">"静态变量"</span>;</span><br><span class="line">    <span class="comment">// 变量</span></span><br><span class="line">    <span class="keyword">public</span> String field = <span class="string">"变量"</span>;   </span><br><span class="line"></span><br><span class="line">    <span class="comment">// 静态初始化块</span></span><br><span class="line">    <span class="keyword">static</span> &#123;</span><br><span class="line">        System.out.println(staticField);</span><br><span class="line">        System.out.println(<span class="string">"静态初始化块"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 初始化块</span></span><br><span class="line">    &#123;</span><br><span class="line">        System.out.println(field);</span><br><span class="line">        System.out.println(<span class="string">"初始化块"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 构造器</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">InitialOrderTest</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"构造器"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">new</span> InitialOrderTest();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">InitialOrderTest</span> </span>&#123; </span><br><span class="line"></span><br><span class="line"><span class="comment">// 静态变量</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> String staticField = <span class="string">"静态变量"</span>;</span><br><span class="line"><span class="comment">// 变量</span></span><br><span class="line"><span class="keyword">public</span> String field = <span class="string">"变量"</span>;</span><br><span class="line"><span class="comment">// 静态初始化块</span></span><br><span class="line"><span class="keyword">static</span> &#123;</span><br><span class="line">System.out.println(staticField);</span><br><span class="line">System.out.println(<span class="string">"静态初始化块"</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 初始化块</span></span><br><span class="line">&#123;</span><br><span class="line">System.out.println(field);</span><br><span class="line">System.out.println(<span class="string">"初始化块"</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 构造器</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">InitialOrderTest</span><span class="params">()</span> </span>&#123;</span><br><span class="line">System.out.println(<span class="string">"构造器"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>运行以上代码，我们会得到如下的输出结果：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">静态变量</span><br><span class="line">静态初始化块</span><br><span class="line">变量</span><br><span class="line">初始化块</span><br><span class="line">构造器</span><br></pre></td></tr></table></figure>
-<p>这与上文中说的完全符合。那么对于继承情况下又会怎样呢？我们仍然以一段测试代码来获取最终结果：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Parent</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 静态变量</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> String p_StaticField = <span class="string">"父类--静态变量"</span>;</span><br><span class="line">    <span class="comment">// 变量</span></span><br><span class="line">    <span class="keyword">public</span> String p_Field = <span class="string">"父类--变量"</span>;</span><br><span class="line">    <span class="comment">// 静态初始化块</span></span><br><span class="line">    <span class="keyword">static</span> &#123;</span><br><span class="line">        System.out.println(p_StaticField);</span><br><span class="line">        System.out.println(<span class="string">"父类--静态初始化块"</span>);</span><br><span class="line">    &#125;   </span><br><span class="line"></span><br><span class="line">    <span class="comment">// 初始化块</span></span><br><span class="line">    &#123;</span><br><span class="line">        System.out.println(p_Field);</span><br><span class="line">        System.out.println(<span class="string">"父类--初始化块"</span>);</span><br><span class="line">    &#125;   </span><br><span class="line"></span><br><span class="line">    <span class="comment">// 构造器</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Parent</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"父类--构造器"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;   </span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SubClass</span> <span class="keyword">extends</span> <span class="title">Parent</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 静态变量</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> String s_StaticField = <span class="string">"子类--静态变量"</span>;</span><br><span class="line">    <span class="comment">// 变量</span></span><br><span class="line">    <span class="keyword">public</span> String s_Field = <span class="string">"子类--变量"</span>;</span><br><span class="line">    <span class="comment">// 静态初始化块</span></span><br><span class="line">    <span class="keyword">static</span> &#123;</span><br><span class="line">        System.out.println(s_StaticField);</span><br><span class="line">        System.out.println(<span class="string">"子类--静态初始化块"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 初始化块</span></span><br><span class="line">    &#123;</span><br><span class="line">        System.out.println(s_Field);</span><br><span class="line">        System.out.println(<span class="string">"子类--初始化块"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 构造器</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">SubClass</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"子类--构造器"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 程序入口</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">new</span> SubClass();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>运行一下上面的代码，结果马上呈现在我们的眼前：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">父类--静态变量</span><br><span class="line">父类--静态初始化块</span><br><span class="line">子类--静态变量</span><br><span class="line">子类--静态初始化块</span><br><span class="line">父类--变量</span><br><span class="line">父类--初始化块</span><br><span class="line">父类--构造器</span><br><span class="line">子类--变量</span><br><span class="line">子类--初始化块</span><br><span class="line">子类--构造器</span><br></pre></td></tr></table></figure>
-<p>现在，结果已经不言自明了。大家可能会注意到一点，那就是，并不是父类完全初始化完毕后才进行子类的初始化，实际上子类的静态变量和静态初始化块的初始化是在父类的变量、初始化块和构造器初始化之前就完成了。</p>
-<p>那么对于静态变量和静态初始化块之间、变量和初始化块之间的先后顺序又是怎样呢？是否静态变量总是先于静态初始化块，变量总是先于初始化块就被初始化了呢？实际上这取决于它们在类中出现的先后顺序。</p>
-<p>静态变量和静态初始化块是依照他们在类中的定义顺序进行初始化的。同样，变量和初始化块也遵循这个规律。</p>
-<h4 id="Java构造时初始化陷阱"><a href="#Java构造时初始化陷阱" class="headerlink" title="Java构造时初始化陷阱"></a>Java构造时初始化陷阱</h4><p>让我们先来看两个类：Base和Derived类。注意其中的whenAmISet成员变量，和方法preProcess()</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Base</span></span>&#123;</span><br><span class="line">    Base() &#123;</span><br><span class="line">        preProcess();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">preProcess</span><span class="params">()</span> </span>&#123;&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Derived</span> <span class="keyword">extends</span> <span class="title">Base</span></span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line">    <span class="keyword">public</span> String whenAmISet = <span class="string">"set when declared"</span>;</span><br><span class="line">    <span class="meta">@Override</span> <span class="function"><span class="keyword">void</span> <span class="title">preProcess</span><span class="params">()</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        whenAmISet = <span class="string">"set in preProcess()"</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>如果我们构造一个子类实例，那么，whenAmISet 的值会是什么呢？</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Main</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        Derived d = <span class="keyword">new</span> Derived();</span><br><span class="line">        System.out.println( d.whenAmISet );</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>再续继往下阅读之前，请先给自己一些时间想一下上面的这段程序的输出是什么？是的，这看起来的确相当简单，甚至不需要编译和运行上面的代码，我们也应该知道其答案，那么，你觉得你知道答案吗？你确定你的答案正确吗？</p>
-<p>很多人都会觉得那段程序的输出应该是“set in preProcess()”，这是因为当子类Derived 的构造函数被调用时，其会隐晦地调用其基类Base的构造函数（通过super()函数），于是基类Base的构造函数会调用preProcess() 函数，因为这个类的实例是Derived的，而且在子类Derived中对这个函数使用了override关键字，所以，实际上调用到的是：Derived.preProcess()，而这个方法设置了whenAmISet 成员变量的值为：“set in preProcess()”。</p>
-<p>当然，上面的结论是错误的。如果你编译并运行这个程序，你会发现，程序实际输出的是“set when declared ”。怎么为这样呢？难道是基类Base 的preProcess() 方法被调用啦？也不是！你可以在基类的preProcess中输出点什么看看，你会发现程序运行时，Base.preProcess()并没有被调用到（不然这对于Java所有的应用程序将会是一个极具灾难性的Bug）。</p>
-<p>虽然上面的结论是错误的，但推导过程是合理的，只是不完整，下面是整个运行的流程：</p>
-<ol>
-<li>进入Derived 构造函数。</li>
-<li>Derived 成员变量的内存被分配。</li>
-<li>Base 构造函数被隐含调用。</li>
-<li>Base 构造函数调用preProcess()。</li>
-<li>Derived 的preProcess 设置whenAmISet 值为 “set in preProcess()”。</li>
-<li>Derived 的成员变量初始化被调用。</li>
-<li>执行Derived 构造函数体。</li>
-</ol>
-<p>等一等，这怎么可能？在第6步，Derived 成员的初始化居然在 preProcess() 调用之后？是的，正是这样，我们不能让成员变量的声明和初始化变成一个原子操作，虽然在Java中我们可以把其写在一起，让其看上去像是声明和初始化一体。但这只是假象，<strong>我们的错误就在于我们把Java中的声明和初始化看成了一体。</strong></p>
-<p>下面是对上面各个步骤的逐条解释。</p>
-<ol>
-<li>进入构造函数。</li>
-<li>为成员变量分配内存。</li>
-<li>除非你显式地调用super()，否则Java 会在子类的构造函数最前面偷偷地插入super() 。</li>
-<li>调用父类构造函数。</li>
-<li>调用preProcess，因为被子类override，所以调用的是子类的。</li>
-<li>于是，初始化发生在了preProcess()之后。这是因为，Java需要保证父类的初始化早于子类的成员初始化，否则，在子类中使用父类的成员变量就会出现问题。</li>
-<li>正式执行子类的构造函数（当然这是一个空函数，虽然我们没有声明）。</li>
-</ol>
-<p>其实 这些在理解了  <a href="http://www.cnblogs.com/o-andy-o/archive/2012/04/11/2442109.html" target="_blank" rel="noopener">Java运行原理</a>  和  <a href="http://blog.csdn.net/shimiso/article/details/8595564" target="_blank" rel="noopener">Java内存分配</a>  之后就很容易理解了。</p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2013/03/04/Java/2013-03-04-java-init/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-Java/2013-02-28-datasource-grouth" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2013/02/28/Java/2013-02-28-datasource-grouth/">Java 数据库连接(dataSource)的演进</a>
-    </h1>
-  
-
-        
-        <a href="/2013/02/28/Java/2013-02-28-datasource-grouth/" class="archive-article-date">
-  	<time datetime="2013-02-27T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2013-02-28</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h4 id="原生方法"><a href="#原生方法" class="headerlink" title="原生方法"></a>原生方法</h4><ul>
-<li>加载JDBC 驱动：</li>
-</ul>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Class.forName(driver);</span><br><span class="line"><span class="comment">// mysql 数据库：“com.mysql.jdbc.Driver”</span></span><br></pre></td></tr></table></figure>
-<ul>
-<li>建立数据库连接：</li>
-</ul>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Connection conn = DriverManager.getConnection(url,userName,password);</span><br></pre></td></tr></table></figure>
-<ul>
-<li>创建 statement，用来执行SQL 语句</li>
-</ul>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Statement statement = conn.createStatement();</span><br></pre></td></tr></table></figure>
-<ul>
-<li>执行 SQL 语句：</li>
-</ul>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ResultSet rs = statement.executeQuery(sql);</span><br></pre></td></tr></table></figure>
-<ul>
-<li>关闭记录集，关闭声明，关闭连接对象</li>
-</ul>
-<h5 id="不足："><a href="#不足：" class="headerlink" title="不足："></a>不足：</h5><ol>
-<li>每次使用都要创建连接，使用完毕后还必须关闭连接，操作繁琐，易出错；</li>
-<li>连接数据库资源不便统一管理；</li>
-</ol>
-<h4 id="使用Spring的-JDBC-方法："><a href="#使用Spring的-JDBC-方法：" class="headerlink" title="使用Spring的 JDBC 方法："></a>使用Spring的 JDBC 方法：</h4><ul>
-<li>引入 spring-jdbc.jar 包</li>
-<li>添加 dataSource配置</li>
-</ul>
-<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&lt;bean id=<span class="string">"dataSource"</span>&gt;</span><br><span class="line">    &lt;property name=<span class="string">"driverClassName"</span> value=<span class="string">"org.springframework.jdbc.datasource.DriverManagerDataSource"</span>&gt;</span><br><span class="line">    &lt;/property&gt;</span><br><span class="line">    &lt;property name=<span class="string">"url"</span> value=<span class="string">"jdbc:oracle:thin:@10.217.3.2:1521:orcl"</span>&gt;</span><br><span class="line">    &lt;/property&gt;</span><br><span class="line">    &lt;property name="username" value="*"&gt;&lt;/property&gt;</span><br><span class="line">    &lt;property name="password" value="*"&gt;&lt;/property&gt;</span><br><span class="line">&lt;/bean&gt;</span><br></pre></td></tr></table></figure>
-<p>DriverManagerDataSource 类位于 org.springframework.jdbc.datasource 包下。 当然这里还可以选择 SingleConnectionDataSource<br>DriverManagerDataSource -&gt; 在每一个连接请求时都新建一个连接；<br>SingleConnectionDataSource -&gt;     在每一个连接请求时都返回同一个连接；</p>
-<ul>
-<li>获取dataSource bean对象</li>
-</ul>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ApplicationContext ctx = <span class="keyword">new</span> ClassPathXmlApplicationContext(<span class="string">"applicationContext.xml"</span>);</span><br><span class="line">ds = (DataSource)ctx.getBean(<span class="string">"dataSource"</span>);</span><br></pre></td></tr></table></figure>
-<ul>
-<li>获取连接对象Connection和Statement</li>
-</ul>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Connection conn = ds.getConnection();</span><br><span class="line">Statement sm = conn.createStatement();</span><br></pre></td></tr></table></figure>
-<ul>
-<li>执行向数据库插入记录操作</li>
-</ul>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">String sqlString = <span class="string">"insert into bryanttesttable values(2,'bryant')"</span>;</span><br><span class="line">sm.execute(sqlString);</span><br></pre></td></tr></table></figure>
-<h5 id="优势："><a href="#优势：" class="headerlink" title="优势："></a>优势：</h5><ol>
-<li>更干净的 代码；</li>
-<li>更简单的使用；</li>
-<li>更好的异常与资源处理；</li>
-</ol>
-<p>Spring JDBC 介绍：模版设计模式（核心包包含JdbcTemplate），Spring JDBC 异常处理 ；这些会在下一章节来具体介绍Spring JDBC的优雅设计 和 是如何在 原生JDBC 上做封装的。</p>
-<h4 id="使用Spring的-数据库连接池-DBCP-方法：（四个流行的Java连接池）"><a href="#使用Spring的-数据库连接池-DBCP-方法：（四个流行的Java连接池）" class="headerlink" title="使用Spring的 数据库连接池 DBCP 方法：（四个流行的Java连接池）"></a>使用Spring的 数据库连接池 DBCP 方法：（四个流行的Java连接池）</h4><p>需要引入commons-collections.jar、commons-dbcp.jar和commons-pool.jar。</p>
-<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&lt;bean id=<span class="string">"dataSource"</span> <span class="class"><span class="keyword">class</span></span>=<span class="string">"org.apache.commons.dbcp.BasicDataSource"</span>&gt;</span><br><span class="line">&lt;property name="driverClassName" value="oracle.jdbc.driver.OracleDriver"&gt;&lt;/property&gt;</span><br><span class="line">&lt;property name="url" value="jdbc:oracle:thin:@192.168.1.35:1521:orcl"&gt;&lt;/property&gt;</span><br><span class="line">&lt;property name="username" value="or_meal"&gt;&lt;/property&gt;</span><br><span class="line">&lt;property name="password" value="or_meal"&gt;&lt;/property&gt;</span><br><span class="line">&lt;property name="maxActive" value="100"&gt;&lt;/property&gt;</span><br><span class="line">&lt;property name="maxIdle" value="30"&gt;&lt;/property&gt;</span><br><span class="line">&lt;property name="maxWait" value="10"&gt;&lt;/property&gt;</span><br><span class="line">&lt;/bean&gt;</span><br></pre></td></tr></table></figure>
-<h4 id="使用-JNDI-连接数据库"><a href="#使用-JNDI-连接数据库" class="headerlink" title="使用 JNDI 连接数据库"></a>使用 JNDI 连接数据库</h4><p>1、SpringJNDI数据源配置信息：</p>
-<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&lt;bean id=<span class="string">"dataSource"</span> <span class="class"><span class="keyword">class</span></span>=<span class="string">"org.springframework.jndi.JndiObjectFactoryBean"</span>&gt;</span><br><span class="line">   &lt;property name=<span class="string">"jndiName"</span>&gt;</span><br><span class="line">    &lt;value&gt;java:comp/env/jcptDataSourceJNDI&lt;/value&gt;</span><br><span class="line">   &lt;/property&gt;</span><br><span class="line">  &lt;/bean&gt;</span><br></pre></td></tr></table></figure>
-<p>  jcptDataSourceJNDI是tomcat或者其他应用服务器配置的JNDI.</p>
-<p>2、关于JNDI的配置(tomcat)：<br>  修改tomcat目录conf/context.xml文件：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&lt;Resource name=<span class="string">"jcptDataSourceJNDI"</span> auth=<span class="string">"Container"</span> type=<span class="string">"javax.sql.DataSource"</span></span><br><span class="line">      maxActive=<span class="string">"100"</span> maxIdle=<span class="string">"30"</span> maxWait=<span class="string">"10"</span>   username=<span class="string">"tysp"</span></span><br><span class="line">      password=<span class="string">"12345678"</span> driverClassName=<span class="string">"oracle.jdbc.driver.OracleDriver"</span></span><br><span class="line">      url=<span class="string">"jdbc:oracle:thin:@192.168.1.35:1521:orcl"</span>/&gt;</span><br></pre></td></tr></table></figure>
-<p>3、通过JNDI获取DataSource:</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&lt;Resource name=<span class="string">"jcptDataSourceJNDI"</span> auth=<span class="string">"Container"</span> type=<span class="string">"javax.sql.DataSource"</span></span><br><span class="line">      maxActive=<span class="string">"100"</span> maxIdle=<span class="string">"30"</span> maxWait=<span class="string">"10"</span>   username=<span class="string">"tysp"</span></span><br><span class="line">      password=<span class="string">"12345678"</span> driverClassName=<span class="string">"oracle.jdbc.driver.OracleDriver"</span></span><br><span class="line">      url=<span class="string">"jdbc:oracle:thin:@192.168.1.35:1521:orcl"</span>/&gt;</span><br></pre></td></tr></table></figure>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2013/02/28/Java/2013-02-28-datasource-grouth/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-Blog/博客内容模板" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2000/01/01/Blog/博客内容模板/">博客内容模板</a>
-    </h1>
-  
-
-        
-        <a href="/2000/01/01/Blog/博客内容模板/" class="archive-article-date">
-  	<time datetime="1999-12-31T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2000-01-01</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h3 id="博客三级标题"><a href="#博客三级标题" class="headerlink" title="博客三级标题"></a><a name="d4zzse"></a>博客三级标题</h3>
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-	<div class="article-tag tagcloud">
-		<i class="icon-price-tags icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color4">标签1</a>
-        		</li>
-      		 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color4">标签2</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/分类//" class="article-tag-list-link color3">分类</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2000/01/01/Blog/博客内容模板/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
   
     <nav id="page-nav">
-      <a class="extend prev" rel="prev" href="/page/8/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/7/">7</a><a class="page-number" href="/page/8/">8</a><span class="page-number current">9</span>
+      <a class="extend prev" rel="prev" href="/page/8/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/7/">7</a><a class="page-number" href="/page/8/">8</a><span class="page-number current">9</span><a class="page-number" href="/page/10/">10</a><a class="extend next" rel="next" href="/page/10/">Next &raquo;</a>
     </nav>
   
 
@@ -1332,6 +1321,42 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">标签2</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">工作</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">目标</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">共享变量</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">缓存</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">人生</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">感悟</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">架构</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">可视化</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">AHAS</a>
               </li>
             
             <div class="clearfix"></div>
