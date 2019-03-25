@@ -149,6 +149,184 @@
           <div id="js-content" class="content-ll">
             
   
+    <article id="post-Tool/2017-02-27-git-repo" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/02/27/Tool/2017-02-27-git-repo/">GIT本地仓库与远程仓库</a>
+    </h1>
+  
+
+        
+        <a href="/2017/02/27/Tool/2017-02-27-git-repo/" class="archive-article-date">
+  	<time datetime="2017-02-26T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2017-02-27</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>很多初学GIT的同学对GIT的本地仓库和远程仓库无法做到很好的区分，我就画了一张图，来阐明他们之间的关系：</p>
+<p><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/df535a2370b095ec8a75ab25d972ad80.png" alt=""></p>
+<h3 id="Git-stash-的使用："><a href="#Git-stash-的使用：" class="headerlink" title="Git stash 的使用："></a>Git stash 的使用：</h3><p>我们在多分支操作时，暂存工作区中未提交的代码的功能非常有用。一般我们要求commit的代码都是功能完善的，可测试的，但是很多时候，我们的代码片段还未写完，需要临时切出一个分支来解决线上问题，此时就应该使用git stash功能；</p>
+<p>git stash 是全局储藏区，不同的分支下的stash操作都会到同一个储藏区。</p>
+<h5 id="默认名称储藏工作区："><a href="#默认名称储藏工作区：" class="headerlink" title="默认名称储藏工作区："></a>默认名称储藏工作区：</h5><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git stash</span><br></pre></td></tr></table></figure>
+<h5 id="按照指定储藏名称储藏工作区："><a href="#按照指定储藏名称储藏工作区：" class="headerlink" title="按照指定储藏名称储藏工作区："></a>按照指定储藏名称储藏工作区：</h5><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git stash save "commit info"</span><br></pre></td></tr></table></figure>
+<h5 id="查看历史储藏区列表："><a href="#查看历史储藏区列表：" class="headerlink" title="查看历史储藏区列表："></a>查看历史储藏区列表：</h5><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git stash list</span><br></pre></td></tr></table></figure>
+<h5 id="恢复储藏区的某操作到当前分支："><a href="#恢复储藏区的某操作到当前分支：" class="headerlink" title="恢复储藏区的某操作到当前分支："></a>恢复储藏区的某操作到当前分支：</h5><ul>
+<li>方式一：</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git stash pop</span><br></pre></td></tr></table></figure>
+<p>此方式直接从储藏区堆栈中的栈顶弹出最近的一次stash操作的内容，并删除堆栈中的当前stash操作记录；</p>
+<ul>
+<li>方式二：</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git stash apply stash@&#123;0&#125;</span><br></pre></td></tr></table></figure>
+<p>通过指定使用储藏区记录的名称来恢复stash的内容，stash@{n} 具体值可以从<code>git stash list</code>中查看，当然，直接使用git stash apply ，默认指向栈顶记录（stash@{0}永远指向栈顶）。 <code>apply</code>只是应用储藏区的一个记录到当前工作区，并不会删除储藏区的记录。</p>
+<h5 id="删除储藏区某一记录："><a href="#删除储藏区某一记录：" class="headerlink" title="删除储藏区某一记录："></a>删除储藏区某一记录：</h5><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git stash drop stash@&#123;0&#125;</span><br></pre></td></tr></table></figure>
+<p><code>git stash drop</code>默认的也是从栈顶开始删除，通过drop 后加名称可以指定删除的储藏记录。</p>
+<h5 id="从stash中创建分支："><a href="#从stash中创建分支：" class="headerlink" title="从stash中创建分支："></a>从stash中创建分支：</h5><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git stash branch branch-name</span><br></pre></td></tr></table></figure>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Tool//" class="article-tag-list-link color5">Tool</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2017/02/27/Tool/2017-02-27-git-repo/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-Think/2017-02-27-see-your-grow-up" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/02/27/Think/2017-02-27-see-your-grow-up/">看见自己的成长</a>
+    </h1>
+  
+
+        
+        <a href="/2017/02/27/Think/2017-02-27-see-your-grow-up/" class="archive-article-date">
+  	<time datetime="2017-02-26T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2017-02-27</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>时光飞逝，光阴荏苒，似水流年的岁月一去不复返，工作四年多的时光犹如白驹过隙。回顾这四年的路程，有过为焦虑而做的职业改变，有过为梦想的拼搏，也有经历暴风雨后的顿悟和反思。经过四年时间的磨砺，我变得成熟、自知，习惯性的自省和逐渐培养的自律，让我从随波逐流的少年成长为了拥有个体思想的青年。</p>
+<p>这些年来，自己一直期望能够快速成长，这个速度能与时代的发展速度相差不大，让自己跟得上时代，不被时代说抛弃，但是我们正处于一个超乎想象速度发展的世界，我们有些赶不上了，反思后发现亚马逊创始人贝索斯说的“我们必须把自己的精力，投入在那些长期不变的东西上面。”才是真理。在很长一段时间，我过度为沉没的两年创业时光而焦虑，在外界认为，这两年，我的技术水准没有得到质的变化，只是从一个新手成为了熟练工，而同期优秀的同学已经成长为了领域专家，伴随着年龄的上涨，个人竞争力在逐年下降；后来，我想通了，一个人的任何以认真态度度过的时间都不存在浪费，谁又知道这些积累会不会在以后的工作生活中发挥一定的作用呢，认清自己的短板，知道自己为了应对中年危机需要做什么，放弃什么才是关键。所谓成长，不一定要与那些牛人相比，而是今天的自己比强，找到一条适合自己的道路，一步一个台阶，向上走，努力的人运气总不会太差。</p>
+<h2 id="寻求改变"><a href="#寻求改变" class="headerlink" title="寻求改变"></a>寻求改变</h2><p>2011年9月，能进入阿里作为实习生，一直是我的骄傲；我自知不是一个聪明的人，个人专业积累有限，学校二流，能有这样的机会我倍加珍惜，面对惨烈的实习生转正压力，我凭借自己的努力和勤奋通过了转正面试，虽然只是作为测试，但是心满意足。</p>
+<p>在测试岗位上，我学会了CI和CD，并在团队中分别基于自建环境和TOAST环境进行CI的实践；除此之外，我也开始培养自己对产品的关注，如何设计一个用户体验优良的产品，为TAE的工作台提出了不少易用性的改进点。在测试岗位上我还有一个习惯，就是每天会去阅读国内外一些测试网站的信息，随着信息面的扩大，越来越为个人的职业前途担忧，测试岗会不会被替代掉，会不会走到职业瓶颈，这些问题成为我下定决心进行技术积累，为日后转岗研发做准备。所以，在测试岗的一年半时间里面，我再让自己首先成为优秀的测试的同时，注重基础知识的学习，在TAE团队里面，我基本承担起了所有的质量把控工作，并能为研发的提效进行一系列的工具研发支撑。</p>
+<p>2014年4月，我通过了内部转岗面试，正式成为了一名研发人员，凭借在测试岗上学习的移动端研发技术和Java知识，我开始在团队里面负责移动端的产品研发和TAE测试平台的研发工作，这段工作虽然时间不是太长，但是我收获了作为研发的正规军该如何正确的做项目。</p>
+<h2 id="为梦起航"><a href="#为梦起航" class="headerlink" title="为梦起航"></a>为梦起航</h2><p>2014年9月，我遇到了一次艰难的抉择，是继续留在阿里呢还是离职创业，在经历了无数次思考后，我听从了内心的声音，选择去创业。虽然放弃阿里稳定的工作，很多人认为，低风险的事情才是稳定的，但讽刺的是，在瞬息万变的当今社会，寻求稳定反倒是有可能是最大的冒险。</p>
+<p>王安石说：世之奇伟、瑰怪、非常之观，常在于险远，而人之所罕至焉，故非有志者不能至也。所以要去加倍努力，不是为了换取成功，不是为了去超越别人，而是一种想去体验更大世界的欲望。本着这样的想法，我离开了阿里，背井离乡，去了上海；在2014年，伴随着国内万众创业、人口红利、消费升级等诸多利好因素，‘跨境电商’可以说是风口上的猪，顺丰集团天使投资6000W的‘顺丰海淘’就这样在我们这样一群年轻人的努力下上线了。可谁知道，我们十几个人在短短3个月的时间内，不断试错，不断推翻，做了三个大版本出来呢，从C2C做到买手制平台模式，再到B2C与商家代发结合的混合平台模式。</p>
+<p>在海淘初期，我们的技术架构就已经参考淘宝做了业务和存储的垂直划分，一下子每个人要负责好几个系统，这也给了我很好的练手机会，我基于阿里云OpenSearch构建了第一代商品搜索系统，做了订单的核心研发，知道了分布式事务的重要性，做商品系统，知道了商品库、类目体系构建、页面静态化、数据的多级缓存，做了SCM后台，创新的使用了Groovy+裸SQL模式10分钟内上线一个后台增删改查功能，也知道了日志的分类处理和操作日志的审计功能；供应链作为海淘最重要的基础体系，我们从零来时搭建，从不知道什么叫供应链做到研发的供应链金融平台可以对外服务。这段长达一年多的时间，高强度的工作让我成为了一名程序熟练工。</p>
+<p>在顺丰海淘的2年时间，如果说只专注在技术领域，那就太浪费资源了，能经历一个公司从0到1的过程很难得，我需要学习一个公司是如何定战略目标，如何进行市场精品分析，如何进行市场定位，如何进行商业决策，如何构建企业文化，如何进行人才梯队培养。为此，我们还组织了每周一次研发周会与CEO面对面交流企业面对市场的一些列问题，每次我提出的一系列问题都会为大家揭开一个有一个疑问，面对商业之美，我们显得如此无知。正是这种面对巨大无知引发的好奇心，让一个程序员，不仅只会编码，尝试去学习什么是商业的本质。</p>
+<p>对于一个技术人员来说，前几年最重要的是让自己成为一个专业的人，正如大前研一先生的《专业主义》一书中观点：保持好奇心，不断学习，让自己成为一个专业的人。不禁，我开始反问自己，我是否是一个合格的程序员，自己的短板是什么，要让自己成为一个专业的人，我需要怎么努力。所以，我开始尝试跳出之前的舒适区，开始尝试不同业务带来的挑战，不幸的是，我的动作还是太慢。我发现期望在创业公司一线进行技术磨练变得不靠谱，做不完的业务会让你无暇顾及技术深度的积累。不幸的是企业发展过程中，因为过度依赖补贴来获取用户已达到用户规模，最终导致资金链几乎断裂，整个研发团队瓦解。我开始重新面对市场竞争，重新衡量个人价值，发现自己陷入了以己之短参与竞争的困境，如果在这样下去两年，可能会毁了自己的职业生涯，这种危机感时时刻刻提醒着我需要静下心来，找到一个比我优秀的环境，放下浮躁，沉到土里，去做真正对企业和个人有价值的事情。自己有什么，要什么，放弃什么，我认为我想清楚了，需要做的就是实践。</p>
+<h2 id="脚踏实地"><a href="#脚踏实地" class="headerlink" title="脚踏实地"></a>脚踏实地</h2><p>选择重新回到阿里，其实原因很简单，阿里的舞台和技术氛围正是我目前最需要的，不为别的，只为让自己成为一个专业的程序员。就像叔同说的，我有短板，别人也在进步，我必须比别人付出的更多才可以赶上别人；不要在该努力的时候为了一些短期利益而忽视了自我的成长，此时我自己的成长才是最重要的，别的都是其次，最好的投资是投资自己的大脑。</p>
+<p>在回到阿里的这几个月，我主要是在看和学习，这期间老板给了我很多指导，让我受益匪浅。我知道了不要过早的否定自己，很多事情，不是不可能，而是因为我们认为不可能而失去了可能的因素，只有自己尝试了，努力了，再去下结论；我知道了什么是全局思维，怎么去培养自己的全局思维，这里的全局包括技术、团队、业务等等，不要把自己只是局限在TITLE上的工作范畴，跳出来，我们可以看到更大的一个世界；我知道了如何让自己能够有独立的思考能力，任何事情只有自己思考过了才是自己的，不人云亦云，不盲目迷信权威；我知道了如何培养自己做事的方式，建立自己的方法论；我知道了该如何逐步弥补技术债，技术的积累没有捷径，各个击破，多思考，多沉淀，多总结；当然，整个技术团队值得我学习的人和事还很多，保持空杯心态，不骄不躁，脚踏实地，一步一个脚印向目标并进。</p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Think//" class="article-tag-list-link color1">Think</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2017/02/27/Think/2017-02-27-see-your-grow-up/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
     <article id="post-Java/2017-02-16-threadlocal" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
   <div class="article-inner">
     
@@ -855,165 +1033,6 @@
 
 
   
-    <article id="post-Java/2016-07-25-picture-java-concurrent" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2016/07/25/Java/2016-07-25-picture-java-concurrent/">图解《Java并发编程实战》</a>
-    </h1>
-  
-
-        
-        <a href="/2016/07/25/Java/2016-07-25-picture-java-concurrent/" class="archive-article-date">
-  	<time datetime="2016-07-24T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2016-07-25</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h4 id="基本概念："><a href="#基本概念：" class="headerlink" title="基本概念："></a>基本概念：</h4><p><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/38c5d3b75b38509879ddc5c0c5e7a9cc.png" alt=""></p>
-<h4 id="同步容器："><a href="#同步容器：" class="headerlink" title="同步容器："></a>同步容器：</h4><p><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/077c82429ae429987031d0c6255bd7ac.png" alt=""></p>
-<h4 id="线程框架："><a href="#线程框架：" class="headerlink" title="线程框架："></a>线程框架：</h4><p><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/a04edc5544d9438f7b58bb1147888260.png" alt=""></p>
-<h4 id="死锁："><a href="#死锁：" class="headerlink" title="死锁："></a>死锁：</h4><p><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/fbf70991bc2d5b328142c75915155449.png" alt=""></p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2016/07/25/Java/2016-07-25-picture-java-concurrent/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-Mysql/2016-07-16-mysql-lock-wait" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2016/07/16/Mysql/2016-07-16-mysql-lock-wait/">Lock wait timeout exceeded; try restarting transaction</a>
-    </h1>
-  
-
-        
-        <a href="/2016/07/16/Mysql/2016-07-16-mysql-lock-wait/" class="archive-article-date">
-  	<time datetime="2016-07-15T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2016-07-16</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/c853d26a0835a5f6499783c87fca2294.png" alt=""><br><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/24fb3edb62f132f30451f468d9cf77f8.png" alt=""></p>
-<h3 id="排查过程："><a href="#排查过程：" class="headerlink" title="排查过程："></a>排查过程：</h3><p>查看数据库 INNODB_LOCKS，未发现有死锁的记录。<br>查看 SHOW PROCESSLIST;  也未见异常进程；<br>通过Mysql的控制台，查询慢日志，也未找到有关此表的Mysql慢日志信息。<br>查询Mysql默认的所等待超时时间：<br>show variables like ‘innodb_lock_wait_timeout’;<br>Variable_name                          Value<br>innodb_lock_wait_timeout         50<br>那Spring事务默认的事务超时时间是-1，表示事务超时将依赖于数据库的事务超时时间，当前为50秒，也就是存在事务等待锁超过50秒还未拿到锁导致事务超时了。</p>
-<h3 id="业务重现："><a href="#业务重现：" class="headerlink" title="业务重现："></a>业务重现：</h3><p>后来我到业务控制台上进行业务重现（批量商品打标），在查看 INNODB_LOCKS：<br>product-put-tag-tx-lock<br>发现后台针对同一条数据存在两个事务，推测是第一个事务当前还在执行（可能比较慢），第二个是个事务又提交上来了（操作重复），所以对同一条数据尝试加X锁，发现已经有锁了，所以第二个事务会处于锁等待，由于我们Spring事务未配置超时时间，所以当前的事务超时时间为50秒，等待50秒之后就会出现超时，此时Mysql会抛出“Lock wait timeout exceeded; try restarting transaction”异常；除此之外，我们还需要考虑接口调用超时时间给业务带来的影响。</p>
-<h3 id="解决方案："><a href="#解决方案：" class="headerlink" title="解决方案："></a>解决方案：</h3><p>考虑到批量打标可以允许部分失败的场景，所以取出事务，捕获异常并进入异常队列；<br>由于单个打标非常耗时，批量更会增加执行时间，所以修改同步操作为异步操作；<br>把预先批量处理的业务拆分到单个业务处理逻辑中，减少预处理成功后续失败的场景；<br>由于打标可能出现网络超时，所以添加自动重试机制，减少错误概率；</p>
-<h3 id="批处理优化建议："><a href="#批处理优化建议：" class="headerlink" title="批处理优化建议："></a>批处理优化建议：</h3><p>减少批处理的最小化单元，尽量减小锁的范围；<br>修改同步执行时间为异步执行，并且捕获异常；<br>一些异常场景不影响事务整体提交，允许部分场景下的异常；<br>设置合理的超时时间；<br>设置合理的执行数量限制；</p>
-<h3 id="其它思考："><a href="#其它思考：" class="headerlink" title="其它思考："></a>其它思考：</h3><h4 id="假设一："><a href="#假设一：" class="headerlink" title="假设一："></a>假设一：</h4><p>我们的打标任务被一个要求拥有事务保证的接口调用的时候，怎么保证整体的事务性？</p>
-<p>答：这个属于分布式事务的范畴，可以参考分布式事务环节。</p>
-<h4 id="假设二："><a href="#假设二：" class="headerlink" title="假设二："></a>假设二：</h4><p>我们的批量操作为内部接口，需要保证内部的事务性，比如我们通过购物车进行下单，为了提高系统的性能，需要一次对多个SKU进行扣库存逻辑，如果存在一个SKU的库存不够扣时，就需要整体回滚，在高并发场景下，扣库存就成为了耗时操作，这种场景下我们怎么处理呢 ？</p>
-<p>答：在高并发场景下，如果我们只是采用原生Mysql的事务操作来做批量库存更新的话，会导致大量请求处于锁等待场景，为了加快处理，我们的做法是将库存数据放到redis中，把数据库操作转化为redis操作，如果使用单机版的redis，虽然redis提供事务功能，但是事务并不具备完整性，因为不支持回滚操作，其次一般公司随着业务的发展，单机不能满足性能要求，会搭建Redis-Cluster集群，Redis-Cluster不支持事务操作，multi-key操作也必须在同一个节点中才能使用，虽然我们库存操作的是Redis读操作，但是写的时候还是用的Mysql的悲观锁，也未能解决这个写入的性能问题。</p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Mysql//" class="article-tag-list-link color1">Mysql</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2016/07/16/Mysql/2016-07-16-mysql-lock-wait/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
   
     <nav id="page-nav">
       <a class="extend prev" rel="prev" href="/page/4/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/3/">3</a><a class="page-number" href="/page/4/">4</a><span class="page-number current">5</span><a class="page-number" href="/page/6/">6</a><a class="page-number" href="/page/7/">7</a><span class="space">&hellip;</span><a class="page-number" href="/page/10/">10</a><a class="extend next" rel="next" href="/page/6/">Next &raquo;</a>
@@ -1109,50 +1128,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
             <input type="checkbox" q-on="click:toggleTag(e)" q-attr="checked:showTags">
           </label>
           <ul class="article-tag-list" q-show="showTags">
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">工作</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">目标</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">共享变量</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">缓存</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">标签1</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">标签2</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">人生</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">感悟</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">架构</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">可视化</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">AHAS</a>
-              </li>
             
             <div class="clearfix"></div>
           </ul>

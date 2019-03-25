@@ -149,6 +149,175 @@
           <div id="js-content" class="content-ll">
             
   
+    <article id="post-HighAvailability/2018-03-29-aliyun-mutil-region" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/03/29/HighAvailability/2018-03-29-aliyun-mutil-region/">阿里云多机房部署网络架构</a>
+    </h1>
+  
+
+        
+        <a href="/2018/03/29/HighAvailability/2018-03-29-aliyun-mutil-region/" class="archive-article-date">
+  	<time datetime="2018-03-28T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-03-29</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><img src="/images/posts/20180329/aliyun-mutil-region.png" alt=""></p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/HighAvailability//" class="article-tag-list-link color2">HighAvailability</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2018/03/29/HighAvailability/2018-03-29-aliyun-mutil-region/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-Java/2018-03-22-java-bean-setter-return" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/03/22/Java/2018-03-22-java-bean-setter-return/">POJO 对象setter 方法是否合适return &#34;this&#34;</a>
+    </h1>
+  
+
+        
+        <a href="/2018/03/22/Java/2018-03-22-java-bean-setter-return/" class="archive-article-date">
+  	<time datetime="2018-03-21T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-03-22</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>通常的POJO对象setter方法return 为void</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setStatus</span><span class="params">(String status)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.status = status;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>但是面对对象属性填充时，一堆的set方法让代码看起来很臃肿，部分同学采用类build模式，对setter方法进行改造，改造后就可以使用链式处理简化属性设置；</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Employee <span class="title">setName</span><span class="params">(String name)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.name = name;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">this</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>流式编码风格如：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">new</span> Employee().setName(<span class="string">"Xin yuan"</span>).setHeight(<span class="number">178</span>);</span><br></pre></td></tr></table></figure>
+<p>有人认为这让pojo方法设置变得更加便捷，有其使用之处，但是也有人认为<code>return this</code>打破了<a href="https://docstore.mik.ua/orelly/java-ent/jnut/ch06_02.htm" target="_blank" rel="noopener">Java Bean</a>的规约，破坏了每个函数单一职责的原则，也可能会破坏一些工具库的使用，或组织JVM做一些优化。而且在IDE中getter&amp;setter的自动生成内容中并没有“return this”。综其所述，setter方法“return this”并不建议。</p>
+<p>当然还有其它选择方案：</p>
+<p><strong>方法一：</strong></p>
+<p>采用java内置语法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">new</span> Employee()</span><br><span class="line">&#123;&#123;</span><br><span class="line">    setName(<span class="string">"Jack Sparrow"</span>);</span><br><span class="line">    setId(<span class="number">1</span>);</span><br><span class="line">    setFoo(<span class="string">"bacon!"</span>);</span><br><span class="line">&#125;&#125;);</span><br></pre></td></tr></table></figure>
+<p><strong>方法二：</strong></p>
+<p>采用更加复杂的内部类builder模式：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Employee <span class="title">setName</span><span class="params">(String name)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.name = name;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">this</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Builder</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> String name;</span><br><span class="line">      <span class="function"><span class="keyword">public</span> Builder <span class="title">name</span><span class="params">(Strig name)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.name = name;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">this</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>造者模式(Builder Pattern)：将一个<strong>复杂对象</strong>的<strong>构建</strong>与它的<strong>表示</strong>分离，使得同样的构建过程可以创建不同的表示。但是一般POJO 类都比较简单，非复杂对象，所以采用builder模式并不会让代码变得简洁，反而会显得更加臃肿。</p>
+<p><strong>方法三：</strong></p>
+<p>属性新增withXxx方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Employee <span class="title">setName</span><span class="params">(String name)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.name = name;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">this</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> Employee <span class="title">withName</span><span class="params">(String name)</span> </span>&#123;</span><br><span class="line">    setName(name);</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">this</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//使用方式</span></span><br><span class="line"><span class="keyword">new</span> Employee().withName(<span class="string">"Xin yuan"</span>).withHeight(<span class="number">178</span>);</span><br></pre></td></tr></table></figure>
+<h3 id="结论："><a href="#结论：" class="headerlink" title="结论："></a>结论：</h3><p>不建议在POJO： Java Bean的setter方法中添加‘return this’，我们遵循Java规范，如果期望简化Java Bean的属性设置，可以采用with或build方法。</p>
+<p><strong>参考：</strong></p>
+<p><a href="https://en.wikipedia.org/wiki/Plain_old_Java_object" target="_blank" rel="noopener">https://en.wikipedia.org/wiki/Plain_old_Java_object</a></p>
+<p><a href="https://stackoverflow.com/questions/1345001/is-it-bad-practice-to-make-a-setter-return-this" target="_blank" rel="noopener">https://stackoverflow.com/questions/1345001/is-it-bad-practice-to-make-a-setter-return-this</a></p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2018/03/22/Java/2018-03-22-java-bean-setter-return/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
     <article id="post-HighAvailability/2018-03-15-aws-application-discovery" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
   <div class="article-inner">
     
@@ -1832,303 +2001,6 @@
 
 
   
-    <article id="post-Program/2017-12-27-the-twelve-factor-app" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/12/27/Program/2017-12-27-the-twelve-factor-app/">The Twelve-Factor App</a>
-    </h1>
-  
-
-        
-        <a href="/2017/12/27/Program/2017-12-27-the-twelve-factor-app/" class="archive-article-date">
-  	<time datetime="2017-12-26T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2017-12-27</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>如今，软件通常会作为一种服务来交付，它们被称为网络应用程序，或软件即服务（SaaS）。12-Factor 为构建如下的 SaaS 应用提供了方法论：</p>
-<ul>
-<li>使用标准化流程自动配置，从而使新的开发者花费最少的学习成本加入这个项目。</li>
-<li>和操作系统之间尽可能的划清界限，在各个系统中提供最大的可移植性。</li>
-<li>适合部署在现代的云计算平台，从而在服务器和系统管理方面节省资源。</li>
-<li>将开发环境和生产环境的差异降至最低，并使用持续交付实施敏捷开发。</li>
-<li>可以在工具、架构和开发流程不发生明显变化的前提下实现扩展。</li>
-<li>这套理论适用于任意语言和后端服务（数据库、消息队列、缓存等）开发的应用程序。</li>
-</ul>
-<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>本文的贡献者者参与过数以百计的应用程序的开发和部署，并通过 Heroku 平台间接见证了数十万应用程序的开发，运作以及扩展的过程。</p>
-<p>本文综合了我们关于 SaaS 应用几乎所有的经验和智慧，是开发此类应用的理想实践标准，并特别关注于应用程序如何保持良性成长，开发者之间如何进行有效的代码协作，以及如何 避免软件污染 。</p>
-<p>我们的初衷是分享在现代软件开发过程中发现的一些系统性问题，并加深对这些问题的认识。我们提供了讨论这些问题时所需的共享词汇，同时使用相关术语给出一套针对这些问题的广义解决方案。本文格式的灵感来自于 Martin Fowler 的书籍： Patterns of Enterprise Application Architecture ， Refactoring 。</p>
-<h2 id="读者应该是哪些人？"><a href="#读者应该是哪些人？" class="headerlink" title="读者应该是哪些人？"></a>读者应该是哪些人？</h2><p>任何 SaaS 应用的开发人员。部署和管理此类应用的运维工程师。</p>
-<hr>
-<h1 id="12-factors"><a href="#12-factors" class="headerlink" title="12-factors"></a>12-factors</h1><h2 id="I-基准代码"><a href="#I-基准代码" class="headerlink" title="I. 基准代码"></a>I. 基准代码</h2><p>一份基准代码（Codebase），多份部署（deploy）<br>12-Factor应用(译者注：应该是说一个使用本文概念来设计的应用，下同)通常会使用版本控制系统加以管理，如Git, Mercurial, Subversion。一份用来跟踪代码所有修订版本的数据库被称作 代码库（code repository, code repo, repo）。</p>
-<p>在类似 SVN 这样的集中式版本控制系统中，基准代码 就是指控制系统中的这一份代码库；而在 Git 那样的分布式版本控制系统中，基准代码 则是指最上游的那份代码库。</p>
-<p><img src="https://12factor.net/images/codebase-deploys.png" alt=""></p>
-<p>基准代码和应用之间总是保持一一对应的关系：</p>
-<ul>
-<li>一旦有多个基准代码，就不能称为一个应用，而是一个分布式系统。分布式系统中的每一个组件都是一个应用，每一个应用可以分别使用 12-Factor 进行开发。</li>
-<li>多个应用共享一份基准代码是有悖于 12-Factor 原则的。解决方案是将共享的代码拆分为独立的类库，然后使用 依赖管理 策略去加载它们。</li>
-</ul>
-<p>尽管每个应用只对应一份基准代码，但可以同时存在多份部署。每份 部署 相当于运行了一个应用的实例。通常会有一个生产环境，一个或多个预发布环境。此外，每个开发人员都会在自己本地环境运行一个应用实例，这些都相当于一份部署。</p>
-<p>所有部署的基准代码相同，但每份部署可以使用其不同的版本。比如，开发人员可能有一些提交还没有同步至预发布环境；预发布环境也有一些提交没有同步至生产环境。但它们都共享一份基准代码，我们就认为它们只是相同应用的不同部署而已。</p>
-<h2 id="II-依赖"><a href="#II-依赖" class="headerlink" title="II. 依赖"></a>II. 依赖</h2><p>显式声明依赖关系（ dependency ）<br>大多数编程语言都会提供一个打包系统，用来为各个类库提供打包服务，就像 Perl 的 CPAN 或是 Ruby 的 Rubygems 。通过打包系统安装的类库可以是系统级的（称之为 “site packages”），或仅供某个应用程序使用，部署在相应的目录中（称之为 “vendoring” 或 “bunding”）。</p>
-<p>12-Factor规则下的应用程序不会隐式依赖系统级的类库。 它一定通过 依赖清单 ，确切地声明所有依赖项。此外，在运行过程中通过 依赖隔离 工具来确保程序不会调用系统中存在但清单中未声明的依赖项。这一做法会统一应用到生产和开发环境。</p>
-<p>例如， Ruby 的 <a href="https://bundler.io/" target="_blank" rel="noopener">Bundler</a> 使用 Gemfile 作为依赖项声明清单，使用 bundle exec 来进行依赖隔离。Python 中则可分别使用两种工具 – <a href="http://www.pip-installer.org/en/latest/" target="_blank" rel="noopener">Pip</a> 用作依赖声明， <a href="http://www.virtualenv.org/en/latest/" target="_blank" rel="noopener">Virtualenv</a> 用作依赖隔离。甚至 C 语言也有类似工具， <a href="http://www.gnu.org/s/autoconf/" target="_blank" rel="noopener">Autoconf</a> 用作依赖声明，静态链接库用作依赖隔离。无论用什么工具，依赖声明和依赖隔离必须一起使用，否则无法满足 12-Factor 规范。</p>
-<p>显式声明依赖的优点之一是为新进开发者简化了环境配置流程。新进开发者可以检出应用程序的基准代码，安装编程语言环境和它对应的依赖管理工具，只需通过一个 构建命令 来安装所有的依赖项，即可开始工作。例如，Ruby/Bundler 下使用 bundle install，而 Clojure/Leiningen 则是 lein deps。</p>
-<p>12-Factor 应用同样不会隐式依赖某些系统工具，如 ImageMagick 或是curl。即使这些工具存在于几乎所有系统，但终究无法保证所有未来的系统都能支持应用顺利运行，或是能够和应用兼容。如果应用必须使用到某些系统工具，那么这些工具应该被包含在应用之中。</p>
-<h2 id="III-配置"><a href="#III-配置" class="headerlink" title="III. 配置"></a>III. 配置</h2><p>在环境中存储配置<br>通常，应用的 配置 在不同 部署 (预发布、生产环境、开发环境等等)间会有很大差异。这其中包括：</p>
-<ul>
-<li>数据库，Memcached，以及其他 后端服务 的配置</li>
-<li>第三方服务的证书，如 Amazon S3、Twitter 等</li>
-<li>每份部署特有的配置，如域名等</li>
-</ul>
-<p>有些应用在代码中使用常量保存配置，这与 12-Factor 所要求的代码和配置严格分离显然大相径庭。配置文件在各部署间存在大幅差异，代码却完全一致。</p>
-<p>判断一个应用是否正确地将配置排除在代码之外，一个简单的方法是看该应用的基准代码是否可以立刻开源，而不用担心会暴露任何敏感的信息。</p>
-<p>需要指出的是，这里定义的“配置”并不包括应用的内部配置，比如 Rails 的 config/routes.rb，或是使用 <a href="http://spring.io/" target="_blank" rel="noopener">Spring</a> 时 <a href="http://docs.spring.io/spring/docs/current/spring-framework-reference/html/beans.html" target="_blank" rel="noopener">代码模块间的依赖注入关系</a> 。这类配置在不同部署间不存在差异，所以应该写入代码。</p>
-<p>另外一个解决方法是使用配置文件，但不把它们纳入版本控制系统，就像 Rails 的 config/database.yml 。这相对于在代码中使用常量已经是长足进步，但仍然有缺点：总是会不小心将配置文件签入了代码库；配置文件的可能会分散在不同的目录，并有着不同的格式，这让找出一个地方来统一管理所有配置变的不太现实。更糟的是，这些格式通常是语言或框架特定的。</p>
-<p><strong>12-Factor推荐将应用的配置存储于</strong> 环境变量 中（ env vars, env ）。环境变量可以非常方便地在不同的部署间做修改，却不动一行代码；与配置文件不同，不小心把它们签入代码库的概率微乎其微；与一些传统的解决配置问题的机制（比如 Java 的属性配置文件）相比，环境变量与语言和系统无关。</p>
-<p>配置管理的另一个方面是分组。有时应用会将配置按照特定部署进行分组（或叫做“环境”），例如Rails中的 development,test, 和 production 环境。这种方法无法轻易扩展：更多部署意味着更多新的环境，例如 staging或 qa 。 随着项目的不断深入，开发人员可能还会添加他们自己的环境，比如 joes-staging ，这将导致各种配置组合的激增，从而给管理部署增加了很多不确定因素。</p>
-<p>12-Factor 应用中，环境变量的粒度要足够小，且相对独立。它们永远也不会组合成一个所谓的“环境”，而是独立存在于每个部署之中。当应用程序不断扩展，需要更多种类的部署时，这种配置管理方式能够做到平滑过渡。</p>
-<h2 id="IV-后端服务"><a href="#IV-后端服务" class="headerlink" title="IV. 后端服务"></a>IV. 后端服务</h2><p>把后端服务(backing services)当作附加资源<br>后端服务是指程序运行所需要的通过网络调用的各种服务，如数据库（<a href="http://dev.mysql.com/" target="_blank" rel="noopener">MySQL</a>，<a href="http://couchdb.apache.org/" target="_blank" rel="noopener">CouchDB</a>），消息/队列系统（<a href="http://www.rabbitmq.com/" target="_blank" rel="noopener">RabbitMQ</a>，<a href="http://kr.github.com/beanstalkd/" target="_blank" rel="noopener">Beanstalkd</a>），SMTP 邮件发送服务（<a href="http://www.postfix.org/" target="_blank" rel="noopener">Postfix</a>），以及缓存系统（<a href="http://memcached.org/" target="_blank" rel="noopener">Memcached</a>）。</p>
-<p>类似数据库的后端服务，通常由部署应用程序的系统管理员一起管理。除了本地服务之外，应用程序有可能使用了第三方发布和管理的服务。示例包括 SMTP（例如 <a href="http://postmarkapp.com/" target="_blank" rel="noopener">Postmark</a>），数据收集服务（例如 <a href="http://newrelic.com/" target="_blank" rel="noopener">New Relic</a> 或 <a href="http://www.loggly.com/" target="_blank" rel="noopener">Loggly</a>），数据存储服务（如 <a href="http://http//aws.amazon.com/s3/" target="_blank" rel="noopener">Amazon S3</a>），以及使用 API 访问的服务（例如 Twitter, Google Maps, Last.fm）。</p>
-<p><strong>12-Factor 应用不会区别对待本地或第三方服务。</strong> 对应用程序而言，两种都是附加资源，通过一个 url 或是其他存储在 配置 中的服务定位/服务证书来获取数据。12-Factor 应用的任意 部署 ，都应该可以在不进行任何代码改动的情况下，将本地 MySQL 数据库换成第三方服务（例如 Amazon RDS）。类似的，本地 SMTP 服务应该也可以和第三方 SMTP 服务（例如 Postmark ）互换。上述 2 个例子中，仅需修改配置中的资源地址。</p>
-<p>每个不同的后端服务是一份 资源 。例如，一个 MySQL 数据库是一个资源，两个 MySQL 数据库（用来数据分区）就被当作是 2 个不同的资源。12-Factor 应用将这些数据库都视作 附加资源 ，这些资源和它们附属的部署保持松耦合。</p>
-<p><img src="https://12factor.net/images/attached-resources.png" alt=""></p>
-<p>部署可以按需加载或卸载资源## 部署可以按需加载或卸载资源部署可以按需加载或卸载资源部署可以按需加载或卸载资源。例如，如果应用的数据库服务由于硬件问题出现异常，管理员可以从最近的备份中恢复一个数据库，卸载当前的数据库，然后加载新的数据库 – 整个过程都不需要修改代码。</p>
-<h2 id="V-构建，发布，运行"><a href="#V-构建，发布，运行" class="headerlink" title="V. 构建，发布，运行"></a>V. 构建，发布，运行</h2><p> 严格分离构建和运行</p>
-<p><a href="https://12factor.net/zh_cn/codebase" target="_blank" rel="noopener">基准代码</a> 转化为一份部署(非开发环境)需要以下三个阶段：</p>
-<ul>
-<li>构建阶段 是指将代码仓库转化为可执行包的过程。构建时会使用指定版本的代码，获取和打包 依赖项，编译成二进制文件和资源文件。</li>
-<li>发布阶段 会将构建的结果和当前部署所需 配置 相结合，并能够立刻在运行环境中投入使用。</li>
-<li>运行阶段 （或者说“运行时”）是指针对选定的发布版本，在执行环境中启动一系列应用程序 进程。</li>
-</ul>
-<p><img src="https://12factor.net/images/release.png" alt=""></p>
-<p><strong>12-factor 应用严格区分构建，发布，运行这三个步骤。</strong> 举例来说，直接修改处于运行状态的代码是非常不可取的做法，因为这些修改很难再同步回构建步骤。</p>
-<p>部署工具通常都提供了发布管理工具，最引人注目的功能是退回至较旧的发布版本。比如， <a href="">Capistrano</a> 将所有发布版本都存储在一个叫 releases 的子目录中，当前的在线版本只需映射至对应的目录即可。该工具的 rollback 命令可以很容易地实现回退版本的功能。</p>
-<p>每一个发布版本必须对应一个唯一的发布 ID，例如可以使用发布时的时间戳（2011-04-06-20:32:17），亦或是一个增长的数字（v100）。发布的版本就像一本只能追加的账本，一旦发布就不可修改，任何的变动都应该产生一个新的发布版本。</p>
-<p>新的代码在部署之前，需要开发人员触发构建操作。但是，运行阶段不一定需要人为触发，而是可以自动进行。如服务器重启，或是进程管理器重启了一个崩溃的进程。因此，运行阶段应该保持尽可能少的模块，这样假设半夜发生系统故障而开发人员又捉襟见肘也不会引起太大问题。构建阶段是可以相对复杂一些的，因为错误信息能够立刻展示在开发人员面前，从而得到妥善处理。</p>
-<h2 id="VI-进程"><a href="#VI-进程" class="headerlink" title="VI. 进程"></a>VI. 进程</h2><p>以一个或多个无状态进程运行应用<br>运行环境中，应用程序通常是以一个和多个 进程 运行的。</p>
-<p>最简单的场景中，代码是一个独立的脚本，运行环境是开发人员自己的笔记本电脑，进程由一条命令行（例如python my_script.py）。另外一个极端情况是，复杂的应用可能会使用很多 进程类型 ，也就是零个或多个进程实例。</p>
-<p>12-Factor 应用的进程必须无状态且 无共享 。 任何需要持久化的数据都要存储在 后端服务 内，比如数据库。</p>
-<p>内存区域或磁盘空间可以作为进程在做某种事务型操作时的缓存，例如下载一个很大的文件，对其操作并将结果写入数据库的过程。12-Factor应用根本不用考虑这些缓存的内容是不是可以保留给之后的请求来使用，这是因为应用启动了多种类型的进程，将来的请求多半会由其他进程来服务。即使在只有一个进程的情形下，先前保存的数据（内存或文件系统中）也会因为重启（如代码部署、配置更改、或运行环境将进程调度至另一个物理区域执行）而丢失。</p>
-<p>源文件打包工具（Jammit, django-compressor） 使用文件系统来缓存编译过的源文件。12-Factor 应用更倾向于在 构建步骤做此动作——正如 Rails资源管道 ，而不是在运行阶段。</p>
-<p>一些互联网系统依赖于 “粘性 session”， 这是指将用户 session 中的数据缓存至某进程的内存中，并将同一用户的后续请求路由到同一个进程。粘性 session 是 12-Factor 极力反对的。Session 中的数据应该保存在诸如 Memcached 或 Redis 这样的带有过期时间的缓存中。</p>
-<h2 id="VII-端口绑定"><a href="#VII-端口绑定" class="headerlink" title="VII. 端口绑定"></a>VII. 端口绑定</h2><p>通过端口绑定(Port binding)来提供服务<br>互联网应用有时会运行于服务器的容器之中。例如 PHP 经常作为 Apache HTTPD 的一个模块来运行，正如 Java 运行于 Tomcat 。</p>
-<p>12-Factor 应用完全自我加载 而不依赖于任何网络服务器就可以创建一个面向网络的服务。互联网应用 通过端口绑定来提供服务 ，并监听发送至该端口的请求。</p>
-<p>本地环境中，开发人员通过类似<a href="http://localhost:5000/的地址来访问服务。在线上环境中，请求统一发送至公共域名而后路由至绑定了端口的网络进程。" target="_blank" rel="noopener">http://localhost:5000/的地址来访问服务。在线上环境中，请求统一发送至公共域名而后路由至绑定了端口的网络进程。</a></p>
-<p>通常的实现思路是，将网络服务器类库通过 依赖声明 载入应用。例如，Python 的 Tornado, Ruby 的Thin , Java 以及其他基于 JVM 语言的 Jetty。完全由 用户端 ，确切的说应该是应用的代码，发起请求。和运行环境约定好绑定的端口即可处理这些请求。</p>
-<p>HTTP 并不是唯一一个可以由端口绑定提供的服务。其实几乎所有服务器软件都可以通过进程绑定端口来等待请求。例如，使用 XMPP 的 ejabberd ， 以及使用 Redis 协议 的 Redis 。</p>
-<p>还要指出的是，端口绑定这种方式也意味着一个应用可以成为另外一个应用的 后端服务 ，调用方将服务方提供的相应 URL 当作资源存入 配置 以备将来调用。</p>
-<h2 id="VIII-并发"><a href="#VIII-并发" class="headerlink" title="VIII. 并发"></a>VIII. 并发</h2><p>通过进程模型进行扩展<br>任何计算机程序，一旦启动，就会生成一个或多个进程。互联网应用采用多种进程运行方式。例如，PHP 进程作为 Apache 的子进程存在，随请求按需启动。Java 进程则采取了相反的方式，在程序启动之初 JVM 就提供了一个超级进程储备了大量的系统资源(CPU 和内存)，并通过多线程实现内部的并发管理。上述 2 个例子中，进程是开发人员可以操作的最小单位。<br><img src="https://12factor.net/images/process-types.png" alt=""><br>扩展表现为运行中的进程，工作多样性表现为进程类型。</p>
-<p>在 12-factor 应用中，进程是一等公民。12-Factor 应用的进程主要借鉴于 unix 守护进程模型 。开发人员可以运用这个模型去设计应用架构，将不同的工作分配给不同的 进程类型 。例如，HTTP 请求可以交给 web 进程来处理，而常驻的后台工作则交由 worker 进程负责。</p>
-<p>这并不包括个别较为特殊的进程，例如通过虚拟机的线程处理并发的内部运算，或是使用诸如 EventMachine, Twisted, Node.js 的异步/事件触发模型。但一台独立的虚拟机的扩展有瓶颈（垂直扩展），所以应用程序必须可以在多台物理机器间跨进程工作。</p>
-<p>上述进程模型会在系统急需扩展时大放异彩。 12-Factor 应用的进程所具备的无共享，水平分区的特性 意味着添加并发会变得简单而稳妥。这些进程的类型以及每个类型中进程的数量就被称作 进程构成 。</p>
-<p>12-Factor 应用的进程 不需要守护进程 或是写入 PID 文件。相反的，应该借助操作系统的进程管理器(例如 systemd ，分布式的进程管理云平台，或是类似 Foreman 的工具)，来管理 输出流 ，响应崩溃的进程，以及处理用户触发的重启和关闭超级进程的请求。</p>
-<h2 id="IX-易处理"><a href="#IX-易处理" class="headerlink" title="IX. 易处理"></a>IX. 易处理</h2><p>快速启动和优雅终止可最大化健壮性<br>12-Factor 应用的 进程 是 易处理（disposable）的，意思是说它们可以瞬间开启或停止。 这有利于快速、弹性的伸缩应用，迅速部署变化的 代码 或 配置 ，稳健的部署应用。</p>
-<p>进程应当追求 最小启动时间 。 理想状态下，进程从敲下命令到真正启动并等待请求的时间应该只需很短的时间。更少的启动时间提供了更敏捷的 发布 以及扩展过程，此外还增加了健壮性，因为进程管理器可以在授权情形下容易的将进程搬到新的物理机器上。</p>
-<p>进程 一旦接收 终止信号（SIGTERM） 就会优雅的终止 。就网络进程而言，优雅终止是指停止监听服务的端口，即拒绝所有新的请求，并继续执行当前已接收的请求，然后退出。此类型的进程所隐含的要求是HTTP请求大多都很短(不会超过几秒钟)，而在长时间轮询中，客户端在丢失连接后应该马上尝试重连。</p>
-<p>对于 worker 进程来说，优雅终止是指将当前任务退回队列。例如，RabbitMQ 中，worker 可以发送一个NACK信号。 Beanstalkd 中，任务终止并退回队列会在worker断开时自动触发。有锁机制的系统诸如 Delayed Job 则需要确定释放了系统资源。此类型的进程所隐含的要求是，任务都应该 可重复执行 ， 这主要由将结果包装进事务或是使重复操作 幂等 来实现。</p>
-<p>进程还应当在面对突然死亡时保持健壮，例如底层硬件故障。虽然这种情况比起优雅终止来说少之又少，但终究有可能发生。一种推荐的方式是使用一个健壮的后端队列，例如 Beanstalkd ，它可以在客户端断开或超时后自动退回任务。无论如何，12-Factor 应用都应该可以设计能够应对意外的、不优雅的终结。Crash-only design 将这种概念转化为 合乎逻辑的理论。</p>
-<h2 id="X-开发环境与线上环境等价"><a href="#X-开发环境与线上环境等价" class="headerlink" title="X. 开发环境与线上环境等价"></a>X. 开发环境与线上环境等价</h2><p>尽可能的保持开发，预发布，线上环境相同<br>从以往经验来看，开发环境（* 从以往经验来看，开发环境（即开发人员的本地 部署）和线上环境（外部用户访问的真实部署）之间存在着很多差异。这些差异表现在以下三个方面：</p>
-<ul>
-<li>时间差异： 开发人员正在编写的代码可能需要几天，几周，甚至几个月才会上线。</li>
-<li>人员差异： 开发人员编写代码，运维人员部署代码。</li>
-<li>工具差异： 开发人员或许使用 Nginx，SQLite，OS X，而线上环境使用 Apache，MySQL 以及 Linux。</li>
-</ul>
-<p>想要做到 持续部署 就必须* 想要做到 持续部署 就必须缩小本地与线上差异。 再回头看上面所描述的三个差异:</p>
-<ul>
-<li>缩小时间差异：开发人员可以几小时，甚至几分钟就部署代码。</li>
-<li>缩小人员差异：开发人员不只要编写代码，更应该密切参与部署过程以及代码在线上的表现。</li>
-<li>缩小工具差异：尽量保证开发环境以及线上环境的一致性。</li>
-</ul>
-<p>将上述总结变为一个表格如下：</p>
-<p>传统应用    12-FACTOR 应用<br>每次部署间隔    数周    几小时<br>开发人员 VS 运维人员    不同的人    相同的人<br>开发环境 VS 线上环境    不同    尽量接近<br>后端服务 是保持开发与线上等价的重要部分，例如数据库，队列系统，以及缓存。许多语言都提供了简化获取后端服务的类库，例如不同类型服务的 适配器 。下列表格提供了一些例子。</p>
-<p>类型    语言    类库    适配器<br>数据库    Ruby/Rails    ActiveRecord    MySQL, PostgreSQL, SQLite<br>队列    Python/Django    Celery    RabbitMQ, Beanstalkd, Redis<br>缓存    Ruby/Rails    ActiveSupport::Cache    Memory, filesystem, Memcached<br>开发人员有时会觉得在本地环境中使用轻量的后端服务具有很强的吸引力，而那些更重量级的健壮的后端服务应该使用在生产环境。例如，本地使用 SQLite 线上使用 PostgreSQL；又如本地缓存在进程内存中而线上存入 Memcached。</p>
-<p>12-Factor 应用的开发人员应该反对在不同环境间使用不同的后端服务 ，即使适配器已经可以几乎消除使用上的差异。这是因为，不同的后端服务意味着会突然出现的不兼容，从而导致测试、预发布都正常的代码在线上出现问题。这些错误会给持续部署带来阻力。从应用程序的生命周期来看，消除这种阻力需要花费很大的代价。</p>
-<p>与此同时，轻量的本地服务也不像以前那样引人注目。借助于Homebrew，apt-get等现代的打包系统，诸如Memcached、PostgreSQL、RabbitMQ 等后端服务的安装与运行也并不复杂。此外，使用类似 Chef 和 Puppet 的声明式配置工具，结合像 Vagrant 这样轻量的虚拟环境就可以使得开发人员的本地环境与线上环境无限接近。与同步环境和持续部署所带来的益处相比，安装这些系统显然是值得的。</p>
-<p>不同后端服务的适配器仍然是## 不同后端服务的适配器仍然是有用的，因为它们可以使移植后端服务变得简单。但应用的所有部署，这其中包括开发、预发布以及线上环境，都应该使用同一个后端服务的相同版本。</p>
-<h2 id="XI-日志"><a href="#XI-日志" class="headerlink" title="XI. 日志"></a>XI. 日志</h2><p>把日志当做事件流<br>日志 使得应用程序运行的动作变得透明。在基于服务器的环境中，日志通常被写在硬盘的一个文件里，但这只是一种输出格式。</p>
-<p>日志应该是 事件流 的汇总，将所有运行中进程和后端服务的输出流按照时间顺序收集起来。尽管在回溯问题时可能需要看很多行，日志最原始的格式确实是一个事件一行。日志没有确定开始和结束，但随着应用在运行会持续的增加。</p>
-<p>12-factor应用本身从不考虑存储自己的输出流。 不应该试图去写或者管理日志文件。相反，每一个运行的进程都会直接的标准输出（stdout）事件流。开发环境中，开发人员可以通过这些数据流，实时在终端看到应用的活动。</p>
-<p>在预发布或线上部署中，每个进程的输出流由运行环境截获，并将其他输出流整理在一起，然后一并发送给一个或多个最终的处理程序，用于查看或是长期存档。这些存档路径对于应用来说不可见也不可配置，而是完全交给程序的运行环境管理。类似 Logplex 和 Fluentd 的开源工具可以达到这个目的。</p>
-<p>这些事件流可以输出至文件，或者在终端实时观察。最重要的，输出流可以发送到 Splunk 这样的日志索引及分析系统，或 Hadoop/Hive 这样的通用数据存储系统。这些系统为查看应用的历史活动提供了强大而灵活的功能，包括：</p>
-<p>找出过去一段时间特殊的事件。<br>图形化一个大规模的趋势，比如每分钟的请求量。<br>根据用户定义的条件实时触发警报，比如每分钟的报错超过某个警戒线。</p>
-<h2 id="XII-管理进程"><a href="#XII-管理进程" class="headerlink" title="XII. 管理进程"></a>XII. 管理进程</h2><p>后台管理任务当作一次性进程运行<br>进程构成（process formation）是指用来处理应用的常规业务（比如处理 web 请求）的一组进程。与此不同，开发人员经常希望执行一些管理或维护应用的一次性任务，例如：</p>
-<p>运行数据移植（Django 中的 manage.py migrate, Rails 中的 rake db:migrate）。<br>运行一个控制台（也被称为 REPL shell），来执行一些代码或是针对线上数据库做一些检查。大多数语言都通过解释器提供了一个 REPL 工具（python 或 perl） ，或是其他命令（Ruby 使用 irb, Rails 使用 rails console）。<br>运行一些提交到代码仓库的一次性脚本。<br>一次性管理进程应该和正常的 常驻进程 使用同样的环境。这些管理进程和任何其他的进程一样使用相同的 代码 和 配置 ，基于某个 发布版本 运行。后台管理代码应该随其他应用程序代码一起发布，从而避免同步问题。</p>
-<p>所有进程类型应该使用同样的 依赖隔离 技术。例如，如果Ruby的web进程使用了命令 bundle exec thin start ，那么数据库移植应使用 bundle exec rake db:migrate 。同样的，如果一个 Python 程序使用了 Virtualenv，则需要在运行 Tornado Web 服务器和任何 manage.py 管理进程时引入 bin/python 。</p>
-<p>12-factor 尤其青睐那些提供了 REPL shell 的语言，因为那会让运行一次性脚本变得简单。在本地部署中，开发人员直接在命令行使用 shell 命令调用一次性管理进程。在线上部署中，开发人员依旧可以使用ssh或是运行环境提供的其他机制来运行这样的进程。</p>
-<p>转发自：<a href="https://12factor.net/zh_cn/" target="_blank" rel="noopener">https://12factor.net/zh_cn/</a></p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Program//" class="article-tag-list-link color3">Program</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2017/12/27/Program/2017-12-27-the-twelve-factor-app/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-Program/2017-12-24-devops-three-method" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/12/24/Program/2017-12-24-devops-three-method/">DevOps的三种方式</a>
-    </h1>
-  
-
-        
-        <a href="/2017/12/24/Program/2017-12-24-devops-three-method/" class="archive-article-date">
-  	<time datetime="2017-12-23T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2017-12-24</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>这篇博客中提到的“三种方式“源自 <a href="http://www.itrevolution.com/book/the-devops-handbook/" target="_blank" rel="noopener">《DevOps Handbook》</a> 及<a href="https://itrevolution.com/books/novel/" target="_blank" rel="noopener">《凤凰项目》</a>（The Phoenix Project: A Novel About IT, DevOps, and Helping Your Business Win.），这三种方式描述了构成 DevOps 的理论框架、流程、实践及价值观和哲学。</p>
-<p>感谢《Lean IT》的作者 Mike Orzen 为此文提供宝贵建议。</p>
-<h2 id="三种方式"><a href="#三种方式" class="headerlink" title="三种方式"></a>三种方式</h2><p>下文将介绍三种模式及在该种模式指导下的 DevOps 实践。</p>
-<h3 id="第一种方式：-系统思考"><a href="#第一种方式：-系统思考" class="headerlink" title="第一种方式： 系统思考"></a>第一种方式： 系统思考</h3><p><img src="https://gw.alipayobjects.com/zos/skylark/90fda8c1-ed1d-414d-bf7a-379e3fc7bd54/2018/png/46243fa7-bffa-4015-acd8-2597e974feee.png" alt=""></p>
-<p>第一种方式强调全局优化，而非局部改进。— 大到部门职能划分（例如研发部和运维部门），小到个人（开发和系统工程师）。</p>
-<p>这种方式将关注点放在整个业务价值流上。换句话说，整个团队应该关注在从需求被定义到开发，再到运维这个过程，直到价值被以服务的形式交付给最终用户。</p>
-<p>将这种方式带到实践中的产出便是永远不要将已知的缺陷传递到下游工作，永远不要为了局部优化影响了整体价值流交付，总是为了增加价值流动努力，永远追求对架构的深刻理解。</p>
-<p>涉及到这种方式的实践有：</p>
-<ul>
-<li>所有环境和代码使用同一个仓库，将软件包纳入版本管理</li>
-<li>团队共同决定发布流程</li>
-<li>保持 DEV、TEST、PRODUCTION 环境的一致性</li>
-<li>自动化回归测试</li>
-<li>小步提交，每日部署；而不是一次部署大量变更</li>
-<li>更快、更频繁发布</li>
-</ul>
-<h3 id="第二种方式：经过放大的反馈回路"><a href="#第二种方式：经过放大的反馈回路" class="headerlink" title="第二种方式：经过放大的反馈回路"></a>第二种方式：经过放大的反馈回路</h3><p><img src="https://gw.alipayobjects.com/zos/skylark/f6cc08b5-b7e5-4162-92a3-0d0df213d902/2018/png/c8e97809-c293-4170-a84c-143789ea7faf.png" alt=""></p>
-<p>第二种方式是创建从开发过程下游至上游的反馈环。几乎所有的流程改进都是为了从时间上缩短和从覆盖面上放大反馈循环，从而可以不断地进行必要的改正。</p>
-<p>第二种方式的产出是关注到价值流中所有涉及到的用户，包括价值流内部和外部的，缩短和放大反馈回路，并且可以随时定位到需要改进的地方。</p>
-<p>涉及到这种方式的实践有：</p>
-<ul>
-<li>代码审查及配置变更检查</li>
-<li>有纪律的自动化测试，使许多同时的小型敏捷团队能够有效地工作</li>
-<li>尽早设置监控预警</li>
-<li>修复 bug 为团队最高优先级</li>
-<li>团队成员之间高度互相信任</li>
-<li>团队之间保持沟通和良好合作<h3 id="第三种方式：持续做试验和学习的文化"><a href="#第三种方式：持续做试验和学习的文化" class="headerlink" title="第三种方式：持续做试验和学习的文化"></a>第三种方式：持续做试验和学习的文化</h3><img src="https://gw.alipayobjects.com/zos/skylark/dfea288e-e3e5-4f41-b1c0-998f7def0202/2018/png/096c5099-06da-403c-8329-3c88f8851fd9.png" alt=""></li>
-</ul>
-<p>第三种方式提倡持续做试验，承担风险、从失败中学习；通过反复实践来达到精通。</p>
-<p>我们需要实验和冒着失败的风险，及时不断地尝试将我们置于一个危险的境地，我们要通过反复试错来掌握使我们远离危险的技能。</p>
-<p>第三种方式的输出为为改善日常工作分配时间、奖励团队冒险精神，将错误人工引入系统以提高系统健壮性。</p>
-<p>最具有代表性的就是 Netfilx 的 Chaos monkey ，Netflix 在他们的生产环境搭建一个服务用于定时随机关闭服务器，用以模拟服务器正常损坏或服务异常，他们的系统长期在这种环境下运行，“服务器故障”成为系统每日都要面临的问题，因此当服务器真的以外故障时不会对系统整体造成任何的影响。</p>
-<h2 id="译者后记"><a href="#译者后记" class="headerlink" title="译者后记"></a>译者后记</h2><p>全局优化、快速反馈、鼓励失败。我们发现其实敏捷、精益、持续交付、DevOps中间有很多相似的东西。</p>
-<blockquote>
-<p>参考资料: <a href="https://es.slideshare.net/SonatypeCorp/devops-connect-josh-corman-and-gene-kim-discuss-devopssec" target="_blank" rel="noopener">https://es.slideshare.net/SonatypeCorp/devops-connect-josh-corman-and-gene-kim-discuss-devopssec</a></p>
-</blockquote>
-<blockquote>
-<p><a href="http://itrevolution.com/the-three-ways-principles-underpinning-devops/" target="_blank" rel="noopener">http://itrevolution.com/the-three-ways-principles-underpinning-devops/</a></p>
-</blockquote>
-<p>转发自：@duyidong</p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Program//" class="article-tag-list-link color3">Program</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2017/12/24/Program/2017-12-24-devops-three-method/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
   
     <nav id="page-nav">
       <a class="extend prev" rel="prev" href="/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><a class="page-number" href="/page/4/">4</a><span class="space">&hellip;</span><a class="page-number" href="/page/10/">10</a><a class="extend next" rel="next" href="/page/3/">Next &raquo;</a>
@@ -2224,50 +2096,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
             <input type="checkbox" q-on="click:toggleTag(e)" q-attr="checked:showTags">
           </label>
           <ul class="article-tag-list" q-show="showTags">
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">工作</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">目标</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">共享变量</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">缓存</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">标签1</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">标签2</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">人生</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">感悟</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">架构</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">可视化</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">AHAS</a>
-              </li>
             
             <div class="clearfix"></div>
           </ul>

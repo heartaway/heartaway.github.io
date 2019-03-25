@@ -8,20 +8,20 @@
   <link rel="dns-prefetch" href="http://heartaway.cn">
   <title>本地缓存的数据变更 | 心静志远</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="背景业务上有一个需求使用基线数据中拷贝出内容，分发到不同用户集合的存储实例中，使用模型标识就是B-&amp;gt;(u1,u2,u3…uN)，初始代码逻辑是，每个用户都有单独的定时器触发来执行B-&amp;gt;uN的拷贝，执行这个过程需要首先从基线B中取出数据，然后替换为uN的用户信息，在写入uN的数据存储中（用户之间逻辑隔离非物理隔离），期初此流程没什么问题，后来考虑到每个用户读取的基线可能相同，可以对基线数">
-<meta name="keywords" content="共享变量,缓存">
+  <meta name="description" content="—title: 本地缓存的数据变更categories: 编程tags: [共享变量,缓存]date: 2018-11-16—  背景业务上有一个需求使用基线数据中拷贝出内容，分发到不同用户集合的存储实例中，使用模型标识就是B-&amp;gt;(u1,u2,u3…uN)，初始代码逻辑是，每个用户都有单独的定时器触发来执行B-&amp;gt;uN的拷贝，执行这个过程需要首先从基线B中取出数据，然后替换为uN的用户信">
+<meta name="keywords" content="心静志远, xinjinzhiyuan, heartaway">
 <meta property="og:type" content="article">
 <meta property="og:title" content="本地缓存的数据变更">
 <meta property="og:url" content="http://heartaway.cn/2018/11/16/Blog/本地缓存的数据变更/index.html">
 <meta property="og:site_name" content="心静志远">
-<meta property="og:description" content="背景业务上有一个需求使用基线数据中拷贝出内容，分发到不同用户集合的存储实例中，使用模型标识就是B-&amp;gt;(u1,u2,u3…uN)，初始代码逻辑是，每个用户都有单独的定时器触发来执行B-&amp;gt;uN的拷贝，执行这个过程需要首先从基线B中取出数据，然后替换为uN的用户信息，在写入uN的数据存储中（用户之间逻辑隔离非物理隔离），期初此流程没什么问题，后来考虑到每个用户读取的基线可能相同，可以对基线数">
+<meta property="og:description" content="—title: 本地缓存的数据变更categories: 编程tags: [共享变量,缓存]date: 2018-11-16—  背景业务上有一个需求使用基线数据中拷贝出内容，分发到不同用户集合的存储实例中，使用模型标识就是B-&amp;gt;(u1,u2,u3…uN)，初始代码逻辑是，每个用户都有单独的定时器触发来执行B-&amp;gt;uN的拷贝，执行这个过程需要首先从基线B中取出数据，然后替换为uN的用户信">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:image" content="https://cdn.nlark.com/yuque/0/2018/png/104361/1542351217947-009a8e54-41ed-4409-a896-9bad779f631c.png">
-<meta property="og:updated_time" content="2018-11-29T04:29:05.214Z">
+<meta property="og:image" content="https://cdn.nlark.com/yuque/0/2018/png/104361/1542351217947-009a8e54-41ed-4409-a896-9bad779f631c.png#width=747">
+<meta property="og:updated_time" content="2019-03-25T14:25:16.551Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="本地缓存的数据变更">
-<meta name="twitter:description" content="背景业务上有一个需求使用基线数据中拷贝出内容，分发到不同用户集合的存储实例中，使用模型标识就是B-&amp;gt;(u1,u2,u3…uN)，初始代码逻辑是，每个用户都有单独的定时器触发来执行B-&amp;gt;uN的拷贝，执行这个过程需要首先从基线B中取出数据，然后替换为uN的用户信息，在写入uN的数据存储中（用户之间逻辑隔离非物理隔离），期初此流程没什么问题，后来考虑到每个用户读取的基线可能相同，可以对基线数">
-<meta name="twitter:image" content="https://cdn.nlark.com/yuque/0/2018/png/104361/1542351217947-009a8e54-41ed-4409-a896-9bad779f631c.png">
+<meta name="twitter:description" content="—title: 本地缓存的数据变更categories: 编程tags: [共享变量,缓存]date: 2018-11-16—  背景业务上有一个需求使用基线数据中拷贝出内容，分发到不同用户集合的存储实例中，使用模型标识就是B-&amp;gt;(u1,u2,u3…uN)，初始代码逻辑是，每个用户都有单独的定时器触发来执行B-&amp;gt;uN的拷贝，执行这个过程需要首先从基线B中取出数据，然后替换为uN的用户信">
+<meta name="twitter:image" content="https://cdn.nlark.com/yuque/0/2018/png/104361/1542351217947-009a8e54-41ed-4409-a896-9bad779f631c.png#width=747">
   
     <link rel="alternative" href="/atom.xml" title="心静志远" type="application/atom+xml">
   
@@ -166,20 +166,24 @@
 
         
         <a href="/2018/11/16/Blog/本地缓存的数据变更/" class="archive-article-date">
-  	<time datetime="2018-11-15T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-11-16</time>
+  	<time datetime="2018-11-16T06:29:59.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-11-16</time>
 </a>
         
       </header>
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h3 id="背景"><a href="#背景" class="headerlink" title="背景"></a><a name="d4zzse"></a>背景</h3><p>业务上有一个需求使用基线数据中拷贝出内容，分发到不同用户集合的存储实例中，使用模型标识就是B-&gt;(u1,u2,u3…uN)，初始代码逻辑是，每个用户都有单独的定时器触发来执行B-&gt;uN的拷贝，执行这个过程需要首先从基线B中取出数据，然后替换为uN的用户信息，在写入uN的数据存储中（用户之间逻辑隔离非物理隔离），期初此流程没什么问题，后来考虑到每个用户读取的基线可能相同，可以对基线数据做local cache，以此来优化程序的执行性能， local cache 变量为全局共享变量，多线程可访问。</p>
-<h3 id="问题"><a href="#问题" class="headerlink" title="问题"></a><a name="isplgh"></a>问题</h3><p>在做性能优化使用local cache的时候，会先查询缓存是否存在，如果不存在，则查询基线数据，如果查询的基线存在的话，则回写到缓存中，并向目标用户实例中写入基线数据，整体流程如下：<a id="more"></a></p>
+        <p>—<br>title: 本地缓存的数据变更<br>categories: 编程<br>tags: [共享变量,缓存]<br>date: 2018-11-16<br>—</p>
+<p><a name="d4zzse"></a></p>
+<h3 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h3><p>业务上有一个需求使用基线数据中拷贝出内容，分发到不同用户集合的存储实例中，使用模型标识就是B-&gt;(u1,u2,u3…uN)，初始代码逻辑是，每个用户都有单独的定时器触发来执行B-&gt;uN的拷贝，执行这个过程需要首先从基线B中取出数据，然后替换为uN的用户信息，在写入uN的数据存储中（用户之间逻辑隔离非物理隔离），期初此流程没什么问题，后来考虑到每个用户读取的基线可能相同，可以对基线数据做local cache，以此来优化程序的执行性能， local cache 变量为全局共享变量，多线程可访问。</p>
+<p><a name="isplgh"></a></p>
+<h3 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h3><p>在做性能优化使用local cache的时候，会先查询缓存是否存在，如果不存在，则查询基线数据，如果查询的基线存在的话，则回写到缓存中，并向目标用户实例中写入基线数据，整体流程如下：<a id="more"></a></p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">//首先查本地缓存</span><br><span class="line">List&lt;ProcessEntity&gt; processEntities = processCache.getIfPresent(cacheKey);</span><br><span class="line">        if (processEntities == null) &#123;</span><br><span class="line">            //查询存储</span><br><span class="line">            processEntities = processSourceClient.readProcessEntitiesByTimeGrid(</span><br><span class="line">                demoDataRequest.getSourceUserId(), demoDataRequest.getSourceNamespace(),</span><br><span class="line">                demoDataRequest.getSourceTimeGrid());</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        if (CollectionUtils.isNotEmpty(processEntities)) &#123;</span><br><span class="line">            //回写数据到缓存（存在多次写问题）</span><br><span class="line">            processCache.put(cacheKey, processEntities);</span><br><span class="line">            processEntities.forEach(item -&gt; &#123;</span><br><span class="line">                //替换用户属性，问题就在这里</span><br><span class="line">                item.setUserId(demoDataRequest.getTargetUserId());</span><br><span class="line">                item.setNamespace(demoDataRequest.getTargetNamespace());</span><br><span class="line">                item.setTimeGrid(demoDataRequest.getTargetTimeGrid());</span><br><span class="line">            &#125;);</span><br><span class="line">            </span><br><span class="line">            //写目标用户数据</span><br><span class="line">            processTargetClient.batchWriteProcessLog(processEntities);</span><br><span class="line">        &#125;</span><br></pre></td></tr></table></figure>
 <p>增加了缓存后，我们在编码的时候，很容易认为数据我已经写到缓存中了，再对数据做处理不会影响缓存，但是我们忽略了这里的缓存是本地缓存，且是对象引用下的本地缓存，是共享数据；如果使用分布式缓存，通过数据的序列化和反序列化，相当于对象做了拷贝，不会有问题，如果使用本地缓存，存储数据的副本的话，也不会有问题；但是这里偏偏使用了本地变量，并对数据做了变更，没有引起编码时的注意，导致了错误。这个错误在单元测试的时候，也没测出来，发到生产环境上才对发现存储层在数据写入时大量报写入冲突。</p>
-<h3 id="解决"><a href="#解决" class="headerlink" title="解决"></a><a name="bgu6rd"></a>解决</h3><p>使用本地缓存时，如果有数据变更的需求，则需要使用副本，这也是共享变量在多线程中容易导致的一个容易发生的错误。</p>
-<p><img src="https://cdn.nlark.com/yuque/0/2018/png/104361/1542351217947-009a8e54-41ed-4409-a896-9bad779f631c.png" alt="image.png | left | 747x300"></p>
-<h3 id="反思"><a href="#反思" class="headerlink" title="反思"></a><a name="q71zsp"></a>反思</h3><p>期初线上打印出了冲突的问题，总以为是存储这边分批写的问题，后来发现这个问题的发生频次是间歇性的，且无规律，更像是具备随机性，所以决定深入排查，最后发现了编码上的一个很低级的错误。我们不要放过线上任何一个异常，除非我们把问题弄清楚了，否则“墨菲定律”告诉我们，担心出问题的地方，一定会出问题。</p>
+<p><a name="bgu6rd"></a></p>
+<h3 id="解决"><a href="#解决" class="headerlink" title="解决"></a>解决</h3><p>使用本地缓存时，如果有数据变更的需求，则需要使用副本，这也是共享变量在多线程中容易导致的一个容易发生的错误。<br><img src="https://cdn.nlark.com/yuque/0/2018/png/104361/1542351217947-009a8e54-41ed-4409-a896-9bad779f631c.png#width=747" alt=""></p>
+<p><a name="q71zsp"></a></p>
+<h3 id="反思"><a href="#反思" class="headerlink" title="反思"></a>反思</h3><p>期初线上打印出了冲突的问题，总以为是存储这边分批写的问题，后来发现这个问题的发生频次是间歇性的，且无规律，更像是具备随机性，所以决定深入排查，最后发现了编码上的一个很低级的错误。我们不要放过线上任何一个异常，除非我们把问题弄清楚了，否则“墨菲定律”告诉我们，担心出问题的地方，一定会出问题。</p>
 
       
 
@@ -209,33 +213,7 @@
     <div class="article-info article-info-index">
       
       
-	<div class="article-tag tagcloud">
-		<i class="icon-price-tags icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color5">共享变量</a>
-        		</li>
-      		 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color3">缓存</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
       
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/编程//" class="article-tag-list-link color3">编程</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
 
       
 
@@ -299,18 +277,18 @@
   
 <nav id="article-nav">
   
-    <a href="/2018/11/16/Blog/我为什么会在这/" id="article-nav-newer" class="article-nav-link-wrap">
+    <a href="/2018/11/22/Blog/微服务架构可视化平台实践/" id="article-nav-newer" class="article-nav-link-wrap">
       <i class="icon-circle-left"></i>
       <div class="article-nav-title">
         
-          我为什么会在这
+          微服务架构可视化平台实践
         
       </div>
     </a>
   
   
-    <a href="/2018/11/10/Blog/建立人生准则/" id="article-nav-older" class="article-nav-link-wrap">
-      <div class="article-nav-title">建立人生准则</div>
+    <a href="/2018/11/12/Blog/我为什么会在这/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">我为什么会在这</div>
       <i class="icon-circle-right"></i>
     </a>
   
@@ -450,50 +428,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
             <input type="checkbox" q-on="click:toggleTag(e)" q-attr="checked:showTags">
           </label>
           <ul class="article-tag-list" q-show="showTags">
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">工作</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">目标</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">共享变量</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">缓存</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">标签1</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">标签2</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">人生</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">感悟</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">架构</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">可视化</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">AHAS</a>
-              </li>
             
             <div class="clearfix"></div>
           </ul>
