@@ -716,84 +716,14 @@
 <li>消除了几乎所有的JDBC代码和需要手工处理的参数和结果；</li>
 <li>支持XML和注解两种方式来配置sqlmap、mapper、pojo三者之间的关系。</li>
 </ul>
-<p>Mybatis理念：坚信SQL、RDBMS将继续使用<strong>30年</strong>；</p>
-<h3 id="Mybatis-核心概念"><a href="#Mybatis-核心概念" class="headerlink" title="Mybatis 核心概念"></a>Mybatis 核心概念</h3><p>数据模型：</p>
-<ul>
-<li>Configuration</li>
-<li>SqlSessionFactory</li>
-<li>SqlSession</li>
-<li>MappedStatement</li>
-</ul>
-<p>运行期四大组件：</p>
-<ul>
-<li>Executor </li>
-<li>StatementHandler </li>
-<li>ParameterHandler </li>
-<li>ResultSetHandler</li>
-</ul>
-<p>算法：</p>
-<ul>
-<li>Java静态&amp;动态代理</li>
-<li>待补充</li>
-</ul>
-<h3 id="Mybatis-发展历程"><a href="#Mybatis-发展历程" class="headerlink" title="Mybatis 发展历程"></a>Mybatis 发展历程</h3><p>ibatis → mybatis</p>
-<p>ibatis 于2002年由 Clinton Begin创建；<br>ibatis 于2010年暂停维护，专有apache维护，改名为mybatis，版本定位mybatis 3；</p>
-<h3 id="Mybatis-工作流程"><a href="#Mybatis-工作流程" class="headerlink" title="Mybatis 工作流程"></a>Mybatis 工作流程</h3><p><img src="/images/posts/20180409/mybatis-work-flow.jpg" alt=""><br>​    （选自CSDN：亦山）</p>
-<h3 id="Mybatis-中的设计思想"><a href="#Mybatis-中的设计思想" class="headerlink" title="Mybatis 中的设计思想"></a>Mybatis 中的设计思想</h3><ol>
-<li>外部化SQL&amp;参数配置化，将设置与运行策略分离；</li>
-<li>采用配置化原因：降低编码复杂度，提高可读性和可维护性；</li>
-<li>封装SQL；基于接口编程，屏蔽SQL对外部的具体实现；</li>
-<li>随处可见的工厂模式、builder模式、Proxy模式、装饰器模式；</li>
-<li>将大系统设计为多个子系统，每个子系统的功能相对集中，尽可能将那些需要由不同的开发角色处理的任务分离开来。</li>
-<li>Cache的实现模式：链式静态代理，原始对象PerpetualCache；<ul>
-<li>代理模式三要素：共同接口，真实对象、代理对象（装饰器模式）；</li>
-<li>我们可以采用对象工程屏蔽代理类的生成；</li>
-<li>静态代理的本质：不侵入代码的情况下，扩展原对象功能；</li>
-</ul>
-</li>
-<li>Plugin实现采用Java动态代理方式，责任链模式实现；</li>
-<li>基于注解或者路径的自动扫描；</li>
-</ol>
-<h3 id="Mybatis主要功能"><a href="#Mybatis主要功能" class="headerlink" title="Mybatis主要功能"></a>Mybatis主要功能</h3><ul>
-<li>使用XML或Java API配置Mybatis</li>
-<li>使用XML或注解配置SQL映射器（Mapper）</li>
-<li>基于OGNL表达式的动态SQL构建</li>
-<li>事务支持</li>
-</ul>
-<h5 id="Executor层次"><a href="#Executor层次" class="headerlink" title="Executor层次"></a>Executor层次</h5><p><img src="/images/posts/20180409/mybatis-executor-topo.jpg" alt=""></p>
-<p>CachingExecutor 是正式Executor实现类的一个代理wrapper。</p>
-<h5 id="动态SQL"><a href="#动态SQL" class="headerlink" title="动态SQL"></a>动态SQL</h5><p>4个核心关键词:</p>
-<ol>
-<li>if </li>
-<li>choise(when,otherwise)</li>
-<li>trim（where,set）</li>
-<li>foreach</li>
-</ol>
-<h5 id="缓存体系"><a href="#缓存体系" class="headerlink" title="缓存体系"></a>缓存体系</h5><ol>
-<li><p>本地缓存；<br> 作用域：SqlSession内数据本地缓存；<br> 数据结构：PerpetualCache （HashMap）<br> 作用：利用本地缓存机制（Local Cache）防止循环引用（circular references）和加速重复嵌套查询。<br> 配置： localCacheScope=STATEMENT|SESSION设置作用域，建议使用STATEMENT，防止分布式环境下导致的脏读；</p>
-</li>
-<li><p>二级缓存<br> 作用域：namespace；SqlSession间数据缓存；<br> 默认底层缓存结构：LruCache包装的PerpetualCache<br> 选择：在分布式环境下，建议使用外部分布式缓存系统，而非Mybatis的本地缓存；</p>
-</li>
-</ol>
-<h5 id="作用域：scope"><a href="#作用域：scope" class="headerlink" title="作用域：scope"></a>作用域：scope</h5><ul>
-<li>SqlSessionFactory 建议应用级别；   </li>
-<li>SqlSession 请求或方法级别（非线程安全）；</li>
-<li>Mapper Instance 方法级别；</li>
-</ul>
-<h4 id="与Spring集成"><a href="#与Spring集成" class="headerlink" title="与Spring集成"></a>与Spring集成</h4><p>下回详解；</p>
-<p>官方文档:<a href="http://www.mybatis.org/spring/index.html" target="_blank" rel="noopener">http://www.mybatis.org/spring/index.html</a></p>
-<p>版本说明：<a href="http://www.mybatis.org/spring/index.html" target="_blank" rel="noopener">http://www.mybatis.org/spring/index.html</a></p>
-<h4 id="工程示例："><a href="#工程示例：" class="headerlink" title="工程示例："></a>工程示例：</h4><p>大家可以基于测试工程自行联系相关设计理念以及工作原理：</p>
-<p><a href="https://github.com/heartaway/mybatis-study-demo" target="_blank" rel="noopener">https://github.com/heartaway/mybatis-study-demo</a></p>
-<h4 id="参考文档"><a href="#参考文档" class="headerlink" title="参考文档:"></a>参考文档:</h4><p><a href="http://www.mybatis.org/mybatis-3/zh/configuration.html" target="_blank" rel="noopener">http://www.mybatis.org/mybatis-3/zh/configuration.html</a></p>
-<p><a href="http://www.mybatis.org/spring/index.html" target="_blank" rel="noopener">http://www.mybatis.org/spring/index.html</a></p>
-<p><a href="https://blog.csdn.net/column/details/mybatis-principle.html" target="_blank" rel="noopener">https://blog.csdn.net/column/details/mybatis-principle.html</a></p>
-<p>《iBatis实战》</p>
-
+<p>Mybatis理念：坚信SQL、RDBMS将继续使用<strong>30年</strong>；：
+        
+          <a class="article-more-a" href="/2018/04/09/Java/2018-04-09-mybatis-core-thought/#more">more >></a>
+        
       
 
       
-    </div>
+    </p></div>
     <div class="article-info article-info-index">
       
       

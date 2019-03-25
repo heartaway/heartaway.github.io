@@ -20,7 +20,7 @@ date: 2018-04-09
 * 消除了几乎所有的JDBC代码和需要手工处理的参数和结果；
 * 支持XML和注解两种方式来配置sqlmap、mapper、pojo三者之间的关系。
 
-Mybatis理念：坚信SQL、RDBMS将继续使用**30年**；
+Mybatis理念：坚信SQL、RDBMS将继续使用**30年**；：<!-- more -->
 
 ### Mybatis 核心概念
 数据模型：
