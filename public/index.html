@@ -149,6 +149,107 @@
           <div id="js-content" class="content-ll">
             
   
+    <article id="post-Blog/Untitled" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
+  <div class="article-inner">
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h3 id="核心摘要"><a href="#核心摘要" class="headerlink" title="核心摘要"></a><span data-type="color" style="color:rgb(51, 51, 51)">核心摘要</span></h3><hr>
+<ul>
+<li><p>AHAS Agent在线数突破100；</p>
+</li>
+<li><p>AHAS 上线功能特征1个，修复问题 6个；</p>
+</li>
+<li>AHAS 公网VIP申请处于安全评审流程中，预计下周一出结论；</li>
+</ul>
+<h3 id="本周思考"><a href="#本周思考" class="headerlink" title="本周思考"></a>本周思考</h3><hr>
+<p>上周看完了吴军的《见识》，收获颇多，他从金钱观、婚姻观、职业观、世界观等等层面进行了个人习惯的介绍，很多道理我们都有所耳闻，但自己却未能落实下来，还是缺乏响应思维的训练，没能养成这种思维习惯。其中有一点关于日常工作的，“少做事甚至不做事”，意思是我们不要陷入盲目的忙碌工作当中，而忽略了哪些重要的事情。每周只定下一周中最重要的三件事情，其它不重要的事情需要挑选着做。 之前自己的认知是如何让自己每周的效率再高一些，再做多一些事情，其实不然，一个人的效率无论怎么配合先进的GTD工具，都是存在上线的，如果主动画出重要的三件事，一周的心思都放在这三件事情上，反而会让这三件事情的产出更好并且自己的工作跟轻松。</p>
+<p>本周接着休假阅读了部分《人类简史》，作者在前几张讲到的“认知革命”，让我觉得刷新了对人的认识，人类存在了200多万年，实际上爆发是在7万年左右由于基因突变带来的张立行走以及语言的能力，再加上有了想象的能力（包括国家、企业、品牌都是想象出来的），让人能从食物链的中段爬向了顶端。人类看似驯化了小麦、稻谷、牛羊等动植物，实则是这些生物训化了人类，让人类成为其物种繁衍生息的工具。作者这种多时间看问题的角度很特别，其次作者综合生物学、历史学、经济学、数学、物理学等多学科讲述，对我们多角度看问题的思维是一种引导和训练。</p>
+<h3 id="产品运营"><a href="#产品运营" class="headerlink" title="产品运营"></a>产品运营</h3><hr>
+<ul>
+<li><p>本周新开通用户数：84（上周 37)，保有量：363</p>
+</li>
+<li><p>本周新安装AHAS Agent数：42 (上周 37），保有量：101</p>
+</li>
+<li>本周新挂在Java Agent数：6（上周 2），保有量：13</li>
+<li>本周新增演练数：2（上周 10），总量：127；</li>
+<li>详细链接地址：<a href="https://quark.alibaba-inc.com/dashboard/view/page.htm?id=214434" target="_blank" rel="noopener">https://quark.alibaba-inc.com/dashboard/view/page.htm?id=214434</a></li>
+<li>时间范围：上周四~本周四</li>
+</ul>
+<h3 id="应用高可用服务"><a href="#应用高可用服务" class="headerlink" title="应用高可用服务"></a>应用高可用服务</h3><hr>
+<ol>
+<li>AHAS功能迭代：<ul>
+<li>架构感知的表格展示支持按照优先级排序；</li>
+<li>修复部分阿里云ecs接口获取osType为空导致window系统可交互的bug；</li>
+<li>修复部分场景架构感知中进程是否开启防护的错误判断；</li>
+<li>ots数据写操作新增指数退避重试算法，避免由于ots分裂导致的数据写失败问题；</li>
+<li>解决ahas agent一次上报容器数过多导致服务侧超时的问题，变更为批量写等待；</li>
+<li>整理并解决ahas agent上报的各种数据落库时字段超过mysql字段限制的问题；</li>
+<li>排查与定位demo数据部分场景下导致用户白屏问题，原因：前端部分判空逻辑未覆盖；</li>
+</ul>
+</li>
+<li>服务侧支持非非阿里云ECS VPC环境：<ul>
+<li>公网VIP需要安全进行代码级别审核，本周材料已提交，等待安全同学下周一给结论；</li>
+<li>review ahas-proxy 中新增的黑白名单功能feature；</li>
+</ul>
+</li>
+<li>AHAS 质量&amp;稳定性建设：<ul>
+<li>预约孤弋探讨edas agent的稳定性运维方案，由于时间几次错位，预约到下周进行讨论。</li>
+<li>用户反馈ahas agent自动离线，经过排查未发现具体原因（排查记录见aone），此问题需要提高优先级，不能因为接入进来的用户由于功能原因流式。</li>
+</ul>
+</li>
+<li>AHAS 产品推广软文《一分钟进行微服务架构可视化》各大博客论坛推广；</li>
+</ol>
+<h3 id="其它"><a href="#其它" class="headerlink" title="其它"></a>其它</h3><ul>
+<li>请年假3天</li>
+</ul>
+<h3 id="下周计划"><a href="#下周计划" class="headerlink" title="下周计划"></a>下周计划</h3><ul>
+<li>AHAS 支持非阿里云ecs vpc测试；</li>
+<li>AHAS Sentinel改造；</li>
+<li>AHAS 产品问题修复以及新feature支持；</li>
+</ul>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2018/11/30/Blog/Untitled/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
     <article id="post-Blog/微服务架构可视化平台实践" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
   <div class="article-inner">
     
@@ -1003,150 +1104,6 @@
 
 
   
-    <article id="post-HighAvailability/2018-03-15-aws-application-discovery" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/03/15/HighAvailability/2018-03-15-aws-application-discovery/">AWS应用自动发现服务</a>
-    </h1>
-  
-
-        
-        <a href="/2018/03/15/HighAvailability/2018-03-15-aws-application-discovery/" class="archive-article-date">
-  	<time datetime="2018-03-14T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-03-15</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <blockquote>
-<p>定义：AWS Application Discovery Service 收集并呈现数据，以使企业客户能了解其本地环境中服务器的配置、使用和行为。</p>
-</blockquote>
-<h2 id="工作模式："><a href="#工作模式：" class="headerlink" title="工作模式："></a>工作模式：</h2><h3 id="无代理自动发现"><a href="#无代理自动发现" class="headerlink" title="无代理自动发现"></a>无代理自动发现</h3><p>原理：基于 VMware vCenter Server 的环境的数据上报；</p>
-<p>弊端：</p>
-<ul>
-<li>采用VMware 方式在国内并不常用；</li>
-<li>采集到的数据有限，只是系统层面的静态数据与CPU、MEM的指标数据；</li>
-</ul>
-<h3 id="基于代理-Agent-的发现模式："><a href="#基于代理-Agent-的发现模式：" class="headerlink" title="基于代理(Agent)的发现模式："></a>基于代理(Agent)的发现模式：</h3><p>通过Agent可以采集更加丰富的数据集合，比如系统进程，系统间的网络连接；这里重点了解Agent模式。</p>
-<h2 id="采集的数据："><a href="#采集的数据：" class="headerlink" title="采集的数据："></a>采集的数据：</h2><ul>
-<li>静态配置数据： <ul>
-<li>系统标识信息：主机名、IP地址、MAC地址、操作系统名称、操作系统版本号，cpuType；</li>
-<li>运行中的进程数据；</li>
-<li>系统间的网络调用（TCP/IP v4 和 v6）；<ul>
-<li>sourceIP、sourceProcess、destinationIp、destinationPort、dstProcess，ipVersion；</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>性能指标数据：<ul>
-<li>操作系统层面：<ul>
-<li>参考之前的OS监控采集项；</li>
-</ul>
-</li>
-<li>进程层面：<ul>
-<li>%CPU</li>
-<li>%MEM</li>
-<li>%DISK  </li>
-</ul>
-</li>
-<li>网络层面：<ul>
-<li>待补充  </li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<h3 id="数据安全性："><a href="#数据安全性：" class="headerlink" title="数据安全性："></a>数据安全性：</h3><p>采用SSL协议进行数据传输；<br>数据存储采用AWS KMS静态加密；</p>
-<h2 id="Agent模式下的自动发现"><a href="#Agent模式下的自动发现" class="headerlink" title="Agent模式下的自动发现"></a>Agent模式下的自动发现</h2><p>Agent启动时，自动注册到Arsenal中，并频繁对该服务执行 ping 操作以获取配置信息。<br><img src="https://gw.alipayobjects.com/zos/skylark/2a647cf5-d9b2-42f6-bcab-39a16b5ead2b/2018/png/179f1e58-a729-4ab0-8dea-b604269d0ad9.png" alt=""></p>
-<h3 id="数据收集"><a href="#数据收集" class="headerlink" title="数据收集"></a>数据收集</h3><p>数据的收集需要自动显示开启；</p>
-<h4 id="数据采集状态："><a href="#数据采集状态：" class="headerlink" title="数据采集状态："></a>数据采集状态：</h4><ul>
-<li>STARTED – 收集工具已开始收集和发送数据到 Discovery Service。</li>
-<li>START_SCHEDULED – 已计划数据收集开始时间。下次收集工具联系 AWS 时，它将开始将数据发送到 Discovery Service，并且收集状态将更改为 STARTED。</li>
-<li>STOPPED – 收集工具已停止发送数据到 Discovery Service。</li>
-<li>STOP_SCHEDULED – 已计划数据收集停止时间。下次收集工具联系 AWS 时，它将停止向 DiscoveryService 发送数据，并且收集状态将更改为 STOPPED。</li>
-</ul>
-<h3 id="组件分类"><a href="#组件分类" class="headerlink" title="组件分类"></a>组件分类</h3><p>DiscoveryService识别组件后，通过TAG标签的方式，对资源进行标记；用户也可以同通过控制台进行自定义TAG标记；</p>
-<p><strong>进程数据分类方法：</strong> 通过采集到的进程数据，可以推测出aws判断进程属于哪一类基础设施应该是通过进程名称与commondLine来判断的。</p>
-<h3 id="Agent模式自动发现不足："><a href="#Agent模式自动发现不足：" class="headerlink" title="Agent模式自动发现不足："></a>Agent模式自动发现不足：</h3><ul>
-<li>不能保存资源组件快照或跟踪资源变更；</li>
-<li>收集的性能数据不是通用的运行状况监控解决方案；</li>
-</ul>
-<h2 id="自动发现API"><a href="#自动发现API" class="headerlink" title="自动发现API"></a>自动发现API</h2><ol>
-<li>Agent相关API<ul>
-<li>Agent的启动、停止数据采集操作；</li>
-<li>Agent的描述信息；</li>
-<li>Agent的运行状态；</li>
-</ul>
-</li>
-<li>配置相关API<ul>
-<li>server、application、process、connection 的指标查询、过滤与配置；</li>
-</ul>
-</li>
-<li>标签相关API<ul>
-<li>TAG的增删改查； </li>
-</ul>
-</li>
-</ol>
-<h2 id="其他："><a href="#其他：" class="headerlink" title="其他："></a>其他：</h2><p>产品链接：<a href="https://aws.amazon.com/cn/documentation/application-discovery/" target="_blank" rel="noopener">https://aws.amazon.com/cn/documentation/application-discovery/</a></p>
-<p>API地址：<a href="https://docs.aws.amazon.com/zh_cn/application-discovery/latest/APIReference/discovery-api.pdf#discovery-api-queries" target="_blank" rel="noopener">https://docs.aws.amazon.com/zh_cn/application-discovery/latest/APIReference/discovery-api.pdf#discovery-api-queries</a></p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/HighAvailability//" class="article-tag-list-link color2">HighAvailability</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2018/03/15/HighAvailability/2018-03-15-aws-application-discovery/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
   
     <nav id="page-nav">
       <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><span class="space">&hellip;</span><a class="page-number" href="/page/10/">10</a><a class="extend next" rel="next" href="/page/2/">Next &raquo;</a>
@@ -1161,7 +1118,7 @@
   <div class="outer">
     <div id="footer-info">
     	<div class="footer-left">
-    		&copy; 2018 心静志远
+    		&copy; 2019 心静志远
     	</div>
       	<div class="footer-right">
       		<a href="http://hexo.io/" target="_blank">Hexo</a>  Theme <a href="https://github.com/litten/hexo-theme-yilia" target="_blank">Yilia</a> by Litten
@@ -1244,14 +1201,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
           <ul class="article-tag-list" q-show="showTags">
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">标签1</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">标签2</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">工作</a>
               </li>
              
@@ -1265,6 +1214,14 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">缓存</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">标签1</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">标签2</a>
               </li>
              
               <li class="article-tag-list-item">

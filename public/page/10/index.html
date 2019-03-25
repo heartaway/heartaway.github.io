@@ -149,6 +149,98 @@
           <div id="js-content" class="content-ll">
             
   
+    <article id="post-Java/2013-03-18-java-super-this" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2013/03/18/Java/2013-03-18-java-super-this/">Java基础 之 super 和 this</a>
+    </h1>
+  
+
+        
+        <a href="/2013/03/18/Java/2013-03-18-java-super-this/" class="archive-article-date">
+  	<time datetime="2013-03-17T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2013-03-18</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>super的定义：</p>
+<blockquote>
+<p>The super keyword enables a <a href="http://java.about.com/od/s/g/subclass.htm" target="_blank" rel="noopener">subclass</a> to call the methods and fields of its <a href="http://java.about.com/od/s/g/superclass.htm" target="_blank" rel="noopener">superclass</a>. It is not an instance of the superclass object but a way to tell the compiler which methods or fields to reference. The effect is the same as if the subclass is calling one of its own methods.</p>
+</blockquote>
+<p>this 是对自身对象的一个地址引用，调用的是 invokevirtual。</p>
+<p>super 是类似引用 但不是引用的调用，因为 super 实际上是 调用invokespecial 。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">C extends B,  B extends A;</span><br><span class="line">A a = <span class="keyword">new</span> C();</span><br></pre></td></tr></table></figure>
+<p>那么为C在堆中分配的内存区域中，分为三块，一块是C自己的，一块是B自己的，一块是A的，在C、B、A中都会有连个变量，super 和 this ；this指向当前区域，super指向父类的内存区域；</p>
+<p>从内存分配可以看出this和super变量是属于对象的，所以不能在静态块和静态方法中使用。</p>
+<h4 id="this使用场景："><a href="#this使用场景：" class="headerlink" title="this使用场景："></a>this使用场景：</h4><ol>
+<li>通过this调用另一个构造方法，用法是this(参数列表)，这个仅仅在类的构造方法中，别的地方不能这么用。</li>
+<li>函数参数或者函数中的局部变量和成员变量同名的情况下，成员变量被屏蔽，此时要访问成员变量则需要用“this.成员变量名”的方式来引用成员变量。当然，在没有同名的情况下，可以直接用成员变量的名字，而不用this，用了也不为错。</li>
+<li>在函数中，需要引用该函所属类的当前对象时候，直接用this。</li>
+</ol>
+<h4 id="super的用法："><a href="#super的用法：" class="headerlink" title="super的用法："></a>super的用法：</h4><ol>
+<li>在子类构造方法中要调用父类的构造方法，用“super(参数列表)”的方式调用，参数不是必须的。同时还要注意的一点是：“super(参数列表)”这条语句只能用在子类构造方法体中的第一行。</li>
+<li>当子类方法中的局部变量或者子类的成员变量与父类成员变量同名时，也就是子类局部变量覆盖父类成员变量时，用“super.成员变量名”来引用父类成员变量。当然，如果父类的成员变量没有被覆盖，也可以用“super.成员变量名”来引用父类成员变量，不过这是不必要的。</li>
+<li>当子类的成员方法覆盖了父类的成员方法时，也就是子类和父类有完全相同的方法定义（但方法体可以不同），此时，用“super.方法名(参数列表)”的方式访问父类的方法。</li>
+</ol>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2013/03/18/Java/2013-03-18-java-super-this/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
     <article id="post-Java/2013-03-05-java-class-load" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
   <div class="article-inner">
     
@@ -615,7 +707,7 @@
   <div class="outer">
     <div id="footer-info">
     	<div class="footer-left">
-    		&copy; 2018 心静志远
+    		&copy; 2019 心静志远
     	</div>
       	<div class="footer-right">
       		<a href="http://hexo.io/" target="_blank">Hexo</a>  Theme <a href="https://github.com/litten/hexo-theme-yilia" target="_blank">Yilia</a> by Litten
@@ -698,14 +790,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
           <ul class="article-tag-list" q-show="showTags">
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">标签1</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">标签2</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">工作</a>
               </li>
              
@@ -719,6 +803,14 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">缓存</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">标签1</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">标签2</a>
               </li>
              
               <li class="article-tag-list-item">

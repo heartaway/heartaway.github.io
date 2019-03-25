@@ -149,6 +149,108 @@
           <div id="js-content" class="content-ll">
             
   
+    <article id="post-Java/2017-02-16-threadlocal" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/02/16/Java/2017-02-16-threadlocal/">ThreadLocal 原理探究</a>
+    </h1>
+  
+
+        
+        <a href="/2017/02/16/Java/2017-02-16-threadlocal/" class="archive-article-date">
+  	<time datetime="2017-02-15T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2017-02-16</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="ThreadLocal-的作用："><a href="#ThreadLocal-的作用：" class="headerlink" title="ThreadLocal 的作用："></a>ThreadLocal 的作用：</h2><p>This class provides thread-local variables. 提供了线程级别的本地变量。</p>
+<h2 id="ThreadLocal的原理："><a href="#ThreadLocal的原理：" class="headerlink" title="ThreadLocal的原理："></a>ThreadLocal的原理：</h2><ol>
+<li>每一个线程Thread内部维护了两个package private级别的变量：<ul>
+<li>ThreadLocal.ThreadLocalMap threadLocals</li>
+<li>ThreadLocal.ThreadLocalMap inheritableThreadLocals</li>
+</ul>
+</li>
+<li>每一个 ThreadLocal 对象有一个创建时生成唯一的 Id称为：<strong>threadLocalHashCode</strong>，访问一个 ThreadLocal 变量的值，就是用threadLocalHashCode去 本线程 的 ThreadLocalMap 中查找对应的值。</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> Entry <span class="title">getEntry</span><span class="params">(ThreadLocal&lt;?&gt; key)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> i = key.threadLocalHashCode </span><br><span class="line">    &amp; (table.length - <span class="number">1</span>);</span><br><span class="line">    Entry e = table[i];</span><br><span class="line">    <span class="keyword">if</span> (e != <span class="keyword">null</span> &amp;&amp; e.get() == key)</span><br><span class="line">        <span class="keyword">return</span> e;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        <span class="keyword">return</span> getEntryAfterMiss(key, i, e);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ol start="3">
+<li>ThreadLocalMap 为一个静态内部类，包含了一个Entity数组（Entry[] table）来保持ThreadLocal的线程变量；</li>
+</ol>
+<h2 id="ThreadLocalMap的原理"><a href="#ThreadLocalMap的原理" class="headerlink" title="ThreadLocalMap的原理"></a>ThreadLocalMap的原理</h2><ol>
+<li>ThreadLocalMap是一个Hash Map，采用的是开放地址法而不是链表的方式解决冲突。</li>
+<li>Entry 是 WeakReference 的子类，这样不再被使用的 ThreadLocal 可以被检查出来并清除掉。</li>
+<li>线程隔离的秘密，就在于ThreadLocalMap这个类。ThreadLocalMap是ThreadLocal类的一个静态内部类，它实现了键值对的设置和获取（对比Map对象来理解），每个线程中都有一个独立的ThreadLocalMap副本，它所存储的值，只能被当前线程读取和修改。ThreadLocal类通过操作每一个线程特有的ThreadLocalMap副本，从而实现了变量访问在不同线程中的隔离。因为每个线程的变量都是自己特有的，完全不会有并发错误。还有一点就是，ThreadLocalMap存储的键值对中的键是this对象指向的ThreadLocal对象，而值就是你所设置的对象了。</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">ThreadLocalMap <span class="title">getMap</span><span class="params">(Thread t)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> t.threadLocals;</span><br><span class="line">&#125;</span><br><span class="line">   <span class="function"><span class="keyword">void</span> <span class="title">createMap</span><span class="params">(Thread t, T firstValue)</span> </span>&#123;</span><br><span class="line">    t.threadLocals = <span class="keyword">new</span> ThreadLocalMap(<span class="keyword">this</span>, firstValue);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="神奇的-0x61c88647"><a href="#神奇的-0x61c88647" class="headerlink" title="神奇的 0x61c88647"></a>神奇的 0x61c88647</h2><p>待补充；</p>
+<h2 id="使用陷阱："><a href="#使用陷阱：" class="headerlink" title="使用陷阱："></a>使用陷阱：</h2><ul>
+<li>ThreadLocal和线程池同时使用出现变量污染；<br> 在使用线程池的过程中，由于线程是不断的回收和利用故ThreadLocal在服务器中也是被反复利用的，在使用中如果不进行清查操作，很容易导致变量污染。 </li>
+</ul>
+<h2 id="问题："><a href="#问题：" class="headerlink" title="问题："></a>问题：</h2><h4 id="疑惑1："><a href="#疑惑1：" class="headerlink" title="疑惑1："></a>疑惑1：</h4><p>既然ThreadLocal只维护一个值，每一个Thread中都存储的是一个副本，为什么ThreadLocalMap需要时一个数组而不是object呢？</p>
+<p><strong>原因：</strong></p>
+<p>如果我们期望在一个Thread中存储多个ThreadLocal变量怎么办呢？不可能改造Thread，新增一个Object对象吧，所以为了更方便的在同一个Thread中加入多个ThreadLocal变量，才引入了数组结构，不同的ThreadLocal对象作为不同键，所以在线程的ThreadLocalMap对象中设置不同的值。</p>
+<h4 id="疑惑2："><a href="#疑惑2：" class="headerlink" title="疑惑2："></a>疑惑2：</h4><p>ThreadLocalMap为什么采用开放地址的方法，而不采用链表来防止hash冲突？</p>
+<p>答：待补充</p>
+<h2 id="扩张阅读："><a href="#扩张阅读：" class="headerlink" title="扩张阅读："></a>扩张阅读：</h2><p><a href="http://qifuguang.me/2015/09/02/[Java%E5%B9%B6%E5%8F%91%E5%8C%85%E5%AD%A6%E4%B9%A0%E4%B8%83]%E8%A7%A3%E5%AF%86ThreadLocal/" target="_blank" rel="noopener">http://qifuguang.me/2015/09/02/[Java%E5%B9%B6%E5%8F%91%E5%8C%85%E5%AD%A6%E4%B9%A0%E4%B8%83]%E8%A7%A3%E5%AF%86ThreadLocal/</a></p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2017/02/16/Java/2017-02-16-threadlocal/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
     <article id="post-Java/2017-02-15-object-mapping" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
   <div class="article-inner">
     
@@ -912,84 +1014,6 @@
 
 
   
-    <article id="post-Think/2016-07-09-think-you-work" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2016/07/09/Think/2016-07-09-think-you-work/">你的工作离赚钱近吗？</a>
-    </h1>
-  
-
-        
-        <a href="/2016/07/09/Think/2016-07-09-think-you-work/" class="archive-article-date">
-  	<time datetime="2016-07-08T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2016-07-09</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>互联网行业有一个规律，当你所做的事情离钱越近的时候，越会受到公司重视，这种重视会是资源的倾斜、价值的回报、能力的认可。所以当你选择工作的岗位的时候，想一想，你离核心业务是否够近，比如电商行业，商品的零售带来的利润就是公司非常重要的盈利手段，那么在这条链路上，你所处哪一环节，是成交转化还是仓储配送疑惑售后客服？要抓住整个链条的七寸，方能给自己争取更大的发展空间，否则你可能会成为可有可无的螺丝钉，在企业经济效应不景气需要裁员的时候，请不要说我的能力如何，我为公司付出了多少，因为你所作的事情已经决定了你在整个企业盈利体系中的价值。<br>理解商业的本质，你就会理解职业的本质，无论当下是创业还是打工，在你当前的工作中什么对你是最有价值的，你就应该努力让自己到达那里，这其中需要自知、自省、自制，不自知的努力是妄想，不自省的奋斗容易膨胀，不自制的前行可能让你迷失方向。在自身能力匹配的情况下，如果可以选择，一定要让自己更多的向产生利润的岗位靠近，这样做是什么好处呢？</p>
-<h3 id="第一、你的努力更容易拿到结果。"><a href="#第一、你的努力更容易拿到结果。" class="headerlink" title="第一、你的努力更容易拿到结果。"></a>第一、你的努力更容易拿到结果。</h3><p>没有结果的努力，可能会成为徒劳，这里面不排除一些为后续更大结果做了铺路石只是当下没有结果的事情。有好结果的事情，无论对企业还是个人都是非常大的肯定，你做的事情越多的受到肯定，大家对你会越信任，越多更具有挑战的事情会让你去承担。在阿里的文化中，结果导向是非常重要的一个做事方式，即使你做的事情后来发现可能没有预先想象的那么有趣，但是最好还是寻求一个结果，有时候这个结果可能与利益无关。</p>
-<h3 id="第二、你的价值会被逐步放大。"><a href="#第二、你的价值会被逐步放大。" class="headerlink" title="第二、你的价值会被逐步放大。"></a>第二、你的价值会被逐步放大。</h3><p>在企业中最怕那种工作越做越来默默无闻，时间长了，你就没有了存在感，你也就成了可有可无的摆设了，在这种职业路线中，你其实是在走下坡路，此时你就应该反省了，是个人的问题还是业务被边缘化，此时你需要的是变化，主动去改变这种格局。人都是渴望被认可、被信任、被认为重要，如果你工作中感受不到这点，说明你需要静下来，思考，找到适合自己的路，来让自己的价值曲线向上。</p>
-<h3 id="第三、你的发展空间会更大。"><a href="#第三、你的发展空间会更大。" class="headerlink" title="第三、你的发展空间会更大。"></a>第三、你的发展空间会更大。</h3><p>如果你做的是边缘业务或者是企业为了试错的业务，那么你需要做好业务被砍的心理准备，因为你所作的事情并不在当前企业核心价值体系之中，当企业考虑成本与利润的时候，这种业务被砍也是情理之中的事情。有人会说，被砍了可以去做其他的事情呀，这话没错，但是，这点违背了第一条，寻求结果，当业务被砍的时候，你可能无法拿到结果，这标识你过去付出的一切可能都会付诸东流，如果你去其他业务部分，也许他们也在进行人员精简，找到一个合适的位置会变得很难。我所经历的试错业务团队被砍后，带来的代价是，整个团队离职，真的很可惜，团队中有很多优秀的人未能留下来。对公司和他们个人都是一个损失。如果你的业务是核心业务，那么代表着，你不需要为业务被砍而过早担心，你做的事情会相对稳定很多，稳定带来的好处是你可以有更长的时间在这个领域里面深耕和沉淀，你积累的多了，以后的发展空间也会越大。</p>
-<p>那么对一个目前还是普通程序员来说，如何调整自己的方向呢，我认为首先需要分析自己当前在做的事情是否为业务的核心，还以电商为例，如果你做的是ERP系统、客服系统、工单系统、OA系统，如果你是刚毕业一两年的小青年，做做没什么不可，如果你是工作了四五年的程序员，那么你可以考虑换换了，我不是说这些不重要，而是这些已经不再适合你了，做这些非核心业务，那些刚毕业一两年的人的性价比比你高，企业如果可以使用更低的成本达到同样的效果为什么还要花更大的成本呢。如果你的技术水平未能匹配你的工作年限，那么你当前最重要的事情是想尽一切办法沉淀自己，让自己变得更加专业，不要眼红别人的高工资，你只需要做的是提高自身的能力。当能力与工作年限匹配的时候，你就可以选择那些离钱更近、更有发展空间的岗位了。对于一个普通程序员来说，哪些岗位可能会离钱更近呢？我认为在电商企业中有以下研发岗：导购、支付、订单、搜索、推荐、增长。BI为什么不在里面呢，虽然BI非常重要，但是你没有使用数据的决定权，至多是一个数据源。我罗列的这几个岗位中内部也是会区分重要性的，你是决策者还是执行者，如果从执行者成长为决策者，是你需要思考的问题。</p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Think//" class="article-tag-list-link color1">Think</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2016/07/09/Think/2016-07-09-think-you-work/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
   
     <nav id="page-nav">
       <a class="extend prev" rel="prev" href="/page/4/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/3/">3</a><a class="page-number" href="/page/4/">4</a><span class="page-number current">5</span><a class="page-number" href="/page/6/">6</a><a class="page-number" href="/page/7/">7</a><span class="space">&hellip;</span><a class="page-number" href="/page/10/">10</a><a class="extend next" rel="next" href="/page/6/">Next &raquo;</a>
@@ -1004,7 +1028,7 @@
   <div class="outer">
     <div id="footer-info">
     	<div class="footer-left">
-    		&copy; 2018 心静志远
+    		&copy; 2019 心静志远
     	</div>
       	<div class="footer-right">
       		<a href="http://hexo.io/" target="_blank">Hexo</a>  Theme <a href="https://github.com/litten/hexo-theme-yilia" target="_blank">Yilia</a> by Litten
@@ -1087,14 +1111,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
           <ul class="article-tag-list" q-show="showTags">
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">标签1</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">标签2</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">工作</a>
               </li>
              
@@ -1108,6 +1124,14 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">缓存</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">标签1</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">标签2</a>
               </li>
              
               <li class="article-tag-list-item">
