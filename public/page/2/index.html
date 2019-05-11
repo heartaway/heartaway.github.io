@@ -149,6 +149,150 @@
           <div id="js-content" class="content-ll">
             
   
+    <article id="post-HighAvailability/2018-03-15-aws-application-discovery" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/03/15/HighAvailability/2018-03-15-aws-application-discovery/">AWS应用自动发现服务</a>
+    </h1>
+  
+
+        
+        <a href="/2018/03/15/HighAvailability/2018-03-15-aws-application-discovery/" class="archive-article-date">
+  	<time datetime="2018-03-14T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-03-15</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <blockquote>
+<p>定义：AWS Application Discovery Service 收集并呈现数据，以使企业客户能了解其本地环境中服务器的配置、使用和行为。</p>
+</blockquote>
+<h2 id="工作模式："><a href="#工作模式：" class="headerlink" title="工作模式："></a>工作模式：</h2><h3 id="无代理自动发现"><a href="#无代理自动发现" class="headerlink" title="无代理自动发现"></a>无代理自动发现</h3><p>原理：基于 VMware vCenter Server 的环境的数据上报；</p>
+<p>弊端：</p>
+<ul>
+<li>采用VMware 方式在国内并不常用；</li>
+<li>采集到的数据有限，只是系统层面的静态数据与CPU、MEM的指标数据；</li>
+</ul>
+<h3 id="基于代理-Agent-的发现模式："><a href="#基于代理-Agent-的发现模式：" class="headerlink" title="基于代理(Agent)的发现模式："></a>基于代理(Agent)的发现模式：</h3><p>通过Agent可以采集更加丰富的数据集合，比如系统进程，系统间的网络连接；这里重点了解Agent模式。</p>
+<h2 id="采集的数据："><a href="#采集的数据：" class="headerlink" title="采集的数据："></a>采集的数据：</h2><ul>
+<li>静态配置数据： <ul>
+<li>系统标识信息：主机名、IP地址、MAC地址、操作系统名称、操作系统版本号，cpuType；</li>
+<li>运行中的进程数据；</li>
+<li>系统间的网络调用（TCP/IP v4 和 v6）；<ul>
+<li>sourceIP、sourceProcess、destinationIp、destinationPort、dstProcess，ipVersion；</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>性能指标数据：<ul>
+<li>操作系统层面：<ul>
+<li>参考之前的OS监控采集项；</li>
+</ul>
+</li>
+<li>进程层面：<ul>
+<li>%CPU</li>
+<li>%MEM</li>
+<li>%DISK  </li>
+</ul>
+</li>
+<li>网络层面：<ul>
+<li>待补充  </li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="数据安全性："><a href="#数据安全性：" class="headerlink" title="数据安全性："></a>数据安全性：</h3><p>采用SSL协议进行数据传输；<br>数据存储采用AWS KMS静态加密；</p>
+<h2 id="Agent模式下的自动发现"><a href="#Agent模式下的自动发现" class="headerlink" title="Agent模式下的自动发现"></a>Agent模式下的自动发现</h2><p>Agent启动时，自动注册到Arsenal中，并频繁对该服务执行 ping 操作以获取配置信息。<br><img src="https://gw.alipayobjects.com/zos/skylark/2a647cf5-d9b2-42f6-bcab-39a16b5ead2b/2018/png/179f1e58-a729-4ab0-8dea-b604269d0ad9.png" alt=""></p>
+<h3 id="数据收集"><a href="#数据收集" class="headerlink" title="数据收集"></a>数据收集</h3><p>数据的收集需要自动显示开启；</p>
+<h4 id="数据采集状态："><a href="#数据采集状态：" class="headerlink" title="数据采集状态："></a>数据采集状态：</h4><ul>
+<li>STARTED – 收集工具已开始收集和发送数据到 Discovery Service。</li>
+<li>START_SCHEDULED – 已计划数据收集开始时间。下次收集工具联系 AWS 时，它将开始将数据发送到 Discovery Service，并且收集状态将更改为 STARTED。</li>
+<li>STOPPED – 收集工具已停止发送数据到 Discovery Service。</li>
+<li>STOP_SCHEDULED – 已计划数据收集停止时间。下次收集工具联系 AWS 时，它将停止向 DiscoveryService 发送数据，并且收集状态将更改为 STOPPED。</li>
+</ul>
+<h3 id="组件分类"><a href="#组件分类" class="headerlink" title="组件分类"></a>组件分类</h3><p>DiscoveryService识别组件后，通过TAG标签的方式，对资源进行标记；用户也可以同通过控制台进行自定义TAG标记；</p>
+<p><strong>进程数据分类方法：</strong> 通过采集到的进程数据，可以推测出aws判断进程属于哪一类基础设施应该是通过进程名称与commondLine来判断的。</p>
+<h3 id="Agent模式自动发现不足："><a href="#Agent模式自动发现不足：" class="headerlink" title="Agent模式自动发现不足："></a>Agent模式自动发现不足：</h3><ul>
+<li>不能保存资源组件快照或跟踪资源变更；</li>
+<li>收集的性能数据不是通用的运行状况监控解决方案；</li>
+</ul>
+<h2 id="自动发现API"><a href="#自动发现API" class="headerlink" title="自动发现API"></a>自动发现API</h2><ol>
+<li>Agent相关API<ul>
+<li>Agent的启动、停止数据采集操作；</li>
+<li>Agent的描述信息；</li>
+<li>Agent的运行状态；</li>
+</ul>
+</li>
+<li>配置相关API<ul>
+<li>server、application、process、connection 的指标查询、过滤与配置；</li>
+</ul>
+</li>
+<li>标签相关API<ul>
+<li>TAG的增删改查； </li>
+</ul>
+</li>
+</ol>
+<h2 id="其他："><a href="#其他：" class="headerlink" title="其他："></a>其他：</h2><p>产品链接：<a href="https://aws.amazon.com/cn/documentation/application-discovery/" target="_blank" rel="noopener">https://aws.amazon.com/cn/documentation/application-discovery/</a></p>
+<p>API地址：<a href="https://docs.aws.amazon.com/zh_cn/application-discovery/latest/APIReference/discovery-api.pdf#discovery-api-queries" target="_blank" rel="noopener">https://docs.aws.amazon.com/zh_cn/application-discovery/latest/APIReference/discovery-api.pdf#discovery-api-queries</a></p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/HighAvailability//" class="article-tag-list-link color2">HighAvailability</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2018/03/15/HighAvailability/2018-03-15-aws-application-discovery/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
     <article id="post-Paper/2018-03-14-infrastructure-auto-discovery" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
   <div class="article-inner">
     
@@ -1985,92 +2129,6 @@
 
 
   
-    <article id="post-Think/2017-12-20-high-school-years" class="article article-type-post  article-index" itemscope="" itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/12/20/Think/2017-12-20-high-school-years/">《那时花开》</a>
-    </h1>
-  
-
-        
-        <a href="/2017/12/20/Think/2017-12-20-high-school-years/" class="archive-article-date">
-  	<time datetime="2017-12-19T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2017-12-20</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <blockquote>
-<p>作品：《那时花开》</p>
-<p>字数：约 35000 字</p>
-<p>体裁：中篇小说</p>
-<p>关键字：校园青春</p>
-<p>背景：小说记录了自己以在高中时期一群小伙伴的学习生活，作者：陈晓雷</p>
-</blockquote>
-<p><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/ebd88c6345e5ad414d1007e6f121417e.jpg" alt=""></p>
-<p>袁河是高二上学期转到陆可凡他们班的。至于转班的原因却不得而知。不过众所周知的是，陆可凡他们班的语文老师是袁河的爸爸，所以就有人猜测这可能是他爸爸的注意，目的很简单，无非就是为了方便监督和管教儿子学习。那为什么到了高二才转班呢？答案也很简单，因为高二是承上启下的关键学期，既能延续高一时的学习状态，又能为高三做准备，所以这时转班最合适不过了。</p>
-<p>转到陆可凡他们班上后，袁河发现了一个奇怪的现象。</p>
-<p>比如一般课间休息的时候，同学们都会以固有的方式来放松自己。其中少数同学会走出教室，站在外面的走廊上，抬头仰望天空，认真盘算自己忧伤的心事。或者靠在旁边的栏杆上，低头看着地面，仔细回忆某天的快乐心情。而大多数同学则会三五成群地聚在一起，找一个大家都感兴趣的话题，然后各抒己见，开始谈论。
-        
-          <a class="article-more-a" href="/2017/12/20/Think/2017-12-20-high-school-years/#more">more >></a>
-        
-      
-
-      
-    </p></div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Think//" class="article-tag-list-link color1">Think</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2017/12/20/Think/2017-12-20-high-school-years/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
   
     <nav id="page-nav">
       <a class="extend prev" rel="prev" href="/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><a class="page-number" href="/page/4/">4</a><span class="space">&hellip;</span><a class="page-number" href="/page/10/">10</a><a class="extend next" rel="next" href="/page/3/">Next &raquo;</a>
@@ -2265,6 +2323,10 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
           
             <li class="search-li">
               <a href="http://blog.hesey.net/" target="_blank" class="search-title"><i class="icon-quo-left icon"></i>舒の随想日记</a>
+            </li>
+          
+            <li class="search-li">
+              <a href="https://www.cnkirito.moe/" target="_blank" class="search-title"><i class="icon-quo-left icon"></i>徐靖峰</a>
             </li>
           
         </ul>

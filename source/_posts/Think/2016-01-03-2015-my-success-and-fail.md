@@ -3,7 +3,7 @@ layout: post
 title: 二零一五，我的失败与伟大
 categories: Think
 description:
-keywords: annual-summary 我的失败与伟大 年度总结 失败 伟大
+keywords: 我的失败与伟大 年度总结 失败 伟大
 date: 2016-01-03
 ---
 
