@@ -3,7 +3,7 @@ layout: post
 title: 二零一三，我的失败与伟大
 categories: Think
 description:
-keywords: 我的失败与伟大 年度总结 失败 伟大
+tags: [我的失败与伟大,年度总结,失败,伟大]
 date: 2014-01-03
 ---
 过去的一年真的很快，在Leader岁晚下面整整一年之久了。
