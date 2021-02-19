@@ -17,7 +17,7 @@
 <meta property="og:description" content="背景业务上有一个需求使用基线数据中拷贝出内容，分发到不同用户集合的存储实例中，使用模型标识就是B-&amp;gt;(u1,u2,u3…uN)，初始代码逻辑是，每个用户都有单独的定时器触发来执行B-&amp;gt;uN的拷贝，执行这个过程需要首先从基线B中取出数据，然后替换为uN的用户信息，在写入uN的数据存储中（用户之间逻辑隔离非物理隔离），期初此流程没什么问题，后来考虑到每个用户读取的基线可能相同，可以对基线">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="https://cdn.nlark.com/yuque/0/2018/png/104361/1542351217947-009a8e54-41ed-4409-a896-9bad779f631c.png#width=747">
-<meta property="og:updated_time" content="2019-03-25T14:46:00.598Z">
+<meta property="og:updated_time" content="2021-02-19T03:19:59.634Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="本地缓存的数据变更">
 <meta name="twitter:description" content="背景业务上有一个需求使用基线数据中拷贝出内容，分发到不同用户集合的存储实例中，使用模型标识就是B-&amp;gt;(u1,u2,u3…uN)，初始代码逻辑是，每个用户都有单独的定时器触发来执行B-&amp;gt;uN的拷贝，执行这个过程需要首先从基线B中取出数据，然后替换为uN的用户信息，在写入uN的数据存储中（用户之间逻辑隔离非物理隔离），期初此流程没什么问题，后来考虑到每个用户读取的基线可能相同，可以对基线">
@@ -348,11 +348,11 @@
 
   
   <div id="gitment-ctn"></div> 
-<link rel="stylesheet" href="/gitment.css">
-<script src="/gitment.js"></script>
+<link rel="stylesheet" href="//imsun.github.io/gitment/style/default.css">
+<script src="//imsun.github.io/gitment/dist/gitment.browser.js"></script>
 <script>
 var gitment = new Gitment({
-  id: '本地缓存的数据变更',
+  id: "http://mingming.tech/2018/11/16/Java/ 2018-11-16-local-cache-chage/",
   owner: 'heartaway',
   repo: 'heartaway.github.io',
   oauth: {
@@ -455,11 +455,31 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
           <ul class="article-tag-list" q-show="showTags">
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">架构</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">可视化</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">AHAS</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">共享变量</a>
               </li>
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">缓存</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">问题定位</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">稳定性</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -476,26 +496,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">伟大</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">架构</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">可视化</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">AHAS</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">问题定位</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">稳定性</a>
               </li>
              
               <li class="article-tag-list-item">

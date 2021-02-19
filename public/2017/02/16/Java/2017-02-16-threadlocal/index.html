@@ -16,7 +16,7 @@
 <meta property="og:site_name" content="心静志远">
 <meta property="og:description" content="ThreadLocal 的作用：This class provides thread-local variables. 提供了线程级别的本地变量。 ThreadLocal的原理： 每一个线程Thread内部维护了两个package private级别的变量： ThreadLocal.ThreadLocalMap threadLocals ThreadLocal.ThreadLocalMap inh">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2018-11-10T08:59:09.800Z">
+<meta property="og:updated_time" content="2021-02-19T03:19:59.641Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="ThreadLocal 原理探究">
 <meta name="twitter:description" content="ThreadLocal 的作用：This class provides thread-local variables. 提供了线程级别的本地变量。 ThreadLocal的原理： 每一个线程Thread内部维护了两个package private级别的变量： ThreadLocal.ThreadLocalMap threadLocals ThreadLocal.ThreadLocalMap inh">
@@ -304,11 +304,11 @@
   
 <nav id="article-nav">
   
-    <a href="/2017/02/27/Think/2017-02-27-see-your-grow-up/" id="article-nav-newer" class="article-nav-link-wrap">
+    <a href="/2017/02/27/Tool/2017-02-27-git-repo/" id="article-nav-newer" class="article-nav-link-wrap">
       <i class="icon-circle-left"></i>
       <div class="article-nav-title">
         
-          看见自己的成长
+          GIT本地仓库与远程仓库
         
       </div>
     </a>
@@ -350,11 +350,11 @@
 
   
   <div id="gitment-ctn"></div> 
-<link rel="stylesheet" href="/gitment.css">
-<script src="/gitment.js"></script>
+<link rel="stylesheet" href="//imsun.github.io/gitment/style/default.css">
+<script src="//imsun.github.io/gitment/dist/gitment.browser.js"></script>
 <script>
 var gitment = new Gitment({
-  id: 'ThreadLocal 原理探究',
+  id: "http://mingming.tech/2017/02/16/Java/2017-02-16-threadlocal/",
   owner: 'heartaway',
   repo: 'heartaway.github.io',
   oauth: {
@@ -457,11 +457,31 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
           <ul class="article-tag-list" q-show="showTags">
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">架构</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">可视化</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">AHAS</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">共享变量</a>
               </li>
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">缓存</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">问题定位</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">稳定性</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -478,26 +498,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">伟大</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">架构</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">可视化</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">AHAS</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">问题定位</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">稳定性</a>
               </li>
              
               <li class="article-tag-list-item">

@@ -9,3 +9,13 @@ git clone https://github.com/litten/hexo-theme-yilia.git themes/yilia
 2. 在source/_posts内添加文章
 3. 发布文章sh sync.sh
 
+故障排查：
+1. The "mode" argument must be integer. Received an instance of Object copyFile
+   原因Node版本太高，可以安装一个稳定版本node12.14
+   brew install node@12
+   brew unlink node
+   brew link --force --overwrite node@12
+2. Error: fatal: in unpopulated submodule '.deploy_git'
+    rm -rf .deploy_git
+    hexo g
+    hexo d

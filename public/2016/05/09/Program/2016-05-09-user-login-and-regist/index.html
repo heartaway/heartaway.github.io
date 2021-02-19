@@ -20,7 +20,7 @@
 <meta property="og:image" content="http://mingming.tech/images/posts/20160509/user-token-cookie.png">
 <meta property="og:image" content="http://mingming.tech/images/posts/20160509/fqht-regist.png">
 <meta property="og:image" content="http://mingming.tech/images/posts/20160509/geetest-captcha.png">
-<meta property="og:updated_time" content="2018-11-10T08:59:09.805Z">
+<meta property="og:updated_time" content="2021-02-19T03:19:59.648Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="怎么编写用户注册&#x2F;登录服务">
 <meta name="twitter:description" content="看似简单的注册登录功能，如果想考虑完善，并且做到极致体验和良好的安全性，并不是一件容易的事情。本篇文章就结合我们公司的登录体系来分析一下怎么去做好一个用户注册与登录功能。 密码设置与传输：用户在注册的时候最好对密码的强度做验证，防止弱密码。其次切记不能将密码明文传输，一般的做法是前对对密码做一次Md5加密，后端再做一次Md5加密然后出到DB中。 请求参数签名与验签：现在主流的开发模式是前后端分离，">
@@ -349,11 +349,11 @@
 
   
   <div id="gitment-ctn"></div> 
-<link rel="stylesheet" href="/gitment.css">
-<script src="/gitment.js"></script>
+<link rel="stylesheet" href="//imsun.github.io/gitment/style/default.css">
+<script src="//imsun.github.io/gitment/dist/gitment.browser.js"></script>
 <script>
 var gitment = new Gitment({
-  id: '怎么编写用户注册/登录服务',
+  id: "http://mingming.tech/2016/05/09/Program/2016-05-09-user-login-and-regist/",
   owner: 'heartaway',
   repo: 'heartaway.github.io',
   oauth: {
@@ -456,11 +456,31 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
           <ul class="article-tag-list" q-show="showTags">
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">架构</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">可视化</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">AHAS</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">共享变量</a>
               </li>
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">缓存</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">问题定位</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">稳定性</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -477,26 +497,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">伟大</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">架构</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">可视化</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">AHAS</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">问题定位</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">稳定性</a>
               </li>
              
               <li class="article-tag-list-item">

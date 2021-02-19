@@ -19,7 +19,7 @@
 <meta property="og:image" content="http://mingming.tech/images/posts/20160510/bean-init-three-step.png">
 <meta property="og:image" content="http://mingming.tech/images/posts/20160510/beanFactory-applicationContext-hex.png">
 <meta property="og:image" content="http://mingming.tech/images/posts/20160510/ioc-context-init.png">
-<meta property="og:updated_time" content="2018-11-10T08:59:09.808Z">
+<meta property="og:updated_time" content="2021-02-19T03:19:59.650Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="《Spring 技术内幕》之 bean的初始化">
 <meta name="twitter:description" content="BeanFactory：指定IOC容器的基本功能规范； IOC是水桶，那么这个类就定义了水桶的基本功能; BeanDefinition：对依赖反转模式中管理的对象依赖关系的抽象；它就像容器里装的水，有了这些基本数据，容器才能发挥作用； BeanFactory 与 FactoryBean的区别：BeanFactory 是 Factory，也就是IoC 容器或对象的工厂，所有的Bean都是由BeanF">
@@ -385,11 +385,11 @@
 
   
   <div id="gitment-ctn"></div> 
-<link rel="stylesheet" href="/gitment.css">
-<script src="/gitment.js"></script>
+<link rel="stylesheet" href="//imsun.github.io/gitment/style/default.css">
+<script src="//imsun.github.io/gitment/dist/gitment.browser.js"></script>
 <script>
 var gitment = new Gitment({
-  id: '《Spring 技术内幕》之 bean的初始化',
+  id: "http://mingming.tech/2016/05/10/Spring/2016-05-10-spring-bean-init/",
   owner: 'heartaway',
   repo: 'heartaway.github.io',
   oauth: {
@@ -492,11 +492,31 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
           <ul class="article-tag-list" q-show="showTags">
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">架构</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">可视化</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">AHAS</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">共享变量</a>
               </li>
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">缓存</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">问题定位</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">稳定性</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -513,26 +533,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">伟大</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">架构</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">可视化</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">AHAS</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">问题定位</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">稳定性</a>
               </li>
              
               <li class="article-tag-list-item">

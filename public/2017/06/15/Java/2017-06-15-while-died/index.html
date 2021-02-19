@@ -23,7 +23,7 @@
 <meta property="og:image" content="http://mingming.tech/images/posts/20170615/jstack-grep-tid.png">
 <meta property="og:image" content="http://mingming.tech/images/posts/20170615/changefree-while-query.png">
 <meta property="og:image" content="http://mingming.tech/images/posts/20170615/system-monitor-line.png">
-<meta property="og:updated_time" content="2018-11-10T08:59:09.801Z">
+<meta property="og:updated_time" content="2021-02-19T03:19:59.642Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Java Load CPU MEM 飙高的一次排查">
 <meta name="twitter:description" content="问题发现：收到报警提醒： 问题排查：登录机器查看： CPU 持续高于 80%，8G内存几乎被占满； 异常报警项为 一个每隔5min执行一次的定时任务每次运行时间超过10分钟；初步判断为任务累加导致系统负载越来越重。 那为什么定时任务在5min内执行未完成呢？看看线程到底在做什么。 查看进程中线程的占用CPU时长：1top -Hp pid  可以看到有不少进程占用CPU总计时间超过100分钟，最大的">
@@ -339,11 +339,11 @@
 
   
   <div id="gitment-ctn"></div> 
-<link rel="stylesheet" href="/gitment.css">
-<script src="/gitment.js"></script>
+<link rel="stylesheet" href="//imsun.github.io/gitment/style/default.css">
+<script src="//imsun.github.io/gitment/dist/gitment.browser.js"></script>
 <script>
 var gitment = new Gitment({
-  id: 'Java Load CPU MEM 飙高的一次排查',
+  id: "http://mingming.tech/2017/06/15/Java/2017-06-15-while-died/",
   owner: 'heartaway',
   repo: 'heartaway.github.io',
   oauth: {
@@ -446,11 +446,31 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
           <ul class="article-tag-list" q-show="showTags">
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">架构</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">可视化</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">AHAS</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">共享变量</a>
               </li>
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">缓存</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">问题定位</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">稳定性</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -467,26 +487,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">伟大</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">架构</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">可视化</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">AHAS</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">问题定位</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">稳定性</a>
               </li>
              
               <li class="article-tag-list-item">

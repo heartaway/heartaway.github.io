@@ -17,7 +17,7 @@
 <meta property="og:description" content="操作系统IO五类模型  IO操作的两个阶段：1.等待数据的到来，当数据到来时将数据拷贝到内核临时缓冲区；2. 将数据从内核临时缓冲区拷贝到用户缓冲区； 阻塞IO、非阻塞IO：阻塞IO就是进程一直等待数据的到来直到抵达超时时间；非阻塞IO就是采用“轮询”的方式询问操作是否准备就绪，是一种浪费CPU的方式；在阻塞IO上上进一步改进，一个阻塞IO监控一个套接字比较改进为使用IO复用（select 、po">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/acb8761f8dca4cd913caf1a23cec53de.png?zoom=2">
-<meta property="og:updated_time" content="2018-11-10T08:59:09.799Z">
+<meta property="og:updated_time" content="2021-02-19T03:19:59.639Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Java基础 之 IO">
 <meta name="twitter:description" content="操作系统IO五类模型  IO操作的两个阶段：1.等待数据的到来，当数据到来时将数据拷贝到内核临时缓冲区；2. 将数据从内核临时缓冲区拷贝到用户缓冲区； 阻塞IO、非阻塞IO：阻塞IO就是进程一直等待数据的到来直到抵达超时时间；非阻塞IO就是采用“轮询”的方式询问操作是否准备就绪，是一种浪费CPU的方式；在阻塞IO上上进一步改进，一个阻塞IO监控一个套接字比较改进为使用IO复用（select 、po">
@@ -358,11 +358,11 @@
 
   
   <div id="gitment-ctn"></div> 
-<link rel="stylesheet" href="/gitment.css">
-<script src="/gitment.js"></script>
+<link rel="stylesheet" href="//imsun.github.io/gitment/style/default.css">
+<script src="//imsun.github.io/gitment/dist/gitment.browser.js"></script>
 <script>
 var gitment = new Gitment({
-  id: 'Java基础 之 IO',
+  id: "http://mingming.tech/2016/05/06/Java/2016-05-06-java-io/",
   owner: 'heartaway',
   repo: 'heartaway.github.io',
   oauth: {
@@ -465,11 +465,31 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
           <ul class="article-tag-list" q-show="showTags">
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">架构</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">可视化</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">AHAS</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">共享变量</a>
               </li>
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">缓存</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">问题定位</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">稳定性</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -486,26 +506,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">伟大</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">架构</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">可视化</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">AHAS</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">问题定位</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">稳定性</a>
               </li>
              
               <li class="article-tag-list-item">

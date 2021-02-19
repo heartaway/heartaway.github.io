@@ -16,7 +16,7 @@
 <meta property="og:site_name" content="心静志远">
 <meta property="og:description" content="分布式系统高效唯一ID生成方案 背景：在分布式系统中，对于订单ID如何保证全局唯一地高效的生成，并对性能影响不大的情况下，利于建立索引和业务使用？  方案一：使用数据库主键ID优势：实现简单；弊端：使用数据库增加写库的压力，生成订单的上限受限于数据库的写性能上限；扩展性差； 方案二：使用数据库的列+1主键采用业务编码，普通列current_value标识id当前值，通过数据库的行锁来保障唯一的；优">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2018-11-10T08:59:09.802Z">
+<meta property="og:updated_time" content="2021-02-19T03:19:59.643Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Distributed System Id Gen">
 <meta name="twitter:description" content="分布式系统高效唯一ID生成方案 背景：在分布式系统中，对于订单ID如何保证全局唯一地高效的生成，并对性能影响不大的情况下，利于建立索引和业务使用？  方案一：使用数据库主键ID优势：实现简单；弊端：使用数据库增加写库的压力，生成订单的上限受限于数据库的写性能上限；扩展性差； 方案二：使用数据库的列+1主键采用业务编码，普通列current_value标识id当前值，通过数据库的行锁来保障唯一的；优">
@@ -335,11 +335,11 @@
 
   
   <div id="gitment-ctn"></div> 
-<link rel="stylesheet" href="/gitment.css">
-<script src="/gitment.js"></script>
+<link rel="stylesheet" href="//imsun.github.io/gitment/style/default.css">
+<script src="//imsun.github.io/gitment/dist/gitment.browser.js"></script>
 <script>
 var gitment = new Gitment({
-  id: 'Distributed System Id Gen',
+  id: "http://mingming.tech/2017/07/31/Java/2017-07-31-distrubute-id-gen/",
   owner: 'heartaway',
   repo: 'heartaway.github.io',
   oauth: {
@@ -442,11 +442,31 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
           <ul class="article-tag-list" q-show="showTags">
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">架构</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">可视化</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">AHAS</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">共享变量</a>
               </li>
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">缓存</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">问题定位</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">稳定性</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -463,26 +483,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">伟大</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">架构</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">可视化</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">AHAS</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">问题定位</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">稳定性</a>
               </li>
              
               <li class="article-tag-list-item">
