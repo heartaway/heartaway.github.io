@@ -7,11 +7,11 @@ categories: 稳定性
 
 <a name="fa77ab6c"></a>
 ### 发现问题
-3月8日收到线上部分区域监控系统报警，提示数据处理服务大批异常报警；登录机器查看系统负载情况：<br />![image.png](https://cdn.nlark.com/yuque/0/2019/png/104361/1553507051995-7cce4dc5-7479-4a82-bf77-a8b48fb4928d.png#align=left&display=inline&height=241&name=image.png&originHeight=245&originWidth=722&size=135506&status=done&width=711)<br />系统CPU占用并不高。
+3月8日收到线上部分区域监控系统报警，提示数据处理服务大批异常报警；登录机器查看系统负载情况：<br />![](/images/posts/20190325/host-cpu.png)<br />系统CPU占用并不高。
 
-同事提示，发现了HSF日志中输出了HSF连接池满的情况：<br /><!--more--><br />![image.png](https://cdn.nlark.com/yuque/0/2019/png/104361/1553520952926-7421d58c-8fe0-45ff-a091-5bad1bc04a8f.png#align=left&display=inline&height=288&name=image.png&originHeight=576&originWidth=1428&size=450665&status=done&width=714)
+同事提示，发现了HSF日志中输出了HSF连接池满的情况：<br /><!--more--><br />![](/images/posts/20190325/host-hsf.png)
 
-第一反应是后端处理太慢导致，查看了数据处理耗时统计：<br />![image.png](https://cdn.nlark.com/yuque/0/2019/png/104361/1553520978790-be1d0a79-07eb-408a-b261-b9be01186024.png#align=left&display=inline&height=375&name=image.png&originHeight=750&originWidth=1384&size=331071&status=done&width=692)<br />发现峰值耗时已经超过了160秒；
+第一反应是后端处理太慢导致，查看了数据处理耗时统计：<br />![](/images/posts/20190325/process-cost-time.png)<br />发现峰值耗时已经超过了160秒；
 
 <a name="0aff8430"></a>
 #### 处理方案：
@@ -30,17 +30,17 @@ categories: 稳定性
 ### 具体定位
 <a name="52e514c1"></a>
 #### 指标观察：
-系统发布后，问题并未得到解决，报警依旧，采用tsar 观察系统各项指标：<br />![image.png](https://cdn.nlark.com/yuque/0/2019/png/104361/1553507935197-8e95d494-47bf-4d22-97d6-548945fd18ea.png#align=left&display=inline&height=300&name=image.png&originHeight=384&originWidth=956&size=119399&status=done&width=746)<br />（系统load，对于8core cpu，load并不高）<br />![image.png](https://cdn.nlark.com/yuque/0/2019/png/104361/1553507967263-1ff8e52b-aafc-4b58-921d-947f3a7d3125.png#align=left&display=inline&height=244&name=image.png&originHeight=370&originWidth=1130&size=176313&status=done&width=745)<br />（系统剩余内存不足）<br />![image.png](https://cdn.nlark.com/yuque/0/2019/png/104361/1553508026297-6ee1935f-98f8-43f8-83b2-42da9faeeed2.png#align=left&display=inline&height=151&name=image.png&originHeight=368&originWidth=1822&size=168486&status=done&width=746)<br />（系统的io操作并不频繁）
+系统发布后，问题并未得到解决，报警依旧，采用tsar 观察系统各项指标：<br />![](/images/posts/20190325/tsar-load.png)（系统load，对于8core cpu，load并不高）<br />![](/images/posts/20190325/tsar-mem.png)（系统剩余内存不足）<br />![](/images/posts/20190325/tsar-disk.png)（系统的io操作并不频繁）
 
 开始怀疑jvm参数配置有错误，查了jvm的堆内存分配，从参数和合理上看并没有太大问题。<br />堆分配如下：<br />启动时堆的初始化大小： 10G（-Xms）<br />堆最大值为： 10G（-Xmx）<br />年轻代空间大小：4G（-Xmn）<br />初始持久代：256m （-XX:MetaspaceSize）<br />最大持久代：512m （-XX:MaxMetaspaceSize）
 
 <a name="b5a52648"></a>
 #### Jstack分析：
-开始对线上系统进行jstack，分析线程栈具体卡在什么地方；<br />![image.png](https://cdn.nlark.com/yuque/0/2019/png/104361/1553510300293-c8173e97-09fd-41a5-ab38-c8c91976834f.png#align=left&display=inline&height=443&name=image.png&originHeight=885&originWidth=2000&size=514798&status=done&width=1000)
+开始对线上系统进行jstack，分析线程栈具体卡在什么地方；<br />![](/images/posts/20190325/jstack-thread.png)
 
-发现  69%的线程处于blocked状态；<br />![image.png](https://cdn.nlark.com/yuque/0/2019/png/104361/1553510331156-ccad2748-8d71-4b8a-accc-62d6acdfaaf8.png#align=left&display=inline&height=375&name=image.png&originHeight=749&originWidth=2000&size=462845&status=done&width=1000)<br />从线程分组上看，HSFBizProcessor基本全部处于Blocked状态，log-handler-thread线程所有都处于blocked状态；
+发现  69%的线程处于blocked状态；<br />![](/images/posts/20190325/jstack-thread-group.png)<br />从线程分组上看，HSFBizProcessor基本全部处于Blocked状态，log-handler-thread线程所有都处于blocked状态；
 
-![image.png](https://cdn.nlark.com/yuque/0/2019/png/104361/1553510391861-aa83d7a9-85af-4980-94e0-0876c73d26ed.png#align=left&display=inline&height=142&name=image.png&originHeight=284&originWidth=2000&size=335659&status=done&width=1000)
+![](/images/posts/20190325/jstack-thread-blocked.png)
 
 查看处于blocked的HSF线程栈信息：
 
@@ -128,7 +128,7 @@ at java.lang.Thread.run(Thread.java:882)
 ```
 
 
-发现block在transport-api 包中的hanler方法中，查看代码：<br />![image.png](https://cdn.nlark.com/yuque/0/2019/png/104361/1553510475994-942259f9-f93a-4089-8510-1007c06a1cd4.png#align=left&display=inline&height=346&name=image.png&originHeight=692&originWidth=1788&size=680633&status=done&width=894)
+发现block在transport-api 包中的hanler方法中，查看代码：<br />![](/images/posts/20190325/block-code.png)
 
 发现是日志输出中CachingDateFormatter的SimpleDateFormat 获得的锁未释放。
 
@@ -137,15 +137,15 @@ at java.lang.Thread.run(Thread.java:882)
 * 取消transport-api中的日志输出，认为此没有必要，且输出的日志量巨大；
 * 打印日志优化：日志格式优化-减少不重要信息，降低系统调用，日志采用AsyncAppender包装RollingFileAppender，使用异步日志输出；
 
-![image.png](https://cdn.nlark.com/yuque/0/2019/png/104361/1553521107922-304a7a22-3f14-4920-bb2a-0f2f802cc3fe.png#align=left&display=inline&height=374&name=image.png&originHeight=748&originWidth=1478&size=881357&status=done&width=739)
+![](/images/posts/20190325/block-log-config.png)
 
 代办事项：排查打日志导致的锁未释放的真正原因。
 
-发布系统后，继续观察，重启后的一段时间，系统表现正常，但是一段时间后，又有报警出来：<br />![image.png](https://cdn.nlark.com/yuque/0/2019/png/104361/1553520842927-d75f27b2-8d65-4122-838a-637fe8a8f06d.png#align=left&display=inline&height=325&name=image.png&originHeight=650&originWidth=1292&size=232677&status=done&width=646)
+发布系统后，继续观察，重启后的一段时间，系统表现正常，但是一段时间后，又有报警出来：<br />![](/images/posts/20190325/system-alert.png)
 
 初步怀疑跟jstack有关，但是jstack时间是 18点40分左右，报警是在19点整，对不上。
 
-从网关侧看到此区域的qps情况，波动非常大；<br />![image.png](https://cdn.nlark.com/yuque/0/2019/png/104361/1553520885065-2f331c65-4c83-485a-800e-624cf259b34f.png#align=left&display=inline&height=238&name=image.png&originHeight=476&originWidth=1500&size=331575&status=done&width=750)
+从网关侧看到此区域的qps情况，波动非常大；<br />![](/images/posts/20190325/gateway-qps.png)
 
 <a name="9e497c48"></a>
 #### 初步诊断： 
@@ -158,11 +158,11 @@ at java.lang.Thread.run(Thread.java:882)
 
 第二天，从管控后台上看到北京SLA剧烈波动:
 
-![image.png](https://cdn.nlark.com/yuque/0/2019/png/104361/1552975918909-f06b3f7c-0b3e-4b2b-ba67-a95fa643e574.png#align=left&display=inline&height=352&name=image.png&originHeight=704&originWidth=2246&size=340212&status=done&width=1123)
+![](/images/posts/20190325/gateway-sla.png)
 
 对此区域一台机器进行offline，然后jstack线程栈继续分析：
 
-![image.png](https://cdn.nlark.com/yuque/0/2019/png/104361/1552976809337-e3bdae4a-7539-433a-9dd6-4261c6527c8b.png#align=left&display=inline&height=220&name=image.png&originHeight=440&originWidth=2178&size=332568&status=done&width=1089)<br />提取hsf的jstack，发现，系统中 业务的处理并没有走统一的线程池处理方案；
+![](/images/posts/20190325/offline-host-jstack.png)<br />提取hsf的jstack，发现，系统中 业务的处理并没有走统一的线程池处理方案；
 
 优化方案：
 * 抽取公共代码，定义日志和业务日志抽象类，分别使用线程池进行处理；
@@ -170,7 +170,7 @@ at java.lang.Thread.run(Thread.java:882)
 
 <a name="4a1602db"></a>
 #### GC分析：
-对系统的GC日志进行了分析：<br />![image.png](https://cdn.nlark.com/yuque/0/2019/png/104361/1553510944011-8128b5a2-5a3e-4452-a559-a33651c2fde4.png#align=left&display=inline&height=494&name=image.png&originHeight=987&originWidth=2000&size=383029&status=done&width=1000)<br />发现频繁触发fgc，且fgc失败，old区 非常大，gc无法回收，怀疑存在大对象导致的内存无法回收。<br /><br />通过jmap查看进程占用的大对象；<br />![image.png](https://cdn.nlark.com/yuque/0/2019/png/104361/1553521339182-edde4ea1-1868-4c42-b641-da11d0b9341c.png#align=left&display=inline&height=368&name=image.png&originHeight=736&originWidth=1480&size=589499&status=done&width=740)<br /><br />发现系统内存中ots对象数据占用超过3G；与OTS同学沟通后，发现是client的使用问题。
+对系统的GC日志进行了分析：<br />![](/images/posts/20190325/host-gc.png)<br />发现频繁触发fgc，且fgc失败，old区 非常大，gc无法回收，怀疑存在大对象导致的内存无法回收。<br /><br />通过jmap查看进程占用的大对象；<br />![](/images/posts/20190325/host-jmap.png)<br /><br />发现系统内存中ots对象数据占用超过3G；与OTS同学沟通后，发现是client的使用问题。
 
 <a name="9a39e603"></a>
 #### 问题解决：
@@ -181,11 +181,11 @@ OTS写入优化，改用tablestoreWrite代替AyncClient，增加线程数控制�
 
 <a name="216c0e94"></a>
 #### 新问题出现：
-系统灰度上线后，OTS写数据出现hang住；出现数据洪峰，导致处理线程block；<br />![image.png](https://cdn.nlark.com/yuque/0/2019/png/104361/1553521398649-dfe5511c-8d94-4f44-a50f-c15f86e35fb5.png#align=left&display=inline&height=265&name=image.png&originHeight=530&originWidth=1538&size=378791&status=done&width=769)
+系统灰度上线后，OTS写数据出现hang住；出现数据洪峰，导致处理线程block；<br />![](/images/posts/20190325/ots-block.png)
 
-此时 jstack数据如下：<br />![image.png](https://cdn.nlark.com/yuque/0/2019/png/104361/1553076983556-e1aa1249-0711-4f7c-9986-27dc6a52cf54.png#align=left&display=inline&height=346&name=image.png&originHeight=692&originWidth=1284&size=281191&status=done&width=642)
+此时 jstack数据如下：<br />![](/images/posts/20190325/jstack-total.png)
 
-![image.png](https://cdn.nlark.com/yuque/0/2019/png/104361/1553521506624-1e2cd35c-105f-4237-b2f0-9aff7fdab0a0.png#align=left&display=inline&height=252&name=image.png&originHeight=504&originWidth=1476&size=492669&status=done&width=738)
+![](/images/posts/20190325/jstack-detail.png)
 
 解决方案：
 * 拆分线程池； 不能因为写监控数据而导致进程数据无法写入；进程的数据量与监控指标的数据量 不再一个数量级上。
@@ -196,7 +196,7 @@ OTS写入优化，改用tablestoreWrite代替AyncClient，增加线程数控制�
 对系统进行offline，观察线程池队列处于满状态，预期是不再有新流量进来时，线程池队列数据会被消费，但是观察了二十分钟后，线程池队列数据依然处于慢状态，说明线程hang住了。
 
 
-升级到OTS新版本后，持续观察，一段时间后，问题继续浮现。在仔细review代码，发现消费RingBuffer的线程池的拒绝策略采用了DiscardPolicy丢弃，也就是当系统处理不过来时进行丢弃，但是请求丢弃了会导致外层的线程hang住；<br />![image.png](https://cdn.nlark.com/yuque/0/2019/png/104361/1553154377682-13135f96-d88e-49fb-8eb6-07508cc6559f.png#align=left&display=inline&height=136&name=image.png&originHeight=271&originWidth=1558&size=336841&status=done&width=779)<br />具体为什么这里的线程池采用discard策略后会导致线程hang住，OTS同学给出的解释是“RingBuffer的数据会丢到线程池里处理，通过Semaphore来协同，如果executor丢弃了请求，那外层就会hang住”，此设计缺失不优雅，算是OTS Client的一个bug。
+升级到OTS新版本后，持续观察，一段时间后，问题继续浮现。在仔细review代码，发现消费RingBuffer的线程池的拒绝策略采用了DiscardPolicy丢弃，也就是当系统处理不过来时进行丢弃，但是请求丢弃了会导致外层的线程hang住；<br />![](/images/posts/20190325/code-thead-pool-config.png)<br />具体为什么这里的线程池采用discard策略后会导致线程hang住，OTS同学给出的解释是“RingBuffer的数据会丢到线程池里处理，通过Semaphore来协同，如果executor丢弃了请求，那外层就会hang住”，此设计缺失不优雅，算是OTS Client的一个bug。
 
 <a name="83616992"></a>
 #### 最终解决：
