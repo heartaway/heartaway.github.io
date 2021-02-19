@@ -5,14 +5,14 @@
   
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <link rel="dns-prefetch" href="http://heartaway.cn">
+  <link rel="dns-prefetch" href="http://mingming.tech">
   <title>spring quartz 指定trigger的执行机器 | 心静志远</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="description" content="我们在使用spring-quartz的时候，常常会遇到一个场景，那就是任务的调度会随着争取锁的先后顺序而出现不固定机器执行的场景，这在正常业务逻辑中具备了很好的容灾能力，但是在我们排查问题时，却带来了困绕，如果出现问题，我们期望任务调度固定在一台机器上进行执行，方便我们对问题的定位和排查。 这里就探讨如何扩展spring-quartz来实现任务的固定机器执行。 整体思路要指定机器运行trigger">
 <meta name="keywords" content="quartz">
 <meta property="og:type" content="article">
 <meta property="og:title" content="spring quartz 指定trigger的执行机器">
-<meta property="og:url" content="http://heartaway.cn/2018/03/06/Java/2018-03-06-spring-quartz-trigger/index.html">
+<meta property="og:url" content="http://mingming.tech/2018/03/06/Java/2018-03-06-spring-quartz-trigger/index.html">
 <meta property="og:site_name" content="心静志远">
 <meta property="og:description" content="我们在使用spring-quartz的时候，常常会遇到一个场景，那就是任务的调度会随着争取锁的先后顺序而出现不固定机器执行的场景，这在正常业务逻辑中具备了很好的容灾能力，但是在我们排查问题时，却带来了困绕，如果出现问题，我们期望任务调度固定在一台机器上进行执行，方便我们对问题的定位和排查。 这里就探讨如何扩展spring-quartz来实现任务的固定机器执行。 整体思路要指定机器运行trigger">
 <meta property="og:locale" content="zh-Hans">
@@ -285,7 +285,7 @@
     <a class="close js-modal-close" href="javascript:;"><i class="icon icon-close"></i></a>
     <p>扫一扫，分享到微信</p>
     <div class="wx-qrcode">
-      <img src="//pan.baidu.com/share/qrcode?url=http://heartaway.cn/2018/03/06/Java/2018-03-06-spring-quartz-trigger/" alt="微信分享二维码">
+      <img src="//pan.baidu.com/share/qrcode?url=http://mingming.tech/2018/03/06/Java/2018-03-06-spring-quartz-trigger/" alt="微信分享二维码">
     </div>
 </div>
 
@@ -369,7 +369,7 @@ gitment.render('gitment-ctn')
   <div class="outer">
     <div id="footer-info">
     	<div class="footer-left">
-    		&copy; 2019 心静志远
+    		&copy; 2021 心静志远
     	</div>
       	<div class="footer-right">
       		<a href="http://hexo.io/" target="_blank">Hexo</a>  Theme <a href="https://github.com/litten/hexo-theme-yilia" target="_blank">Yilia</a> by Litten
@@ -557,10 +557,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
           
             <li class="search-li">
               <a href="http://yanmingming.lofter.com" target="_blank" class="search-title"><i class="icon-quo-left icon"></i>心静志远</a>
-            </li>
-          
-            <li class="search-li">
-              <a href="http://www.timguan.net/" target="_blank" class="search-title"><i class="icon-quo-left icon"></i>答案在风中</a>
             </li>
           
             <li class="search-li">

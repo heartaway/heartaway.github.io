@@ -5,29 +5,29 @@
   
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <link rel="dns-prefetch" href="http://heartaway.cn">
+  <link rel="dns-prefetch" href="http://mingming.tech">
   <title>Java Load CPU MEM 飙高的一次排查 | 心静志远</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="description" content="问题发现：收到报警提醒： 问题排查：登录机器查看： CPU 持续高于 80%，8G内存几乎被占满； 异常报警项为 一个每隔5min执行一次的定时任务每次运行时间超过10分钟；初步判断为任务累加导致系统负载越来越重。 那为什么定时任务在5min内执行未完成呢？看看线程到底在做什么。 查看进程中线程的占用CPU时长：1top -Hp pid  可以看到有不少进程占用CPU总计时间超过100分钟，最大的">
 <meta name="keywords" content="jstack">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Java Load CPU MEM 飙高的一次排查">
-<meta property="og:url" content="http://heartaway.cn/2017/06/15/Java/2017-06-15-while-died/index.html">
+<meta property="og:url" content="http://mingming.tech/2017/06/15/Java/2017-06-15-while-died/index.html">
 <meta property="og:site_name" content="心静志远">
 <meta property="og:description" content="问题发现：收到报警提醒： 问题排查：登录机器查看： CPU 持续高于 80%，8G内存几乎被占满； 异常报警项为 一个每隔5min执行一次的定时任务每次运行时间超过10分钟；初步判断为任务累加导致系统负载越来越重。 那为什么定时任务在5min内执行未完成呢？看看线程到底在做什么。 查看进程中线程的占用CPU时长：1top -Hp pid  可以看到有不少进程占用CPU总计时间超过100分钟，最大的">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:image" content="http://heartaway.cn/images/posts/20170615/sys-mail-notice.png">
-<meta property="og:image" content="http://heartaway.cn/images/posts/20170615/sys-load-top.png">
-<meta property="og:image" content="http://heartaway.cn/images/posts/20170615/top-pid.png">
-<meta property="og:image" content="http://heartaway.cn/images/posts/20170615/jstack-top.png">
-<meta property="og:image" content="http://heartaway.cn/images/posts/20170615/jstack-grep-tid.png">
-<meta property="og:image" content="http://heartaway.cn/images/posts/20170615/changefree-while-query.png">
-<meta property="og:image" content="http://heartaway.cn/images/posts/20170615/system-monitor-line.png">
+<meta property="og:image" content="http://mingming.tech/images/posts/20170615/sys-mail-notice.png">
+<meta property="og:image" content="http://mingming.tech/images/posts/20170615/sys-load-top.png">
+<meta property="og:image" content="http://mingming.tech/images/posts/20170615/top-pid.png">
+<meta property="og:image" content="http://mingming.tech/images/posts/20170615/jstack-top.png">
+<meta property="og:image" content="http://mingming.tech/images/posts/20170615/jstack-grep-tid.png">
+<meta property="og:image" content="http://mingming.tech/images/posts/20170615/changefree-while-query.png">
+<meta property="og:image" content="http://mingming.tech/images/posts/20170615/system-monitor-line.png">
 <meta property="og:updated_time" content="2018-11-10T08:59:09.801Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Java Load CPU MEM 飙高的一次排查">
 <meta name="twitter:description" content="问题发现：收到报警提醒： 问题排查：登录机器查看： CPU 持续高于 80%，8G内存几乎被占满； 异常报警项为 一个每隔5min执行一次的定时任务每次运行时间超过10分钟；初步判断为任务累加导致系统负载越来越重。 那为什么定时任务在5min内执行未完成呢？看看线程到底在做什么。 查看进程中线程的占用CPU时长：1top -Hp pid  可以看到有不少进程占用CPU总计时间超过100分钟，最大的">
-<meta name="twitter:image" content="http://heartaway.cn/images/posts/20170615/sys-mail-notice.png">
+<meta name="twitter:image" content="http://mingming.tech/images/posts/20170615/sys-mail-notice.png">
   
     <link rel="alternative" href="/atom.xml" title="心静志远" type="application/atom+xml">
   
@@ -279,7 +279,7 @@
     <a class="close js-modal-close" href="javascript:;"><i class="icon icon-close"></i></a>
     <p>扫一扫，分享到微信</p>
     <div class="wx-qrcode">
-      <img src="//pan.baidu.com/share/qrcode?url=http://heartaway.cn/2017/06/15/Java/2017-06-15-while-died/" alt="微信分享二维码">
+      <img src="//pan.baidu.com/share/qrcode?url=http://mingming.tech/2017/06/15/Java/2017-06-15-while-died/" alt="微信分享二维码">
     </div>
 </div>
 
@@ -363,7 +363,7 @@ gitment.render('gitment-ctn')
   <div class="outer">
     <div id="footer-info">
     	<div class="footer-left">
-    		&copy; 2019 心静志远
+    		&copy; 2021 心静志远
     	</div>
       	<div class="footer-right">
       		<a href="http://hexo.io/" target="_blank">Hexo</a>  Theme <a href="https://github.com/litten/hexo-theme-yilia" target="_blank">Yilia</a> by Litten
@@ -551,10 +551,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
           
             <li class="search-li">
               <a href="http://yanmingming.lofter.com" target="_blank" class="search-title"><i class="icon-quo-left icon"></i>心静志远</a>
-            </li>
-          
-            <li class="search-li">
-              <a href="http://www.timguan.net/" target="_blank" class="search-title"><i class="icon-quo-left icon"></i>答案在风中</a>
             </li>
           
             <li class="search-li">
