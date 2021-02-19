@@ -5,14 +5,14 @@
 # Site
 title: 心静志远
 subtitle: 技术终究会淘汰，思想却永存于世   技术才是硬通货，探求思想与本质
-keywords: 心静志远, xinjinzhiyuan, heartaway
+keywords: 心静志远, xinjinzhiyuan, heartaway, yanmingming
 author: 心静志远
 language: zh-Hans
 timezone: Asia/Shanghai
 
 # URL
 ## If your site is put in a subdirectory, set url as 'http://yoursite.com/child' and root as '/child/'
-url: http://heartaway.cn
+url: http://mingming.tech
 root: /
 permalink: :year/:month/:day/:title/
 permalink_defaults:
