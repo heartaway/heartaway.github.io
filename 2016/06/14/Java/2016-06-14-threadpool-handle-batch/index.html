@@ -5,14 +5,14 @@
   
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <link rel="dns-prefetch" href="http://heartaway.github.io">
+  <link rel="dns-prefetch" href="https://heartaway.cn">
   <title>用线程池解决批量任务执行 | 心静志远</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="description" content="今天遇到一个场景：用于有一批数据需要批量处理，每一个任务的处理都会花费300~500ms的时间，如果列表为30个时，直接导致http请求超时了（设置的Http请求时间为10s）。所以期望服务端能够多线程执行任务，所有执行完毕后返回最终结果。  解决方案大家比较明确了，在外部接口无法被优化的场景下，只能将顺序执行的任务变为并行执行，Java提供了线程模型和线程池模型。但是要做到合理的利用线程池，必">
 <meta name="keywords" content="心静志远, xinjinzhiyuan, heartaway, yanmingming">
 <meta property="og:type" content="article">
 <meta property="og:title" content="用线程池解决批量任务执行">
-<meta property="og:url" content="http://heartaway.github.io/2016/06/14/Java/2016-06-14-threadpool-handle-batch/index.html">
+<meta property="og:url" content="https://heartaway.cn/2016/06/14/Java/2016-06-14-threadpool-handle-batch/index.html">
 <meta property="og:site_name" content="心静志远">
 <meta property="og:description" content="今天遇到一个场景：用于有一批数据需要批量处理，每一个任务的处理都会花费300~500ms的时间，如果列表为30个时，直接导致http请求超时了（设置的Http请求时间为10s）。所以期望服务端能够多线程执行任务，所有执行完毕后返回最终结果。  解决方案大家比较明确了，在外部接口无法被优化的场景下，只能将顺序执行的任务变为并行执行，Java提供了线程模型和线程池模型。但是要做到合理的利用线程池，必">
 <meta property="og:locale" content="zh-Hans">
@@ -295,7 +295,7 @@
     <a class="close js-modal-close" href="javascript:;"><i class="icon icon-close"></i></a>
     <p>扫一扫，分享到微信</p>
     <div class="wx-qrcode">
-      <img src="//pan.baidu.com/share/qrcode?url=http://heartaway.github.io/2016/06/14/Java/2016-06-14-threadpool-handle-batch/" alt="微信分享二维码">
+      <img src="//pan.baidu.com/share/qrcode?url=https://heartaway.cn/2016/06/14/Java/2016-06-14-threadpool-handle-batch/" alt="微信分享二维码">
     </div>
 </div>
 
@@ -359,7 +359,7 @@
 <script src="//imsun.github.io/gitment/dist/gitment.browser.js"></script>
 <script>
 var gitment = new Gitment({
-  id: "http://heartaway.github.io/2016/06/14/Java/2016-06-14-threadpool-handle-batch/",
+  id: "https://heartaway.cn/2016/06/14/Java/2016-06-14-threadpool-handle-batch/",
   owner: 'heartaway',
   repo: 'heartaway.github.io',
   oauth: {

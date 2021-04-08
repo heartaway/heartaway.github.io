@@ -5,14 +5,14 @@
   
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <link rel="dns-prefetch" href="http://heartaway.github.io">
+  <link rel="dns-prefetch" href="https://heartaway.cn">
   <title>Redis连接池的相关问题分析与总结 | 心静志远</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="description" content="问题表象：服务端连接未释放   问题背景：商品系统在运行过程中发生过一次Redis服务端连接数超限的问题。截图未保存，表现是：商品服务停掉，但RedisServer端看到的TCP连接任然存在，而且是 ESTABLISHED状态，导致的直接结果就是每次商品重启都会创建400个（minIdle=400）新的redis连接，而且停止的时候还不释放，重启几次之后RedisServer的连接就超过上限10">
 <meta name="keywords" content="redis pool 连接池">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Redis连接池的相关问题分析与总结">
-<meta property="og:url" content="http://heartaway.github.io/2016/06/02/Redis/2016-06-02-redis-conn-pool/index.html">
+<meta property="og:url" content="https://heartaway.cn/2016/06/02/Redis/2016-06-02-redis-conn-pool/index.html">
 <meta property="og:site_name" content="心静志远">
 <meta property="og:description" content="问题表象：服务端连接未释放   问题背景：商品系统在运行过程中发生过一次Redis服务端连接数超限的问题。截图未保存，表现是：商品服务停掉，但RedisServer端看到的TCP连接任然存在，而且是 ESTABLISHED状态，导致的直接结果就是每次商品重启都会创建400个（minIdle=400）新的redis连接，而且停止的时候还不释放，重启几次之后RedisServer的连接就超过上限10">
 <meta property="og:locale" content="zh-Hans">
@@ -357,7 +357,7 @@
     <a class="close js-modal-close" href="javascript:;"><i class="icon icon-close"></i></a>
     <p>扫一扫，分享到微信</p>
     <div class="wx-qrcode">
-      <img src="//pan.baidu.com/share/qrcode?url=http://heartaway.github.io/2016/06/02/Redis/2016-06-02-redis-conn-pool/" alt="微信分享二维码">
+      <img src="//pan.baidu.com/share/qrcode?url=https://heartaway.cn/2016/06/02/Redis/2016-06-02-redis-conn-pool/" alt="微信分享二维码">
     </div>
 </div>
 
@@ -421,7 +421,7 @@
 <script src="//imsun.github.io/gitment/dist/gitment.browser.js"></script>
 <script>
 var gitment = new Gitment({
-  id: "http://heartaway.github.io/2016/06/02/Redis/2016-06-02-redis-conn-pool/",
+  id: "https://heartaway.cn/2016/06/02/Redis/2016-06-02-redis-conn-pool/",
   owner: 'heartaway',
   repo: 'heartaway.github.io',
   oauth: {

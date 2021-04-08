@@ -5,29 +5,29 @@
   
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <link rel="dns-prefetch" href="http://heartaway.github.io">
+  <link rel="dns-prefetch" href="https://heartaway.cn">
   <title>Java Load CPU MEM 飙高的一次排查 | 心静志远</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="description" content="问题发现：收到报警提醒： 问题排查：登录机器查看： CPU 持续高于 80%，8G内存几乎被占满； 异常报警项为 一个每隔5min执行一次的定时任务每次运行时间超过10分钟；初步判断为任务累加导致系统负载越来越重。 那为什么定时任务在5min内执行未完成呢？看看线程到底在做什么。 查看进程中线程的占用CPU时长：1top -Hp pid  可以看到有不少进程占用CPU总计时间超过100分钟，最大的">
 <meta name="keywords" content="jstack">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Java Load CPU MEM 飙高的一次排查">
-<meta property="og:url" content="http://heartaway.github.io/2017/06/15/Java/2017-06-15-while-died/index.html">
+<meta property="og:url" content="https://heartaway.cn/2017/06/15/Java/2017-06-15-while-died/index.html">
 <meta property="og:site_name" content="心静志远">
 <meta property="og:description" content="问题发现：收到报警提醒： 问题排查：登录机器查看： CPU 持续高于 80%，8G内存几乎被占满； 异常报警项为 一个每隔5min执行一次的定时任务每次运行时间超过10分钟；初步判断为任务累加导致系统负载越来越重。 那为什么定时任务在5min内执行未完成呢？看看线程到底在做什么。 查看进程中线程的占用CPU时长：1top -Hp pid  可以看到有不少进程占用CPU总计时间超过100分钟，最大的">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:image" content="http://heartaway.github.io/images/posts/20170615/sys-mail-notice.png">
-<meta property="og:image" content="http://heartaway.github.io/images/posts/20170615/sys-load-top.png">
-<meta property="og:image" content="http://heartaway.github.io/images/posts/20170615/top-pid.png">
-<meta property="og:image" content="http://heartaway.github.io/images/posts/20170615/jstack-top.png">
-<meta property="og:image" content="http://heartaway.github.io/images/posts/20170615/jstack-grep-tid.png">
-<meta property="og:image" content="http://heartaway.github.io/images/posts/20170615/changefree-while-query.png">
-<meta property="og:image" content="http://heartaway.github.io/images/posts/20170615/system-monitor-line.png">
+<meta property="og:image" content="https://heartaway.cn/images/posts/20170615/sys-mail-notice.png">
+<meta property="og:image" content="https://heartaway.cn/images/posts/20170615/sys-load-top.png">
+<meta property="og:image" content="https://heartaway.cn/images/posts/20170615/top-pid.png">
+<meta property="og:image" content="https://heartaway.cn/images/posts/20170615/jstack-top.png">
+<meta property="og:image" content="https://heartaway.cn/images/posts/20170615/jstack-grep-tid.png">
+<meta property="og:image" content="https://heartaway.cn/images/posts/20170615/changefree-while-query.png">
+<meta property="og:image" content="https://heartaway.cn/images/posts/20170615/system-monitor-line.png">
 <meta property="og:updated_time" content="2021-02-19T03:19:59.642Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Java Load CPU MEM 飙高的一次排查">
 <meta name="twitter:description" content="问题发现：收到报警提醒： 问题排查：登录机器查看： CPU 持续高于 80%，8G内存几乎被占满； 异常报警项为 一个每隔5min执行一次的定时任务每次运行时间超过10分钟；初步判断为任务累加导致系统负载越来越重。 那为什么定时任务在5min内执行未完成呢？看看线程到底在做什么。 查看进程中线程的占用CPU时长：1top -Hp pid  可以看到有不少进程占用CPU总计时间超过100分钟，最大的">
-<meta name="twitter:image" content="http://heartaway.github.io/images/posts/20170615/sys-mail-notice.png">
+<meta name="twitter:image" content="https://heartaway.cn/images/posts/20170615/sys-mail-notice.png">
   
     <link rel="alternative" href="/atom.xml" title="心静志远" type="application/atom+xml">
   
@@ -279,7 +279,7 @@
     <a class="close js-modal-close" href="javascript:;"><i class="icon icon-close"></i></a>
     <p>扫一扫，分享到微信</p>
     <div class="wx-qrcode">
-      <img src="//pan.baidu.com/share/qrcode?url=http://heartaway.github.io/2017/06/15/Java/2017-06-15-while-died/" alt="微信分享二维码">
+      <img src="//pan.baidu.com/share/qrcode?url=https://heartaway.cn/2017/06/15/Java/2017-06-15-while-died/" alt="微信分享二维码">
     </div>
 </div>
 
@@ -343,7 +343,7 @@
 <script src="//imsun.github.io/gitment/dist/gitment.browser.js"></script>
 <script>
 var gitment = new Gitment({
-  id: "http://heartaway.github.io/2017/06/15/Java/2017-06-15-while-died/",
+  id: "https://heartaway.cn/2017/06/15/Java/2017-06-15-while-died/",
   owner: 'heartaway',
   repo: 'heartaway.github.io',
   oauth: {

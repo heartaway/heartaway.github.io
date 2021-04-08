@@ -5,9 +5,9 @@
   <subtitle>技术终究会淘汰，思想却永存于世   技术才是硬通货，探求思想与本质</subtitle>
   <link href="/atom.xml" rel="self"/>
   
-  <link href="http://heartaway.github.io/"/>
+  <link href="https://heartaway.cn/"/>
   <updated>2021-02-19T03:19:59.659Z</updated>
-  <id>http://heartaway.github.io/</id>
+  <id>https://heartaway.cn/</id>
   
   <author>
     <name>心静志远</name>
@@ -18,8 +18,8 @@
   
   <entry>
     <title>二零一八，我的失败与伟大</title>
-    <link href="http://heartaway.github.io/2019/05/11/Think/2019-05-11-2018-my-success-and-fail/"/>
-    <id>http://heartaway.github.io/2019/05/11/Think/2019-05-11-2018-my-success-and-fail/</id>
+    <link href="https://heartaway.cn/2019/05/11/Think/2019-05-11-2018-my-success-and-fail/"/>
+    <id>https://heartaway.cn/2019/05/11/Think/2019-05-11-2018-my-success-and-fail/</id>
     <published>2019-05-10T16:00:00.000Z</published>
     <updated>2021-02-19T03:19:59.659Z</updated>
     
@@ -34,23 +34,23 @@
     
     </summary>
     
-      <category term="Think" scheme="http://heartaway.github.io/categories/Think/"/>
+      <category term="Think" scheme="https://heartaway.cn/categories/Think/"/>
     
     
-      <category term="我的失败与伟大" scheme="http://heartaway.github.io/tags/%E6%88%91%E7%9A%84%E5%A4%B1%E8%B4%A5%E4%B8%8E%E4%BC%9F%E5%A4%A7/"/>
+      <category term="我的失败与伟大" scheme="https://heartaway.cn/tags/%E6%88%91%E7%9A%84%E5%A4%B1%E8%B4%A5%E4%B8%8E%E4%BC%9F%E5%A4%A7/"/>
     
-      <category term="年度总结" scheme="http://heartaway.github.io/tags/%E5%B9%B4%E5%BA%A6%E6%80%BB%E7%BB%93/"/>
+      <category term="年度总结" scheme="https://heartaway.cn/tags/%E5%B9%B4%E5%BA%A6%E6%80%BB%E7%BB%93/"/>
     
-      <category term="失败" scheme="http://heartaway.github.io/tags/%E5%A4%B1%E8%B4%A5/"/>
+      <category term="失败" scheme="https://heartaway.cn/tags/%E5%A4%B1%E8%B4%A5/"/>
     
-      <category term="伟大" scheme="http://heartaway.github.io/tags/%E4%BC%9F%E5%A4%A7/"/>
+      <category term="伟大" scheme="https://heartaway.cn/tags/%E4%BC%9F%E5%A4%A7/"/>
     
   </entry>
   
   <entry>
     <title>一次线上系统响应慢的问题定位</title>
-    <link href="http://heartaway.github.io/2019/03/25/Java/2019-03-25-application-no-response/"/>
-    <id>http://heartaway.github.io/2019/03/25/Java/2019-03-25-application-no-response/</id>
+    <link href="https://heartaway.cn/2019/03/25/Java/2019-03-25-application-no-response/"/>
+    <id>https://heartaway.cn/2019/03/25/Java/2019-03-25-application-no-response/</id>
     <published>2019-03-25T09:17:37.000Z</published>
     <updated>2021-02-19T05:06:46.184Z</updated>
     
@@ -64,19 +64,19 @@
     
     </summary>
     
-      <category term="稳定性" scheme="http://heartaway.github.io/categories/%E7%A8%B3%E5%AE%9A%E6%80%A7/"/>
+      <category term="稳定性" scheme="https://heartaway.cn/categories/%E7%A8%B3%E5%AE%9A%E6%80%A7/"/>
     
     
-      <category term="问题定位" scheme="http://heartaway.github.io/tags/%E9%97%AE%E9%A2%98%E5%AE%9A%E4%BD%8D/"/>
+      <category term="问题定位" scheme="https://heartaway.cn/tags/%E9%97%AE%E9%A2%98%E5%AE%9A%E4%BD%8D/"/>
     
-      <category term="稳定性" scheme="http://heartaway.github.io/tags/%E7%A8%B3%E5%AE%9A%E6%80%A7/"/>
+      <category term="稳定性" scheme="https://heartaway.cn/tags/%E7%A8%B3%E5%AE%9A%E6%80%A7/"/>
     
   </entry>
   
   <entry>
     <title>微服务架构可视化平台实践</title>
-    <link href="http://heartaway.github.io/2018/11/22/HighAvailability/2018-11-22-architectural-visualization/"/>
-    <id>http://heartaway.github.io/2018/11/22/HighAvailability/2018-11-22-architectural-visualization/</id>
+    <link href="https://heartaway.cn/2018/11/22/HighAvailability/2018-11-22-architectural-visualization/"/>
+    <id>https://heartaway.cn/2018/11/22/HighAvailability/2018-11-22-architectural-visualization/</id>
     <published>2018-11-22T08:32:28.000Z</published>
     <updated>2021-02-19T03:19:59.634Z</updated>
     
@@ -89,21 +89,21 @@
     
     </summary>
     
-      <category term="架构" scheme="http://heartaway.github.io/categories/%E6%9E%B6%E6%9E%84/"/>
+      <category term="架构" scheme="https://heartaway.cn/categories/%E6%9E%B6%E6%9E%84/"/>
     
     
-      <category term="架构" scheme="http://heartaway.github.io/tags/%E6%9E%B6%E6%9E%84/"/>
+      <category term="架构" scheme="https://heartaway.cn/tags/%E6%9E%B6%E6%9E%84/"/>
     
-      <category term="可视化" scheme="http://heartaway.github.io/tags/%E5%8F%AF%E8%A7%86%E5%8C%96/"/>
+      <category term="可视化" scheme="https://heartaway.cn/tags/%E5%8F%AF%E8%A7%86%E5%8C%96/"/>
     
-      <category term="AHAS" scheme="http://heartaway.github.io/tags/AHAS/"/>
+      <category term="AHAS" scheme="https://heartaway.cn/tags/AHAS/"/>
     
   </entry>
   
   <entry>
     <title>本地缓存的数据变更</title>
-    <link href="http://heartaway.github.io/2018/11/16/Java/%202018-11-16-local-cache-chage/"/>
-    <id>http://heartaway.github.io/2018/11/16/Java/ 2018-11-16-local-cache-chage/</id>
+    <link href="https://heartaway.cn/2018/11/16/Java/%202018-11-16-local-cache-chage/"/>
+    <id>https://heartaway.cn/2018/11/16/Java/ 2018-11-16-local-cache-chage/</id>
     <published>2018-11-16T06:29:59.000Z</published>
     <updated>2021-02-19T03:19:59.634Z</updated>
     
@@ -118,19 +118,19 @@
     
     </summary>
     
-      <category term="编程" scheme="http://heartaway.github.io/categories/%E7%BC%96%E7%A8%8B/"/>
+      <category term="编程" scheme="https://heartaway.cn/categories/%E7%BC%96%E7%A8%8B/"/>
     
     
-      <category term="共享变量" scheme="http://heartaway.github.io/tags/%E5%85%B1%E4%BA%AB%E5%8F%98%E9%87%8F/"/>
+      <category term="共享变量" scheme="https://heartaway.cn/tags/%E5%85%B1%E4%BA%AB%E5%8F%98%E9%87%8F/"/>
     
-      <category term="缓存" scheme="http://heartaway.github.io/tags/%E7%BC%93%E5%AD%98/"/>
+      <category term="缓存" scheme="https://heartaway.cn/tags/%E7%BC%93%E5%AD%98/"/>
     
   </entry>
   
   <entry>
     <title>建立人生准则</title>
-    <link href="http://heartaway.github.io/2018/11/10/Think/2018-11-10-my-life-rule/"/>
-    <id>http://heartaway.github.io/2018/11/10/Think/2018-11-10-my-life-rule/</id>
+    <link href="https://heartaway.cn/2018/11/10/Think/2018-11-10-my-life-rule/"/>
+    <id>https://heartaway.cn/2018/11/10/Think/2018-11-10-my-life-rule/</id>
     <published>2018-11-10T09:27:20.000Z</published>
     <updated>2021-02-19T03:19:59.659Z</updated>
     
@@ -145,21 +145,21 @@
     
     </summary>
     
-      <category term="思考" scheme="http://heartaway.github.io/categories/%E6%80%9D%E8%80%83/"/>
+      <category term="思考" scheme="https://heartaway.cn/categories/%E6%80%9D%E8%80%83/"/>
     
     
-      <category term="目标" scheme="http://heartaway.github.io/tags/%E7%9B%AE%E6%A0%87/"/>
+      <category term="目标" scheme="https://heartaway.cn/tags/%E7%9B%AE%E6%A0%87/"/>
     
-      <category term="人生" scheme="http://heartaway.github.io/tags/%E4%BA%BA%E7%94%9F/"/>
+      <category term="人生" scheme="https://heartaway.cn/tags/%E4%BA%BA%E7%94%9F/"/>
     
-      <category term="感悟" scheme="http://heartaway.github.io/tags/%E6%84%9F%E6%82%9F/"/>
+      <category term="感悟" scheme="https://heartaway.cn/tags/%E6%84%9F%E6%82%9F/"/>
     
   </entry>
   
   <entry>
     <title>他人经受的，我必经受</title>
-    <link href="http://heartaway.github.io/2018/10/06/Think/2018-10-06-marriage-quarrel/"/>
-    <id>http://heartaway.github.io/2018/10/06/Think/2018-10-06-marriage-quarrel/</id>
+    <link href="https://heartaway.cn/2018/10/06/Think/2018-10-06-marriage-quarrel/"/>
+    <id>https://heartaway.cn/2018/10/06/Think/2018-10-06-marriage-quarrel/</id>
     <published>2018-10-05T16:00:00.000Z</published>
     <updated>2021-02-19T03:19:59.659Z</updated>
     
@@ -175,15 +175,15 @@
     
     </summary>
     
-      <category term="Think" scheme="http://heartaway.github.io/categories/Think/"/>
+      <category term="Think" scheme="https://heartaway.cn/categories/Think/"/>
     
     
   </entry>
   
   <entry>
     <title>如何解决技术焦虑</title>
-    <link href="http://heartaway.github.io/2018/04/13/Think/2018-04-13-how-to-resolve-tech-anxious/"/>
-    <id>http://heartaway.github.io/2018/04/13/Think/2018-04-13-how-to-resolve-tech-anxious/</id>
+    <link href="https://heartaway.cn/2018/04/13/Think/2018-04-13-how-to-resolve-tech-anxious/"/>
+    <id>https://heartaway.cn/2018/04/13/Think/2018-04-13-how-to-resolve-tech-anxious/</id>
     <published>2018-04-12T16:00:00.000Z</published>
     <updated>2021-02-19T03:19:59.658Z</updated>
     
@@ -196,15 +196,15 @@
     
     </summary>
     
-      <category term="Think" scheme="http://heartaway.github.io/categories/Think/"/>
+      <category term="Think" scheme="https://heartaway.cn/categories/Think/"/>
     
     
   </entry>
   
   <entry>
     <title>Mybatis 核心理念</title>
-    <link href="http://heartaway.github.io/2018/04/09/Java/2018-04-09-mybatis-core-thought/"/>
-    <id>http://heartaway.github.io/2018/04/09/Java/2018-04-09-mybatis-core-thought/</id>
+    <link href="https://heartaway.cn/2018/04/09/Java/2018-04-09-mybatis-core-thought/"/>
+    <id>https://heartaway.cn/2018/04/09/Java/2018-04-09-mybatis-core-thought/</id>
     <published>2018-04-08T16:00:00.000Z</published>
     <updated>2021-02-19T03:19:59.644Z</updated>
     
@@ -226,15 +226,15 @@
     
     </summary>
     
-      <category term="Java" scheme="http://heartaway.github.io/categories/Java/"/>
+      <category term="Java" scheme="https://heartaway.cn/categories/Java/"/>
     
     
   </entry>
   
   <entry>
     <title>阿里云多机房部署网络架构</title>
-    <link href="http://heartaway.github.io/2018/03/29/HighAvailability/2018-03-29-aliyun-mutil-region/"/>
-    <id>http://heartaway.github.io/2018/03/29/HighAvailability/2018-03-29-aliyun-mutil-region/</id>
+    <link href="https://heartaway.cn/2018/03/29/HighAvailability/2018-03-29-aliyun-mutil-region/"/>
+    <id>https://heartaway.cn/2018/03/29/HighAvailability/2018-03-29-aliyun-mutil-region/</id>
     <published>2018-03-28T16:00:00.000Z</published>
     <updated>2021-02-19T03:19:59.631Z</updated>
     
@@ -250,15 +250,15 @@
     
     </summary>
     
-      <category term="HighAvailability" scheme="http://heartaway.github.io/categories/HighAvailability/"/>
+      <category term="HighAvailability" scheme="https://heartaway.cn/categories/HighAvailability/"/>
     
     
   </entry>
   
   <entry>
     <title>POJO 对象setter 方法是否合适return &quot;this&quot;</title>
-    <link href="http://heartaway.github.io/2018/03/22/Java/2018-03-22-java-bean-setter-return/"/>
-    <id>http://heartaway.github.io/2018/03/22/Java/2018-03-22-java-bean-setter-return/</id>
+    <link href="https://heartaway.cn/2018/03/22/Java/2018-03-22-java-bean-setter-return/"/>
+    <id>https://heartaway.cn/2018/03/22/Java/2018-03-22-java-bean-setter-return/</id>
     <published>2018-03-21T16:00:00.000Z</published>
     <updated>2021-02-19T03:19:59.644Z</updated>
     
@@ -274,15 +274,15 @@
     
     </summary>
     
-      <category term="Java" scheme="http://heartaway.github.io/categories/Java/"/>
+      <category term="Java" scheme="https://heartaway.cn/categories/Java/"/>
     
     
   </entry>
   
   <entry>
     <title>AWS应用自动发现服务</title>
-    <link href="http://heartaway.github.io/2018/03/15/HighAvailability/2018-03-15-aws-application-discovery/"/>
-    <id>http://heartaway.github.io/2018/03/15/HighAvailability/2018-03-15-aws-application-discovery/</id>
+    <link href="https://heartaway.cn/2018/03/15/HighAvailability/2018-03-15-aws-application-discovery/"/>
+    <id>https://heartaway.cn/2018/03/15/HighAvailability/2018-03-15-aws-application-discovery/</id>
     <published>2018-03-14T16:00:00.000Z</published>
     <updated>2021-02-19T03:19:59.631Z</updated>
     
@@ -300,15 +300,15 @@
     
     </summary>
     
-      <category term="HighAvailability" scheme="http://heartaway.github.io/categories/HighAvailability/"/>
+      <category term="HighAvailability" scheme="https://heartaway.cn/categories/HighAvailability/"/>
     
     
   </entry>
   
   <entry>
     <title>自用型监控系统方案</title>
-    <link href="http://heartaway.github.io/2018/03/14/HighAvailability/2018-03-14-monitor-system/"/>
-    <id>http://heartaway.github.io/2018/03/14/HighAvailability/2018-03-14-monitor-system/</id>
+    <link href="https://heartaway.cn/2018/03/14/HighAvailability/2018-03-14-monitor-system/"/>
+    <id>https://heartaway.cn/2018/03/14/HighAvailability/2018-03-14-monitor-system/</id>
     <published>2018-03-13T16:00:00.000Z</published>
     <updated>2021-02-19T03:19:59.631Z</updated>
     
@@ -324,15 +324,15 @@
     
     </summary>
     
-      <category term="HighAvailability" scheme="http://heartaway.github.io/categories/HighAvailability/"/>
+      <category term="HighAvailability" scheme="https://heartaway.cn/categories/HighAvailability/"/>
     
     
   </entry>
   
   <entry>
     <title>《基于中间件的基础设施自动发现》</title>
-    <link href="http://heartaway.github.io/2018/03/14/Paper/2018-03-14-infrastructure-auto-discovery/"/>
-    <id>http://heartaway.github.io/2018/03/14/Paper/2018-03-14-infrastructure-auto-discovery/</id>
+    <link href="https://heartaway.cn/2018/03/14/Paper/2018-03-14-infrastructure-auto-discovery/"/>
+    <id>https://heartaway.cn/2018/03/14/Paper/2018-03-14-infrastructure-auto-discovery/</id>
     <published>2018-03-13T16:00:00.000Z</published>
     <updated>2021-02-19T03:19:59.647Z</updated>
     
@@ -348,15 +348,15 @@
     
     </summary>
     
-      <category term="Paper" scheme="http://heartaway.github.io/categories/Paper/"/>
+      <category term="Paper" scheme="https://heartaway.cn/categories/Paper/"/>
     
     
   </entry>
   
   <entry>
     <title>spring quartz 指定trigger的执行机器</title>
-    <link href="http://heartaway.github.io/2018/03/06/Java/2018-03-06-spring-quartz-trigger/"/>
-    <id>http://heartaway.github.io/2018/03/06/Java/2018-03-06-spring-quartz-trigger/</id>
+    <link href="https://heartaway.cn/2018/03/06/Java/2018-03-06-spring-quartz-trigger/"/>
+    <id>https://heartaway.cn/2018/03/06/Java/2018-03-06-spring-quartz-trigger/</id>
     <published>2018-03-05T16:00:00.000Z</published>
     <updated>2021-02-19T03:19:59.644Z</updated>
     
@@ -371,15 +371,15 @@
     
     </summary>
     
-      <category term="Java" scheme="http://heartaway.github.io/categories/Java/"/>
+      <category term="Java" scheme="https://heartaway.cn/categories/Java/"/>
     
     
   </entry>
   
   <entry>
     <title>Spring中property-placeholder的使用与解析</title>
-    <link href="http://heartaway.github.io/2018/01/19/Java/2018-01-19-spring-properties/"/>
-    <id>http://heartaway.github.io/2018/01/19/Java/2018-01-19-spring-properties/</id>
+    <link href="https://heartaway.cn/2018/01/19/Java/2018-01-19-spring-properties/"/>
+    <id>https://heartaway.cn/2018/01/19/Java/2018-01-19-spring-properties/</id>
     <published>2018-01-18T16:00:00.000Z</published>
     <updated>2021-02-19T03:19:59.644Z</updated>
     
@@ -394,38 +394,15 @@
     
     </summary>
     
-      <category term="Java" scheme="http://heartaway.github.io/categories/Java/"/>
-    
-    
-  </entry>
-  
-  <entry>
-    <title>Taobao SSO 跨域登录过程解析</title>
-    <link href="http://heartaway.github.io/2018/01/04/Program/2018-01-04-taobao-sso/"/>
-    <id>http://heartaway.github.io/2018/01/04/Program/2018-01-04-taobao-sso/</id>
-    <published>2018-01-03T16:00:00.000Z</published>
-    <updated>2021-02-19T03:19:59.649Z</updated>
-    
-    <content type="html"><![CDATA[<p>今年的双十一和双十二已经告一段落，你是否买到了你想要的宝贝呢？我们知道双十一是天猫的主场，双十二是淘宝的主场，你有没有注意到你在登录了淘宝后，访问天猫或者飞猪，你还是处于登录态的，但是我们知道cookie是不能跨域的，那么阿里是如何做到了多域名下的登录态同步呢？接下来我们通过抓包进行请求解析来了解这个过程。</p><h2 id="基础知识："><a href="#基础知识：" class="headerlink" title="基础知识："></a>基础知识：</h2><ol><li>如果忘了Cookie和Session的区别，那么建议你先回顾一下，可以参考：<a href="https://github.com/astaxie/build-web-application-with-golang/blob/master/zh/06.1.md" target="_blank" rel="noopener">https://github.com/astaxie/build-web-application-with-golang/blob/master/zh/06.1.md</a></li><li>如果不知道为什么需要鉴权，为什么需要SSO，为什么需要跨域登录，建议你先阅读上一篇文章“系统权限控制”。</li></ol><h2 id="测试过程："><a href="#测试过程：" class="headerlink" title="测试过程："></a>测试过程：</h2><ol><li>访问<a href="http://www.taobao.com" target="_blank" rel="noopener">www.taobao.com</a> 请求登录，跳转到 login.taobao.com<ul><li>输入用户名和密码后，登录成功，302 回调到<a href="http://www.taobao.com页面" target="_blank" rel="noopener">www.taobao.com页面</a></li><li>Post 表单到 login.taobao.com , response 为 set-cookie，并通过redirectURL 跳会<a href="http://www.taobao.com首页；" target="_blank" rel="noopener">www.taobao.com首页；</a></li></ul></li><li>访问 <a href="http://www.tmall.com" target="_blank" rel="noopener">www.tmall.com</a><ul><li><a href="http://www.tmall.com页面响应中发起新的请求" target="_blank" rel="noopener">www.tmall.com页面响应中发起新的请求</a> tmcc.tmall.com/pass.com</li></ul></li><li>请求页面 <a href="https://tmcc.tmall.com/pass.htm" target="_blank" rel="noopener">https://tmcc.tmall.com/pass.htm</a><ul><li>响应为 302 跳转到： <a href="https://login.taobao.com/jump?target=https://tmcc.tmall.com/pass.htm?tbpm=1" target="_blank" rel="noopener">https://login.taobao.com/jump?target=https://tmcc.tmall.com/pass.htm?tbpm=1</a></li><li>tbpm=1表示：进行tbsession的跨域同步；</li></ul></li><li>请求页面 <a href="https://login.taobao.com/jump?target=https://tmcc.tmall.com/pass.htm?tbpm=1" target="_blank" rel="noopener">https://login.taobao.com/jump?target=https://tmcc.tmall.com/pass.htm?tbpm=1</a><ul><li>在请求login.taobao.com/jump时，会携带上taobao.com域下的cookie信息</li><li>响应为302跳转到：<a href="https://pass.tmall.com/add?_tb_token_=eef03e35fbe&amp;u......&amp;target=https%3A%2F%2Ftmcc.tmall.com%2Fpass.htm%3Ftbpm%3D1" target="_blank" rel="noopener">https://pass.tmall.com/add?_tb_token_=eef03e35fbe&amp;u......&amp;target=https%3A%2F%2Ftmcc.tmall.com%2Fpass.htm%3Ftbpm%3D1</a></li><li>服务器端把taobao域下的cookie信息拼接到了302跳转的url 的 query string上。</li></ul></li><li>请求页面 <a href="https://pass.tmall.com/add?_tb_token_=eef03e35fbe&amp;u......&amp;target=https%3A%2F%2Ftmcc.tmall.com%2Fpass.htm%3Ftbpm%3D1" target="_blank" rel="noopener">https://pass.tmall.com/add?_tb_token_=eef03e35fbe&amp;u......&amp;target=https%3A%2F%2Ftmcc.tmall.com%2Fpass.htm%3Ftbpm%3D1</a><ul><li>携带cookie 信息的query string 参数请求 tmall.com域名下的信息，请求添加cookie。</li><li>响应中把请求中的cookie信息set 到 浏览器cookie中，以此完成tmall.com域名下的cookie同步；</li><li>响应状态未302 重定向到 <a href="https://tmcc.tmall.com/pass.htm?tbpm=1" target="_blank" rel="noopener">https://tmcc.tmall.com/pass.htm?tbpm=1</a></li></ul></li><li>请求页面<a href="https://tmcc.tmall.com/pass.htm?tbpm=1" target="_blank" rel="noopener">https://tmcc.tmall.com/pass.htm?tbpm=1</a> 302 跳转到 <a href="https://tmcc.tmall.com/pass.htm" target="_blank" rel="noopener">https://tmcc.tmall.com/pass.htm</a></li></ol><p>抓包信息：<br><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/87d35687c06bdf7d01ea78c3aa1f8c7f.png" alt=""><br>图中隐藏了非关键请求，比如页面的静态资源等；</p><p>同样：</p><ol><li>访问 <a href="http://www.alitrip.com，会同步请求https://ffa.alitrip.com/userInfo.htm的请求" target="_blank" rel="noopener">www.alitrip.com，会同步请求https://ffa.alitrip.com/userInfo.htm的请求</a></li><li>请求页面<a href="https://ffa.alitrip.com/userInfo.htm" target="_blank" rel="noopener">https://ffa.alitrip.com/userInfo.htm</a><ul><li>响应为 302 跳转到：<a href="https://login.taobao.com/jump?target=https%3A%2F%2Fffa.alitrip.com%2FuserInfo.htm" target="_blank" rel="noopener">https://login.taobao.com/jump?target=https%3A%2F%2Fffa.alitrip.com%2FuserInfo.htm</a></li></ul></li><li>请求页面<a href="https://login.taobao.com/jump?target=https%3A%2F%2Fffa.alitrip.com%2FuserIn" target="_blank" rel="noopener">https://login.taobao.com/jump?target=https%3A%2F%2Fffa.alitrip.com%2FuserIn</a><ul><li>在请求login.taobao.com/jump时，会携带上taobao.com域下的cookie信息</li><li>响应为302跳转到：<a href="https://pass.alitrip.com/add?_tb_token_=eef03e35fbe&amp;uss=UtBTusG4…" target="_blank" rel="noopener">https://pass.alitrip.com/add?_tb_token_=eef03e35fbe&amp;uss=UtBTusG4…</a></li><li>服务器端把taobao域下的cookie信息拼接到了302跳转的url 的 query string上。</li></ul></li><li>请求页面<a href="https://pass.alitrip.com/add?_tb_token_=eef03e35fbe&amp;uss=UtBTusG4" target="_blank" rel="noopener">https://pass.alitrip.com/add?_tb_token_=eef03e35fbe&amp;uss=UtBTusG4</a><ul><li>携带cookie 信息的query string 参数请求 alitrip.com 域名下的信息，请求添加cookie</li><li>响应中把请求中的cookie信息set 到 浏览器cookie中，以此完成tmall.com域名下的cookie同步;</li></ul></li></ol><p>示意图：<br><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/ad93fbcaff26e6b4bc3ca3af620468e9.png" alt=""></p><ol><li>访问原始url： tmcc.tmall.com</li><li>重定向，访问login.taobao.com/jump</li><li>重定向，访问pass.tmall.com</li><li>重定向，访问原始url（带有同步标识tbpm）</li><li>重定向，访问原始url（去掉同步标识tbpm）</li></ol><p>如果我们taobao.com域下没有登录cookie，通过在login.tmall.com页面进行登录，那么cookie的传递是怎么样的呢？<br>通过测试，发现在请求login.tmall.com的时候会同步请求login.taobao.com然后cookie依然是通过taobao域同步到tmall域名，也就是cookie的同步是单向；</p><p>当然，这个过程是正向流程，那退出登录的逆向流程是怎么样的呢？会同步请求login.taobao.com/clear, 通过set-cookie 清楚session cookie（会话cookie），然后进行 302 跳转到 <a href="https://pass.tmall.com/clear" target="_blank" rel="noopener">https://pass.tmall.com/clear</a> 进行cookie清理，然后 302 跳转到 <a href="https://pass.etao.com/clear" target="_blank" rel="noopener">https://pass.etao.com/clear</a> 进行cookie清理，然后 302 跳转到<a href="https://pass.etao.com/clear" target="_blank" rel="noopener">https://pass.etao.com/clear</a> 进行 cookie清理，如此重复知道所有域名cookie进行清理完毕。<br><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/eafb7fc66c6139c50a6a8bbb5bd89e58.png" alt=""><br>通过测试发现淘系的系统所有的退出登录都是走login.taobao.com/member/logout.jhtml , 然后通过一些列302 跳转pass系统进行登录态的清理。 登录态在到阿里云、支付宝是不通的,因为阿里云和支付宝的账号体系不一样。</p><h2 id="禁用Cookie："><a href="#禁用Cookie：" class="headerlink" title="禁用Cookie："></a>禁用Cookie：</h2><p>可以看出整个跨域登录依赖的是cookie信息的传递与跨域设置，如果出于安全考虑，我们禁用了cookie，是否还能正常工作呢？经过测试，发现禁用cookie后，跨域自动登录不能正常执行了，跨域请求后对于受限的访问请求还是会自动跳登录。由于设计上没有考虑cookie禁用的情况，淘宝的登录页面竟然无法进入，一直循环跳转登录页面。</p><h2 id="分布式Session-的常见解决方案："><a href="#分布式Session-的常见解决方案：" class="headerlink" title="分布式Session 的常见解决方案："></a>分布式Session 的常见解决方案：</h2><ol><li>通过cookie进行共享；</li><li>借助第三方进行存储，比如缓存；</li><li>不容服务器之间进行session同步；</li></ol><p>这里面涉及到阿里两个重要级产品：tbsession、passcookie。</p><ol><li>tbsession：用来解决多应用间session共享存储与同步问题；tbsession采用的是 方法1 + 方法2的结合；</li><li>passcookie：用来解决不同域名之间cookie同步的问题，以及决定同步那些cookie；</li></ol><h2 id="思考："><a href="#思考：" class="headerlink" title="思考："></a>思考：</h2><p>问：为什么有了cookie 还需要 session？</p><p>答：cookie存储本身具备一些优势，比如信息存储在客户端，分散了资源消耗，cookie可以在客户端进行持久化存储（cookie在客户端分为：Permanent Cookies，Session Cookie）。    主要是只使用cookie作为资源访问的鉴权记录具备不安全性，容易引起CSRF（跨站请求伪造），比如攻击者劫持登录后的cookie信息进行页面操作，此时服务器以为还是用户自身在登录态下的本人操作。当然，只是简单的使用session也并不能彻底解决CSRF，使用session只是把用户的登录态信息保存在服务器端，客户端cookie往往会记录一个JSessionId 用来标识当前会话ID，jsessionid在网络中传输还是存在被劫持的可能性（参考下面的session劫持），所以需要配合响应的解决手段防止CSRF的发生。其次，cookie的使用在大小和条数上限制，大于需要存储大量用户态信息的场景下已经不够用了，此时需要借助session在服务端的存储设备来实现。<br><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/877347f9c7fc1318a494640818519c2a.png" alt=""></p><p>问：登录后会会话中的每一次访问受限资源都需要访问验证？</p><p>答：是的，因为每一次请求都无法确认你的身份，所以为了降低复杂认证授权的过程，通过sessionId 来标识某一会话；如果我们的Cookie信息泄露，那么不法分子就可以使用我们包含登录态的Cookie进行访问我们的受限资源（比如拷贝登录后的cookie信息通过postman请求需要登录后才能查看的信息），即便是我们丢增删改的请求采用了crsf_token ,不法分子还是可以看到我们的信息，信息已经造成了泄露。所以对于持久化Cookie，尽量设置为httpOnly，不允许通过JS脚本读取Cookie信息。还有就是使用https协议代替http协议（从tcp到ssl），这样不法分子劫持了请求信息，也无法破解请求信息的内容。</p><p>问：是否采用了https就不需要防范CSRF了？</p><p>答：不是的，我们采用https，是在数据传输层对请求进行进行加密后发送，但是如果CSRF是在浏览器的本地读取我们的Cookie信息（存储在我们浏览器中本地的Cookie信息确实明文的），还是可以读取到我们明文的Cookie信息。采用https只是防止了请求在传输中拦截后窃取我们的Cookie进行攻击而已。</p><h2 id="Session-劫持与防范："><a href="#Session-劫持与防范：" class="headerlink" title="Session 劫持与防范："></a>Session 劫持与防范：</h2><p>这篇文章详细阐述了服务器端不做任何处理下的sessionId劫持的案例。<br><a href="https://github.com/astaxie/build-web-application-with-golang/blob/master/zh/06.4.md" target="_blank" rel="noopener">https://github.com/astaxie/build-web-application-with-golang/blob/master/zh/06.4.md</a></p><p>session 劫持的防范措施：</p><ol><li>使用POST 请求 + Referer验证；<ul><li>此方式简单容易实现；</li><li>弊端：1.所有请求都是用POST方式不符合规范，比如RestFul。2.很多场景下请求是无法携带referer的；</li></ul></li><li>使用csrf_token：在涉及增删改的请求中，带上一个和服务器端同步的随机数(token)，然后在服务器端做校验。由于这个token是变化的，同时具有私密性，只会内嵌到当前用户的页面中，因此可以起到防止CSRF的作用，比如淘宝域下cookie中的_tb_token_参数。</li></ol><p>csrftoken的整个生命周期一般是这样的：</p><ul><li>后端针对每一个用户生成唯一的csrftoken后    </li><li>将csrftoken存储在服务器端，且和当前用户一一绑定</li><li>当用户访问页面时，将csrftoken埋入前端页面</li><li>用户提交请求时，需要在请求中附带上csrftoken</li><li>后端对接收到的csrftoken进行校验，判断请求是否合法</li><li>根据请求，后端判断是非需要更新csrftoken</li></ul><p>使用csrf_token 方案目前来说是最有效的安全措施，但是方案实施起来也相对复杂很多，需要考虑csrf_token的存储、更新、埋点以及校验等逻辑。</p><h2 id="本质思考："><a href="#本质思考：" class="headerlink" title="本质思考："></a>本质思考：</h2><p>SSO 跨域统一登录的本质就是【登录态信息的跨域共享，为了实现共享采用了复制的方式】，这跟我们现实世界中为了达到知识共享，需要把知识转化为书籍，然后通过书籍印刷进行分发。</p><h2 id="抓包工具介绍："><a href="#抓包工具介绍：" class="headerlink" title="抓包工具介绍："></a>抓包工具介绍：</h2><ol><li>工具采用 mac 下的 Charles；</li><li>https由于安全限制无法抓取到具体的内容，所以需要通过一些列的设置才能抓到请求数据；</li><li>Charles -&gt; Help -&gt; SSL Proxying -&gt; Install Charles Root Certificate</li><li>Proxy -&gt; SSL Proxying Setting -&gt; SSL Proxying 添加正则域名</li></ol>]]></content>
-    
-    <summary type="html">
-    
-      
-      
-        &lt;p&gt;今年的双十一和双十二已经告一段落，你是否买到了你想要的宝贝呢？我们知道双十一是天猫的主场，双十二是淘宝的主场，你有没有注意到你在登录了淘宝后，访问天猫或者飞猪，你还是处于登录态的，但是我们知道cookie是不能跨域的，那么阿里是如何做到了多域名下的登录态同步呢？接下来我们通
-      
-    
-    </summary>
-    
-      <category term="Program" scheme="http://heartaway.github.io/categories/Program/"/>
+      <category term="Java" scheme="https://heartaway.cn/categories/Java/"/>
     
     
   </entry>
   
   <entry>
     <title>系统权限控制体系</title>
-    <link href="http://heartaway.github.io/2018/01/04/Program/2018-01-04-permission-system-degisn/"/>
-    <id>http://heartaway.github.io/2018/01/04/Program/2018-01-04-permission-system-degisn/</id>
+    <link href="https://heartaway.cn/2018/01/04/Program/2018-01-04-permission-system-degisn/"/>
+    <id>https://heartaway.cn/2018/01/04/Program/2018-01-04-permission-system-degisn/</id>
     <published>2018-01-03T16:00:00.000Z</published>
     <updated>2021-02-19T03:19:59.649Z</updated>
     
@@ -440,15 +417,38 @@
     
     </summary>
     
-      <category term="Program" scheme="http://heartaway.github.io/categories/Program/"/>
+      <category term="Program" scheme="https://heartaway.cn/categories/Program/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>Taobao SSO 跨域登录过程解析</title>
+    <link href="https://heartaway.cn/2018/01/04/Program/2018-01-04-taobao-sso/"/>
+    <id>https://heartaway.cn/2018/01/04/Program/2018-01-04-taobao-sso/</id>
+    <published>2018-01-03T16:00:00.000Z</published>
+    <updated>2021-02-19T03:19:59.649Z</updated>
+    
+    <content type="html"><![CDATA[<p>今年的双十一和双十二已经告一段落，你是否买到了你想要的宝贝呢？我们知道双十一是天猫的主场，双十二是淘宝的主场，你有没有注意到你在登录了淘宝后，访问天猫或者飞猪，你还是处于登录态的，但是我们知道cookie是不能跨域的，那么阿里是如何做到了多域名下的登录态同步呢？接下来我们通过抓包进行请求解析来了解这个过程。</p><h2 id="基础知识："><a href="#基础知识：" class="headerlink" title="基础知识："></a>基础知识：</h2><ol><li>如果忘了Cookie和Session的区别，那么建议你先回顾一下，可以参考：<a href="https://github.com/astaxie/build-web-application-with-golang/blob/master/zh/06.1.md" target="_blank" rel="noopener">https://github.com/astaxie/build-web-application-with-golang/blob/master/zh/06.1.md</a></li><li>如果不知道为什么需要鉴权，为什么需要SSO，为什么需要跨域登录，建议你先阅读上一篇文章“系统权限控制”。</li></ol><h2 id="测试过程："><a href="#测试过程：" class="headerlink" title="测试过程："></a>测试过程：</h2><ol><li>访问<a href="http://www.taobao.com" target="_blank" rel="noopener">www.taobao.com</a> 请求登录，跳转到 login.taobao.com<ul><li>输入用户名和密码后，登录成功，302 回调到<a href="http://www.taobao.com页面" target="_blank" rel="noopener">www.taobao.com页面</a></li><li>Post 表单到 login.taobao.com , response 为 set-cookie，并通过redirectURL 跳会<a href="http://www.taobao.com首页；" target="_blank" rel="noopener">www.taobao.com首页；</a></li></ul></li><li>访问 <a href="http://www.tmall.com" target="_blank" rel="noopener">www.tmall.com</a><ul><li><a href="http://www.tmall.com页面响应中发起新的请求" target="_blank" rel="noopener">www.tmall.com页面响应中发起新的请求</a> tmcc.tmall.com/pass.com</li></ul></li><li>请求页面 <a href="https://tmcc.tmall.com/pass.htm" target="_blank" rel="noopener">https://tmcc.tmall.com/pass.htm</a><ul><li>响应为 302 跳转到： <a href="https://login.taobao.com/jump?target=https://tmcc.tmall.com/pass.htm?tbpm=1" target="_blank" rel="noopener">https://login.taobao.com/jump?target=https://tmcc.tmall.com/pass.htm?tbpm=1</a></li><li>tbpm=1表示：进行tbsession的跨域同步；</li></ul></li><li>请求页面 <a href="https://login.taobao.com/jump?target=https://tmcc.tmall.com/pass.htm?tbpm=1" target="_blank" rel="noopener">https://login.taobao.com/jump?target=https://tmcc.tmall.com/pass.htm?tbpm=1</a><ul><li>在请求login.taobao.com/jump时，会携带上taobao.com域下的cookie信息</li><li>响应为302跳转到：<a href="https://pass.tmall.com/add?_tb_token_=eef03e35fbe&amp;u......&amp;target=https%3A%2F%2Ftmcc.tmall.com%2Fpass.htm%3Ftbpm%3D1" target="_blank" rel="noopener">https://pass.tmall.com/add?_tb_token_=eef03e35fbe&amp;u......&amp;target=https%3A%2F%2Ftmcc.tmall.com%2Fpass.htm%3Ftbpm%3D1</a></li><li>服务器端把taobao域下的cookie信息拼接到了302跳转的url 的 query string上。</li></ul></li><li>请求页面 <a href="https://pass.tmall.com/add?_tb_token_=eef03e35fbe&amp;u......&amp;target=https%3A%2F%2Ftmcc.tmall.com%2Fpass.htm%3Ftbpm%3D1" target="_blank" rel="noopener">https://pass.tmall.com/add?_tb_token_=eef03e35fbe&amp;u......&amp;target=https%3A%2F%2Ftmcc.tmall.com%2Fpass.htm%3Ftbpm%3D1</a><ul><li>携带cookie 信息的query string 参数请求 tmall.com域名下的信息，请求添加cookie。</li><li>响应中把请求中的cookie信息set 到 浏览器cookie中，以此完成tmall.com域名下的cookie同步；</li><li>响应状态未302 重定向到 <a href="https://tmcc.tmall.com/pass.htm?tbpm=1" target="_blank" rel="noopener">https://tmcc.tmall.com/pass.htm?tbpm=1</a></li></ul></li><li>请求页面<a href="https://tmcc.tmall.com/pass.htm?tbpm=1" target="_blank" rel="noopener">https://tmcc.tmall.com/pass.htm?tbpm=1</a> 302 跳转到 <a href="https://tmcc.tmall.com/pass.htm" target="_blank" rel="noopener">https://tmcc.tmall.com/pass.htm</a></li></ol><p>抓包信息：<br><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/87d35687c06bdf7d01ea78c3aa1f8c7f.png" alt=""><br>图中隐藏了非关键请求，比如页面的静态资源等；</p><p>同样：</p><ol><li>访问 <a href="http://www.alitrip.com，会同步请求https://ffa.alitrip.com/userInfo.htm的请求" target="_blank" rel="noopener">www.alitrip.com，会同步请求https://ffa.alitrip.com/userInfo.htm的请求</a></li><li>请求页面<a href="https://ffa.alitrip.com/userInfo.htm" target="_blank" rel="noopener">https://ffa.alitrip.com/userInfo.htm</a><ul><li>响应为 302 跳转到：<a href="https://login.taobao.com/jump?target=https%3A%2F%2Fffa.alitrip.com%2FuserInfo.htm" target="_blank" rel="noopener">https://login.taobao.com/jump?target=https%3A%2F%2Fffa.alitrip.com%2FuserInfo.htm</a></li></ul></li><li>请求页面<a href="https://login.taobao.com/jump?target=https%3A%2F%2Fffa.alitrip.com%2FuserIn" target="_blank" rel="noopener">https://login.taobao.com/jump?target=https%3A%2F%2Fffa.alitrip.com%2FuserIn</a><ul><li>在请求login.taobao.com/jump时，会携带上taobao.com域下的cookie信息</li><li>响应为302跳转到：<a href="https://pass.alitrip.com/add?_tb_token_=eef03e35fbe&amp;uss=UtBTusG4…" target="_blank" rel="noopener">https://pass.alitrip.com/add?_tb_token_=eef03e35fbe&amp;uss=UtBTusG4…</a></li><li>服务器端把taobao域下的cookie信息拼接到了302跳转的url 的 query string上。</li></ul></li><li>请求页面<a href="https://pass.alitrip.com/add?_tb_token_=eef03e35fbe&amp;uss=UtBTusG4" target="_blank" rel="noopener">https://pass.alitrip.com/add?_tb_token_=eef03e35fbe&amp;uss=UtBTusG4</a><ul><li>携带cookie 信息的query string 参数请求 alitrip.com 域名下的信息，请求添加cookie</li><li>响应中把请求中的cookie信息set 到 浏览器cookie中，以此完成tmall.com域名下的cookie同步;</li></ul></li></ol><p>示意图：<br><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/ad93fbcaff26e6b4bc3ca3af620468e9.png" alt=""></p><ol><li>访问原始url： tmcc.tmall.com</li><li>重定向，访问login.taobao.com/jump</li><li>重定向，访问pass.tmall.com</li><li>重定向，访问原始url（带有同步标识tbpm）</li><li>重定向，访问原始url（去掉同步标识tbpm）</li></ol><p>如果我们taobao.com域下没有登录cookie，通过在login.tmall.com页面进行登录，那么cookie的传递是怎么样的呢？<br>通过测试，发现在请求login.tmall.com的时候会同步请求login.taobao.com然后cookie依然是通过taobao域同步到tmall域名，也就是cookie的同步是单向；</p><p>当然，这个过程是正向流程，那退出登录的逆向流程是怎么样的呢？会同步请求login.taobao.com/clear, 通过set-cookie 清楚session cookie（会话cookie），然后进行 302 跳转到 <a href="https://pass.tmall.com/clear" target="_blank" rel="noopener">https://pass.tmall.com/clear</a> 进行cookie清理，然后 302 跳转到 <a href="https://pass.etao.com/clear" target="_blank" rel="noopener">https://pass.etao.com/clear</a> 进行cookie清理，然后 302 跳转到<a href="https://pass.etao.com/clear" target="_blank" rel="noopener">https://pass.etao.com/clear</a> 进行 cookie清理，如此重复知道所有域名cookie进行清理完毕。<br><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/eafb7fc66c6139c50a6a8bbb5bd89e58.png" alt=""><br>通过测试发现淘系的系统所有的退出登录都是走login.taobao.com/member/logout.jhtml , 然后通过一些列302 跳转pass系统进行登录态的清理。 登录态在到阿里云、支付宝是不通的,因为阿里云和支付宝的账号体系不一样。</p><h2 id="禁用Cookie："><a href="#禁用Cookie：" class="headerlink" title="禁用Cookie："></a>禁用Cookie：</h2><p>可以看出整个跨域登录依赖的是cookie信息的传递与跨域设置，如果出于安全考虑，我们禁用了cookie，是否还能正常工作呢？经过测试，发现禁用cookie后，跨域自动登录不能正常执行了，跨域请求后对于受限的访问请求还是会自动跳登录。由于设计上没有考虑cookie禁用的情况，淘宝的登录页面竟然无法进入，一直循环跳转登录页面。</p><h2 id="分布式Session-的常见解决方案："><a href="#分布式Session-的常见解决方案：" class="headerlink" title="分布式Session 的常见解决方案："></a>分布式Session 的常见解决方案：</h2><ol><li>通过cookie进行共享；</li><li>借助第三方进行存储，比如缓存；</li><li>不容服务器之间进行session同步；</li></ol><p>这里面涉及到阿里两个重要级产品：tbsession、passcookie。</p><ol><li>tbsession：用来解决多应用间session共享存储与同步问题；tbsession采用的是 方法1 + 方法2的结合；</li><li>passcookie：用来解决不同域名之间cookie同步的问题，以及决定同步那些cookie；</li></ol><h2 id="思考："><a href="#思考：" class="headerlink" title="思考："></a>思考：</h2><p>问：为什么有了cookie 还需要 session？</p><p>答：cookie存储本身具备一些优势，比如信息存储在客户端，分散了资源消耗，cookie可以在客户端进行持久化存储（cookie在客户端分为：Permanent Cookies，Session Cookie）。    主要是只使用cookie作为资源访问的鉴权记录具备不安全性，容易引起CSRF（跨站请求伪造），比如攻击者劫持登录后的cookie信息进行页面操作，此时服务器以为还是用户自身在登录态下的本人操作。当然，只是简单的使用session也并不能彻底解决CSRF，使用session只是把用户的登录态信息保存在服务器端，客户端cookie往往会记录一个JSessionId 用来标识当前会话ID，jsessionid在网络中传输还是存在被劫持的可能性（参考下面的session劫持），所以需要配合响应的解决手段防止CSRF的发生。其次，cookie的使用在大小和条数上限制，大于需要存储大量用户态信息的场景下已经不够用了，此时需要借助session在服务端的存储设备来实现。<br><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/877347f9c7fc1318a494640818519c2a.png" alt=""></p><p>问：登录后会会话中的每一次访问受限资源都需要访问验证？</p><p>答：是的，因为每一次请求都无法确认你的身份，所以为了降低复杂认证授权的过程，通过sessionId 来标识某一会话；如果我们的Cookie信息泄露，那么不法分子就可以使用我们包含登录态的Cookie进行访问我们的受限资源（比如拷贝登录后的cookie信息通过postman请求需要登录后才能查看的信息），即便是我们丢增删改的请求采用了crsf_token ,不法分子还是可以看到我们的信息，信息已经造成了泄露。所以对于持久化Cookie，尽量设置为httpOnly，不允许通过JS脚本读取Cookie信息。还有就是使用https协议代替http协议（从tcp到ssl），这样不法分子劫持了请求信息，也无法破解请求信息的内容。</p><p>问：是否采用了https就不需要防范CSRF了？</p><p>答：不是的，我们采用https，是在数据传输层对请求进行进行加密后发送，但是如果CSRF是在浏览器的本地读取我们的Cookie信息（存储在我们浏览器中本地的Cookie信息确实明文的），还是可以读取到我们明文的Cookie信息。采用https只是防止了请求在传输中拦截后窃取我们的Cookie进行攻击而已。</p><h2 id="Session-劫持与防范："><a href="#Session-劫持与防范：" class="headerlink" title="Session 劫持与防范："></a>Session 劫持与防范：</h2><p>这篇文章详细阐述了服务器端不做任何处理下的sessionId劫持的案例。<br><a href="https://github.com/astaxie/build-web-application-with-golang/blob/master/zh/06.4.md" target="_blank" rel="noopener">https://github.com/astaxie/build-web-application-with-golang/blob/master/zh/06.4.md</a></p><p>session 劫持的防范措施：</p><ol><li>使用POST 请求 + Referer验证；<ul><li>此方式简单容易实现；</li><li>弊端：1.所有请求都是用POST方式不符合规范，比如RestFul。2.很多场景下请求是无法携带referer的；</li></ul></li><li>使用csrf_token：在涉及增删改的请求中，带上一个和服务器端同步的随机数(token)，然后在服务器端做校验。由于这个token是变化的，同时具有私密性，只会内嵌到当前用户的页面中，因此可以起到防止CSRF的作用，比如淘宝域下cookie中的_tb_token_参数。</li></ol><p>csrftoken的整个生命周期一般是这样的：</p><ul><li>后端针对每一个用户生成唯一的csrftoken后    </li><li>将csrftoken存储在服务器端，且和当前用户一一绑定</li><li>当用户访问页面时，将csrftoken埋入前端页面</li><li>用户提交请求时，需要在请求中附带上csrftoken</li><li>后端对接收到的csrftoken进行校验，判断请求是否合法</li><li>根据请求，后端判断是非需要更新csrftoken</li></ul><p>使用csrf_token 方案目前来说是最有效的安全措施，但是方案实施起来也相对复杂很多，需要考虑csrf_token的存储、更新、埋点以及校验等逻辑。</p><h2 id="本质思考："><a href="#本质思考：" class="headerlink" title="本质思考："></a>本质思考：</h2><p>SSO 跨域统一登录的本质就是【登录态信息的跨域共享，为了实现共享采用了复制的方式】，这跟我们现实世界中为了达到知识共享，需要把知识转化为书籍，然后通过书籍印刷进行分发。</p><h2 id="抓包工具介绍："><a href="#抓包工具介绍：" class="headerlink" title="抓包工具介绍："></a>抓包工具介绍：</h2><ol><li>工具采用 mac 下的 Charles；</li><li>https由于安全限制无法抓取到具体的内容，所以需要通过一些列的设置才能抓到请求数据；</li><li>Charles -&gt; Help -&gt; SSL Proxying -&gt; Install Charles Root Certificate</li><li>Proxy -&gt; SSL Proxying Setting -&gt; SSL Proxying 添加正则域名</li></ol>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;p&gt;今年的双十一和双十二已经告一段落，你是否买到了你想要的宝贝呢？我们知道双十一是天猫的主场，双十二是淘宝的主场，你有没有注意到你在登录了淘宝后，访问天猫或者飞猪，你还是处于登录态的，但是我们知道cookie是不能跨域的，那么阿里是如何做到了多域名下的登录态同步呢？接下来我们通
+      
+    
+    </summary>
+    
+      <category term="Program" scheme="https://heartaway.cn/categories/Program/"/>
     
     
   </entry>
   
   <entry>
     <title>二零一七，我的失败与伟大</title>
-    <link href="http://heartaway.github.io/2017/12/29/Think/2017-12-29-2017-my-success-and-fail/"/>
-    <id>http://heartaway.github.io/2017/12/29/Think/2017-12-29-2017-my-success-and-fail/</id>
+    <link href="https://heartaway.cn/2017/12/29/Think/2017-12-29-2017-my-success-and-fail/"/>
+    <id>https://heartaway.cn/2017/12/29/Think/2017-12-29-2017-my-success-and-fail/</id>
     <published>2017-12-28T16:00:00.000Z</published>
     <updated>2021-02-19T03:19:59.658Z</updated>
     
@@ -463,23 +463,23 @@
     
     </summary>
     
-      <category term="Think" scheme="http://heartaway.github.io/categories/Think/"/>
+      <category term="Think" scheme="https://heartaway.cn/categories/Think/"/>
     
     
-      <category term="我的失败与伟大" scheme="http://heartaway.github.io/tags/%E6%88%91%E7%9A%84%E5%A4%B1%E8%B4%A5%E4%B8%8E%E4%BC%9F%E5%A4%A7/"/>
+      <category term="我的失败与伟大" scheme="https://heartaway.cn/tags/%E6%88%91%E7%9A%84%E5%A4%B1%E8%B4%A5%E4%B8%8E%E4%BC%9F%E5%A4%A7/"/>
     
-      <category term="年度总结" scheme="http://heartaway.github.io/tags/%E5%B9%B4%E5%BA%A6%E6%80%BB%E7%BB%93/"/>
+      <category term="年度总结" scheme="https://heartaway.cn/tags/%E5%B9%B4%E5%BA%A6%E6%80%BB%E7%BB%93/"/>
     
-      <category term="失败" scheme="http://heartaway.github.io/tags/%E5%A4%B1%E8%B4%A5/"/>
+      <category term="失败" scheme="https://heartaway.cn/tags/%E5%A4%B1%E8%B4%A5/"/>
     
-      <category term="伟大" scheme="http://heartaway.github.io/tags/%E4%BC%9F%E5%A4%A7/"/>
+      <category term="伟大" scheme="https://heartaway.cn/tags/%E4%BC%9F%E5%A4%A7/"/>
     
   </entry>
   
   <entry>
     <title>The Twelve-Factor App</title>
-    <link href="http://heartaway.github.io/2017/12/27/Program/2017-12-27-the-twelve-factor-app/"/>
-    <id>http://heartaway.github.io/2017/12/27/Program/2017-12-27-the-twelve-factor-app/</id>
+    <link href="https://heartaway.cn/2017/12/27/Program/2017-12-27-the-twelve-factor-app/"/>
+    <id>https://heartaway.cn/2017/12/27/Program/2017-12-27-the-twelve-factor-app/</id>
     <published>2017-12-26T16:00:00.000Z</published>
     <updated>2021-02-19T03:19:59.649Z</updated>
     
@@ -494,15 +494,15 @@
     
     </summary>
     
-      <category term="Program" scheme="http://heartaway.github.io/categories/Program/"/>
+      <category term="Program" scheme="https://heartaway.cn/categories/Program/"/>
     
     
   </entry>
   
   <entry>
     <title>DevOps的三种方式</title>
-    <link href="http://heartaway.github.io/2017/12/24/Program/2017-12-24-devops-three-method/"/>
-    <id>http://heartaway.github.io/2017/12/24/Program/2017-12-24-devops-three-method/</id>
+    <link href="https://heartaway.cn/2017/12/24/Program/2017-12-24-devops-three-method/"/>
+    <id>https://heartaway.cn/2017/12/24/Program/2017-12-24-devops-three-method/</id>
     <published>2017-12-23T16:00:00.000Z</published>
     <updated>2021-02-19T03:19:59.649Z</updated>
     
@@ -517,7 +517,7 @@
     
     </summary>
     
-      <category term="Program" scheme="http://heartaway.github.io/categories/Program/"/>
+      <category term="Program" scheme="https://heartaway.cn/categories/Program/"/>
     
     
   </entry>

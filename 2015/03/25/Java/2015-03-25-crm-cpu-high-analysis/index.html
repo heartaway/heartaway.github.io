@@ -5,14 +5,14 @@
   
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <link rel="dns-prefetch" href="http://heartaway.github.io">
+  <link rel="dns-prefetch" href="https://heartaway.cn">
   <title>小二后台CPU使用率超高的问题排查 | 心静志远</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="description" content="排查方法： 首先找到cpu使用率高的进程：1top  查看进程对应的应用信息：1ps -ef |grep 进程id 发现是小二后台的进程，由于没有配置gc日志，所以看不当gc日志，但是可通过其他方法排查； 打印堆栈信息，查找占用大量CPU的线程：1jstack 查看GC情况：1jstat -gc 每列的含义： S0C Current survivor space 0 capacity (KB).">
 <meta name="keywords" content="cpu-high CPU使用率 问题排查">
 <meta property="og:type" content="article">
 <meta property="og:title" content="小二后台CPU使用率超高的问题排查">
-<meta property="og:url" content="http://heartaway.github.io/2015/03/25/Java/2015-03-25-crm-cpu-high-analysis/index.html">
+<meta property="og:url" content="https://heartaway.cn/2015/03/25/Java/2015-03-25-crm-cpu-high-analysis/index.html">
 <meta property="og:site_name" content="心静志远">
 <meta property="og:description" content="排查方法： 首先找到cpu使用率高的进程：1top  查看进程对应的应用信息：1ps -ef |grep 进程id 发现是小二后台的进程，由于没有配置gc日志，所以看不当gc日志，但是可通过其他方法排查； 打印堆栈信息，查找占用大量CPU的线程：1jstack 查看GC情况：1jstat -gc 每列的含义： S0C Current survivor space 0 capacity (KB).">
 <meta property="og:locale" content="zh-Hans">
@@ -304,7 +304,7 @@
     <a class="close js-modal-close" href="javascript:;"><i class="icon icon-close"></i></a>
     <p>扫一扫，分享到微信</p>
     <div class="wx-qrcode">
-      <img src="//pan.baidu.com/share/qrcode?url=http://heartaway.github.io/2015/03/25/Java/2015-03-25-crm-cpu-high-analysis/" alt="微信分享二维码">
+      <img src="//pan.baidu.com/share/qrcode?url=https://heartaway.cn/2015/03/25/Java/2015-03-25-crm-cpu-high-analysis/" alt="微信分享二维码">
     </div>
 </div>
 
@@ -368,7 +368,7 @@
 <script src="//imsun.github.io/gitment/dist/gitment.browser.js"></script>
 <script>
 var gitment = new Gitment({
-  id: "http://heartaway.github.io/2015/03/25/Java/2015-03-25-crm-cpu-high-analysis/",
+  id: "https://heartaway.cn/2015/03/25/Java/2015-03-25-crm-cpu-high-analysis/",
   owner: 'heartaway',
   repo: 'heartaway.github.io',
   oauth: {

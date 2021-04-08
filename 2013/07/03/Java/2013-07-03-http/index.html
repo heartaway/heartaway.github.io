@@ -5,14 +5,14 @@
   
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <link rel="dns-prefetch" href="http://heartaway.github.io">
+  <link rel="dns-prefetch" href="https://heartaway.cn">
   <title>HTTP学习笔记（一）之初探 | 心静志远</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="description" content="http概览HTTP协议（HyperText Transfer Protocol，超文本传输协议）是用于从WWW服务器传输超文本到本地浏览器的传送协议。它可以使浏览器更加高效，使网络传输减少。它不仅保证计算机正确快速地传输超文本文档，还确定传输文档中的哪一部分，以及哪部分内容首先显示(如文本先于图形)等。 http特征http是应用层协议，由请求和响应构成，支持客户/服务器模式。 http是一个无">
 <meta name="keywords" content="http">
 <meta property="og:type" content="article">
 <meta property="og:title" content="HTTP学习笔记（一）之初探">
-<meta property="og:url" content="http://heartaway.github.io/2013/07/03/Java/2013-07-03-http/index.html">
+<meta property="og:url" content="https://heartaway.cn/2013/07/03/Java/2013-07-03-http/index.html">
 <meta property="og:site_name" content="心静志远">
 <meta property="og:description" content="http概览HTTP协议（HyperText Transfer Protocol，超文本传输协议）是用于从WWW服务器传输超文本到本地浏览器的传送协议。它可以使浏览器更加高效，使网络传输减少。它不仅保证计算机正确快速地传输超文本文档，还确定传输文档中的哪一部分，以及哪部分内容首先显示(如文本先于图形)等。 http特征http是应用层协议，由请求和响应构成，支持客户/服务器模式。 http是一个无">
 <meta property="og:locale" content="zh-Hans">
@@ -187,7 +187,7 @@
 <p>一张HTTP请求过程图示：</p>
 <p>http 请求头 和 相应头的组成：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">Request Header:</span><br><span class="line">Request URL:http://www.taobao.com/</span><br><span class="line">Request Method:GET</span><br><span class="line">Status Code:200 OK200 OK</span><br><span class="line">Request Headersview source</span><br><span class="line">Accept:text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8</span><br><span class="line">Accept-Encoding:gzip,deflate,sdch</span><br><span class="line">Accept-Language:zh-CN,zh;q=0.8</span><br><span class="line">Cache-Control:max-age=0</span><br><span class="line">Connection:keep-alive</span><br><span class="line">Cookie:miid=.....</span><br><span class="line">Host:www.taobao.com</span><br><span class="line">User-Agent:Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/28.0.1469.0 Safari/537.36</span><br><span class="line"></span><br><span class="line">Respone Header:</span><br><span class="line">Cache-Control:max-age=3600</span><br><span class="line">Connection:keep-alive</span><br><span class="line">Content-Encoding:gzip</span><br><span class="line">Content-Type:text/html; charset=gbk</span><br><span class="line">Date:Wed, 03 Jul 2013 02:03:28 GMT</span><br><span class="line">Expires:Wed, 03 Jul 2013 03:03:28 GMT</span><br><span class="line">Server:Tengine</span><br><span class="line">Transfer-Encoding:chunked</span><br><span class="line">Vary:Accept-Encoding</span><br></pre></td></tr></table></figure>
-<h4 id="http-与-TCP-关系："><a href="#http-与-TCP-关系：" class="headerlink" title="http  与 TCP 关系："></a>http  与 TCP 关系：</h4><p>参考之前写的一片文章<a href="http://heartaway.cn/2013/05/02/websocket/" target="_blank" rel="noopener">《Websocket 探究》</a></p>
+<h4 id="http-与-TCP-关系："><a href="#http-与-TCP-关系：" class="headerlink" title="http  与 TCP 关系："></a>http  与 TCP 关系：</h4><p>参考之前写的一片文章<a href="http://heartaway.cn/2013/05/02/websocket/">《Websocket 探究》</a></p>
 <h4 id="http-与socket关系："><a href="#http-与socket关系：" class="headerlink" title="http 与socket关系："></a>http 与socket关系：</h4><p>首先说一下什么是socket，Socket是应用层与TCP/IP协议族通信的中间软件抽象层，它是一组接口，而不是协议。在设计模式中，Socket其实就是一个门面模式，它把复杂的TCP/IP协议族隐藏在Socket接口后面，对用户来说，一组简单的接口就是全部，让Socket去组织数据，以符合指定的协议。Socket 可以支持不同的传输层协议（TCP 或UDP ）。</p>
 <p>http连接：是基于TCP协议之上的协议，是短连接；</p>
 <p>socket连接：socket连接就是所谓的长连接，理论上客户端和服务器端一旦建立起连接将不会主动断掉，但会由于网络因素断开，所以经常使用轮询心跳来保持连接；</p>
@@ -282,7 +282,7 @@
     <a class="close js-modal-close" href="javascript:;"><i class="icon icon-close"></i></a>
     <p>扫一扫，分享到微信</p>
     <div class="wx-qrcode">
-      <img src="//pan.baidu.com/share/qrcode?url=http://heartaway.github.io/2013/07/03/Java/2013-07-03-http/" alt="微信分享二维码">
+      <img src="//pan.baidu.com/share/qrcode?url=https://heartaway.cn/2013/07/03/Java/2013-07-03-http/" alt="微信分享二维码">
     </div>
 </div>
 
@@ -346,7 +346,7 @@
 <script src="//imsun.github.io/gitment/dist/gitment.browser.js"></script>
 <script>
 var gitment = new Gitment({
-  id: "http://heartaway.github.io/2013/07/03/Java/2013-07-03-http/",
+  id: "https://heartaway.cn/2013/07/03/Java/2013-07-03-http/",
   owner: 'heartaway',
   repo: 'heartaway.github.io',
   oauth: {

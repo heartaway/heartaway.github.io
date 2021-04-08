@@ -5,14 +5,14 @@
   
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <link rel="dns-prefetch" href="http://heartaway.github.io">
+  <link rel="dns-prefetch" href="https://heartaway.cn">
   <title>CAS 操作的实现原理 | 心静志远</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="description" content="CAS原子操作原理：1. 在x86 平台上，CPU提供了在指令执行期间对总线加锁的手段（多处理器）CPU芯片上有一条引线#HLOCK pin，如果汇编语言的程序中在一条指令前面加上前缀”LOCK”，经过汇编以后的机器代码就使CPU在执行这条指令的时候把#HLOCK pin的电位拉低，持续到这条指令结束时放开，从而把总线锁住，这样同一总线上别的CPU就暂时不能通过总线访问内存了，保证了这条指令在多处">
 <meta name="keywords" content="cas">
 <meta property="og:type" content="article">
 <meta property="og:title" content="CAS 操作的实现原理">
-<meta property="og:url" content="http://heartaway.github.io/2016/07/07/Java/2016-07-07-cas-work/index.html">
+<meta property="og:url" content="https://heartaway.cn/2016/07/07/Java/2016-07-07-cas-work/index.html">
 <meta property="og:site_name" content="心静志远">
 <meta property="og:description" content="CAS原子操作原理：1. 在x86 平台上，CPU提供了在指令执行期间对总线加锁的手段（多处理器）CPU芯片上有一条引线#HLOCK pin，如果汇编语言的程序中在一条指令前面加上前缀”LOCK”，经过汇编以后的机器代码就使CPU在执行这条指令的时候把#HLOCK pin的电位拉低，持续到这条指令结束时放开，从而把总线锁住，这样同一总线上别的CPU就暂时不能通过总线访问内存了，保证了这条指令在多处">
 <meta property="og:locale" content="zh-Hans">
@@ -279,7 +279,7 @@
     <a class="close js-modal-close" href="javascript:;"><i class="icon icon-close"></i></a>
     <p>扫一扫，分享到微信</p>
     <div class="wx-qrcode">
-      <img src="//pan.baidu.com/share/qrcode?url=http://heartaway.github.io/2016/07/07/Java/2016-07-07-cas-work/" alt="微信分享二维码">
+      <img src="//pan.baidu.com/share/qrcode?url=https://heartaway.cn/2016/07/07/Java/2016-07-07-cas-work/" alt="微信分享二维码">
     </div>
 </div>
 
@@ -343,7 +343,7 @@
 <script src="//imsun.github.io/gitment/dist/gitment.browser.js"></script>
 <script>
 var gitment = new Gitment({
-  id: "http://heartaway.github.io/2016/07/07/Java/2016-07-07-cas-work/",
+  id: "https://heartaway.cn/2016/07/07/Java/2016-07-07-cas-work/",
   owner: 'heartaway',
   repo: 'heartaway.github.io',
   oauth: {
