@@ -5,31 +5,31 @@
   
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <link rel="dns-prefetch" href="http://mingming.tech">
+  <link rel="dns-prefetch" href="http://heartaway.github.io">
   <title>Mysql时间精度丢失，导致秒被四舍五入 | 心静志远</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="description" content="问题描述：Mysql中一张表时间类型采用的是dateTime格式，当后端通过Mybatis将new Date() 传递给数据库进行存储是，发现存入时间是2016-12-23 16:41:55，但是数据库中插入的时间却是*2016-12-23 16:41:5_6_,导致采用同样的时间进行数据查询，却查不到数据。 问题排查： 进行codeReview，未发现bug； 本地将Mybatis的DEBUG日">
 <meta name="keywords" content="mysql datetime 时间精度">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Mysql时间精度丢失，导致秒被四舍五入">
-<meta property="og:url" content="http://mingming.tech/2017/09/02/Mysql/2017-09-02-mysql-datetime-fsp/index.html">
+<meta property="og:url" content="http://heartaway.github.io/2017/09/02/Mysql/2017-09-02-mysql-datetime-fsp/index.html">
 <meta property="og:site_name" content="心静志远">
 <meta property="og:description" content="问题描述：Mysql中一张表时间类型采用的是dateTime格式，当后端通过Mybatis将new Date() 传递给数据库进行存储是，发现存入时间是2016-12-23 16:41:55，但是数据库中插入的时间却是*2016-12-23 16:41:5_6_,导致采用同样的时间进行数据查询，却查不到数据。 问题排查： 进行codeReview，未发现bug； 本地将Mybatis的DEBUG日">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:image" content="http://mingming.tech/images/posts/20170902/14824834942593.jpg">
-<meta property="og:image" content="http://mingming.tech/images/posts/20170902/14824835188662.jpg">
-<meta property="og:image" content="http://mingming.tech/images/posts/20170902/14824828832109.jpg">
-<meta property="og:image" content="http://mingming.tech/images/posts/20170902/14826733264139.jpg">
-<meta property="og:image" content="http://mingming.tech/images/posts/20170902/14826731196884.jpg">
-<meta property="og:image" content="http://mingming.tech/images/posts/20170902/14826735377431.jpg">
-<meta property="og:image" content="http://mingming.tech/images/posts/20170902/14826767849619.jpg">
-<meta property="og:image" content="http://mingming.tech/images/posts/20170902/14826767169568.jpg">
-<meta property="og:image" content="http://mingming.tech/images/posts/20170902/14826747022343.jpg">
+<meta property="og:image" content="http://heartaway.github.io/images/posts/20170902/14824834942593.jpg">
+<meta property="og:image" content="http://heartaway.github.io/images/posts/20170902/14824835188662.jpg">
+<meta property="og:image" content="http://heartaway.github.io/images/posts/20170902/14824828832109.jpg">
+<meta property="og:image" content="http://heartaway.github.io/images/posts/20170902/14826733264139.jpg">
+<meta property="og:image" content="http://heartaway.github.io/images/posts/20170902/14826731196884.jpg">
+<meta property="og:image" content="http://heartaway.github.io/images/posts/20170902/14826735377431.jpg">
+<meta property="og:image" content="http://heartaway.github.io/images/posts/20170902/14826767849619.jpg">
+<meta property="og:image" content="http://heartaway.github.io/images/posts/20170902/14826767169568.jpg">
+<meta property="og:image" content="http://heartaway.github.io/images/posts/20170902/14826747022343.jpg">
 <meta property="og:updated_time" content="2021-02-19T03:19:59.647Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Mysql时间精度丢失，导致秒被四舍五入">
 <meta name="twitter:description" content="问题描述：Mysql中一张表时间类型采用的是dateTime格式，当后端通过Mybatis将new Date() 传递给数据库进行存储是，发现存入时间是2016-12-23 16:41:55，但是数据库中插入的时间却是*2016-12-23 16:41:5_6_,导致采用同样的时间进行数据查询，却查不到数据。 问题排查： 进行codeReview，未发现bug； 本地将Mybatis的DEBUG日">
-<meta name="twitter:image" content="http://mingming.tech/images/posts/20170902/14824834942593.jpg">
+<meta name="twitter:image" content="http://heartaway.github.io/images/posts/20170902/14824834942593.jpg">
   
     <link rel="alternative" href="/atom.xml" title="心静志远" type="application/atom+xml">
   
@@ -300,7 +300,7 @@
     <a class="close js-modal-close" href="javascript:;"><i class="icon icon-close"></i></a>
     <p>扫一扫，分享到微信</p>
     <div class="wx-qrcode">
-      <img src="//pan.baidu.com/share/qrcode?url=http://mingming.tech/2017/09/02/Mysql/2017-09-02-mysql-datetime-fsp/" alt="微信分享二维码">
+      <img src="//pan.baidu.com/share/qrcode?url=http://heartaway.github.io/2017/09/02/Mysql/2017-09-02-mysql-datetime-fsp/" alt="微信分享二维码">
     </div>
 </div>
 
@@ -364,7 +364,7 @@
 <script src="//imsun.github.io/gitment/dist/gitment.browser.js"></script>
 <script>
 var gitment = new Gitment({
-  id: "http://mingming.tech/2017/09/02/Mysql/2017-09-02-mysql-datetime-fsp/",
+  id: "http://heartaway.github.io/2017/09/02/Mysql/2017-09-02-mysql-datetime-fsp/",
   owner: 'heartaway',
   repo: 'heartaway.github.io',
   oauth: {
@@ -467,14 +467,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
           <ul class="article-tag-list" q-show="showTags">
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">共享变量</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">缓存</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">架构</a>
               </li>
              
@@ -520,6 +512,14 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">感悟</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">共享变量</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">缓存</a>
               </li>
             
             <div class="clearfix"></div>

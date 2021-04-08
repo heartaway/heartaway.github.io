@@ -5,14 +5,14 @@
   
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <link rel="dns-prefetch" href="http://mingming.tech">
+  <link rel="dns-prefetch" href="http://heartaway.github.io">
   <title>本地缓存的数据变更 | 心静志远</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="description" content="背景业务上有一个需求使用基线数据中拷贝出内容，分发到不同用户集合的存储实例中，使用模型标识就是B-&amp;gt;(u1,u2,u3…uN)，初始代码逻辑是，每个用户都有单独的定时器触发来执行B-&amp;gt;uN的拷贝，执行这个过程需要首先从基线B中取出数据，然后替换为uN的用户信息，在写入uN的数据存储中（用户之间逻辑隔离非物理隔离），期初此流程没什么问题，后来考虑到每个用户读取的基线可能相同，可以对基线">
 <meta name="keywords" content="共享变量,缓存">
 <meta property="og:type" content="article">
 <meta property="og:title" content="本地缓存的数据变更">
-<meta property="og:url" content="http://mingming.tech/2018/11/16/Java/ 2018-11-16-local-cache-chage/index.html">
+<meta property="og:url" content="http://heartaway.github.io/2018/11/16/Java/ 2018-11-16-local-cache-chage/index.html">
 <meta property="og:site_name" content="心静志远">
 <meta property="og:description" content="背景业务上有一个需求使用基线数据中拷贝出内容，分发到不同用户集合的存储实例中，使用模型标识就是B-&amp;gt;(u1,u2,u3…uN)，初始代码逻辑是，每个用户都有单独的定时器触发来执行B-&amp;gt;uN的拷贝，执行这个过程需要首先从基线B中取出数据，然后替换为uN的用户信息，在写入uN的数据存储中（用户之间逻辑隔离非物理隔离），期初此流程没什么问题，后来考虑到每个用户读取的基线可能相同，可以对基线">
 <meta property="og:locale" content="zh-Hans">
@@ -288,7 +288,7 @@
     <a class="close js-modal-close" href="javascript:;"><i class="icon icon-close"></i></a>
     <p>扫一扫，分享到微信</p>
     <div class="wx-qrcode">
-      <img src="//pan.baidu.com/share/qrcode?url=http://mingming.tech/2018/11/16/Java/ 2018-11-16-local-cache-chage/" alt="微信分享二维码">
+      <img src="//pan.baidu.com/share/qrcode?url=http://heartaway.github.io/2018/11/16/Java/ 2018-11-16-local-cache-chage/" alt="微信分享二维码">
     </div>
 </div>
 
@@ -352,7 +352,7 @@
 <script src="//imsun.github.io/gitment/dist/gitment.browser.js"></script>
 <script>
 var gitment = new Gitment({
-  id: "http://mingming.tech/2018/11/16/Java/ 2018-11-16-local-cache-chage/",
+  id: "http://heartaway.github.io/2018/11/16/Java/ 2018-11-16-local-cache-chage/",
   owner: 'heartaway',
   repo: 'heartaway.github.io',
   oauth: {
@@ -455,14 +455,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
           <ul class="article-tag-list" q-show="showTags">
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">共享变量</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">缓存</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">架构</a>
               </li>
              
@@ -508,6 +500,14 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">感悟</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">共享变量</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">缓存</a>
               </li>
             
             <div class="clearfix"></div>

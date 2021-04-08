@@ -5,14 +5,14 @@
   
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <link rel="dns-prefetch" href="http://mingming.tech">
+  <link rel="dns-prefetch" href="http://heartaway.github.io">
   <title>商品打标签设计踩过的坑 | 心静志远</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="description" content="问题一：同步操作，导致批量处理过慢，锁超时现象：在批量打标过程中，由于之前设计的是同步操作，一次打标的商品数过多时，导致执行时间较长，运营以为操作失败，多次重新导入和点击，导致系统出现不可预知情况。 原因：之前为了数据的一致性，对打标过程使用了事务处理，所以当批量打标的时候，相当于对这批数据都进行了行锁，其它操作这些数据的请求都会等待事务的提交，当等待超时，就报错了，“Lock wait time">
 <meta name="keywords" content="product puttag thread">
 <meta property="og:type" content="article">
 <meta property="og:title" content="商品打标签设计踩过的坑">
-<meta property="og:url" content="http://mingming.tech/2016/08/07/Program/2016-08-07-product-puttag-error/index.html">
+<meta property="og:url" content="http://heartaway.github.io/2016/08/07/Program/2016-08-07-product-puttag-error/index.html">
 <meta property="og:site_name" content="心静志远">
 <meta property="og:description" content="问题一：同步操作，导致批量处理过慢，锁超时现象：在批量打标过程中，由于之前设计的是同步操作，一次打标的商品数过多时，导致执行时间较长，运营以为操作失败，多次重新导入和点击，导致系统出现不可预知情况。 原因：之前为了数据的一致性，对打标过程使用了事务处理，所以当批量打标的时候，相当于对这批数据都进行了行锁，其它操作这些数据的请求都会等待事务的提交，当等待超时，就报错了，“Lock wait time">
 <meta property="og:locale" content="zh-Hans">
@@ -296,7 +296,7 @@
     <a class="close js-modal-close" href="javascript:;"><i class="icon icon-close"></i></a>
     <p>扫一扫，分享到微信</p>
     <div class="wx-qrcode">
-      <img src="//pan.baidu.com/share/qrcode?url=http://mingming.tech/2016/08/07/Program/2016-08-07-product-puttag-error/" alt="微信分享二维码">
+      <img src="//pan.baidu.com/share/qrcode?url=http://heartaway.github.io/2016/08/07/Program/2016-08-07-product-puttag-error/" alt="微信分享二维码">
     </div>
 </div>
 
@@ -360,7 +360,7 @@
 <script src="//imsun.github.io/gitment/dist/gitment.browser.js"></script>
 <script>
 var gitment = new Gitment({
-  id: "http://mingming.tech/2016/08/07/Program/2016-08-07-product-puttag-error/",
+  id: "http://heartaway.github.io/2016/08/07/Program/2016-08-07-product-puttag-error/",
   owner: 'heartaway',
   repo: 'heartaway.github.io',
   oauth: {
@@ -463,14 +463,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
           <ul class="article-tag-list" q-show="showTags">
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">共享变量</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">缓存</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">架构</a>
               </li>
              
@@ -516,6 +508,14 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">感悟</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">共享变量</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">缓存</a>
               </li>
             
             <div class="clearfix"></div>

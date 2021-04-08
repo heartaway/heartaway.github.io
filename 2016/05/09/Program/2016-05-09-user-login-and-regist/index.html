@@ -5,26 +5,26 @@
   
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <link rel="dns-prefetch" href="http://mingming.tech">
+  <link rel="dns-prefetch" href="http://heartaway.github.io">
   <title>怎么编写用户注册/登录服务 | 心静志远</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="description" content="看似简单的注册登录功能，如果想考虑完善，并且做到极致体验和良好的安全性，并不是一件容易的事情。本篇文章就结合我们公司的登录体系来分析一下怎么去做好一个用户注册与登录功能。 密码设置与传输：用户在注册的时候最好对密码的强度做验证，防止弱密码。其次切记不能将密码明文传输，一般的做法是前对对密码做一次Md5加密，后端再做一次Md5加密然后出到DB中。 请求参数签名与验签：现在主流的开发模式是前后端分离，">
 <meta name="keywords" content="Login Regist 登录 注册">
 <meta property="og:type" content="article">
 <meta property="og:title" content="怎么编写用户注册&#x2F;登录服务">
-<meta property="og:url" content="http://mingming.tech/2016/05/09/Program/2016-05-09-user-login-and-regist/index.html">
+<meta property="og:url" content="http://heartaway.github.io/2016/05/09/Program/2016-05-09-user-login-and-regist/index.html">
 <meta property="og:site_name" content="心静志远">
 <meta property="og:description" content="看似简单的注册登录功能，如果想考虑完善，并且做到极致体验和良好的安全性，并不是一件容易的事情。本篇文章就结合我们公司的登录体系来分析一下怎么去做好一个用户注册与登录功能。 密码设置与传输：用户在注册的时候最好对密码的强度做验证，防止弱密码。其次切记不能将密码明文传输，一般的做法是前对对密码做一次Md5加密，后端再做一次Md5加密然后出到DB中。 请求参数签名与验签：现在主流的开发模式是前后端分离，">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:image" content="http://mingming.tech/images/posts/20160509/js-url-param-sign.png">
-<meta property="og:image" content="http://mingming.tech/images/posts/20160509/user-token-cookie.png">
-<meta property="og:image" content="http://mingming.tech/images/posts/20160509/fqht-regist.png">
-<meta property="og:image" content="http://mingming.tech/images/posts/20160509/geetest-captcha.png">
+<meta property="og:image" content="http://heartaway.github.io/images/posts/20160509/js-url-param-sign.png">
+<meta property="og:image" content="http://heartaway.github.io/images/posts/20160509/user-token-cookie.png">
+<meta property="og:image" content="http://heartaway.github.io/images/posts/20160509/fqht-regist.png">
+<meta property="og:image" content="http://heartaway.github.io/images/posts/20160509/geetest-captcha.png">
 <meta property="og:updated_time" content="2021-02-19T03:19:59.648Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="怎么编写用户注册&#x2F;登录服务">
 <meta name="twitter:description" content="看似简单的注册登录功能，如果想考虑完善，并且做到极致体验和良好的安全性，并不是一件容易的事情。本篇文章就结合我们公司的登录体系来分析一下怎么去做好一个用户注册与登录功能。 密码设置与传输：用户在注册的时候最好对密码的强度做验证，防止弱密码。其次切记不能将密码明文传输，一般的做法是前对对密码做一次Md5加密，后端再做一次Md5加密然后出到DB中。 请求参数签名与验签：现在主流的开发模式是前后端分离，">
-<meta name="twitter:image" content="http://mingming.tech/images/posts/20160509/js-url-param-sign.png">
+<meta name="twitter:image" content="http://heartaway.github.io/images/posts/20160509/js-url-param-sign.png">
   
     <link rel="alternative" href="/atom.xml" title="心静志远" type="application/atom+xml">
   
@@ -289,7 +289,7 @@
     <a class="close js-modal-close" href="javascript:;"><i class="icon icon-close"></i></a>
     <p>扫一扫，分享到微信</p>
     <div class="wx-qrcode">
-      <img src="//pan.baidu.com/share/qrcode?url=http://mingming.tech/2016/05/09/Program/2016-05-09-user-login-and-regist/" alt="微信分享二维码">
+      <img src="//pan.baidu.com/share/qrcode?url=http://heartaway.github.io/2016/05/09/Program/2016-05-09-user-login-and-regist/" alt="微信分享二维码">
     </div>
 </div>
 
@@ -303,18 +303,18 @@
   
 <nav id="article-nav">
   
-    <a href="/2016/05/10/Spring/2016-05-10-spring-bean-init/" id="article-nav-newer" class="article-nav-link-wrap">
+    <a href="/2016/05/09/Think/2016-05-09-choice-is-important/" id="article-nav-newer" class="article-nav-link-wrap">
       <i class="icon-circle-left"></i>
       <div class="article-nav-title">
         
-          《Spring 技术内幕》之 bean的初始化
+          努力并不等于优秀，选择更重要
         
       </div>
     </a>
   
   
-    <a href="/2016/05/09/Think/2016-05-09-choice-is-important/" id="article-nav-older" class="article-nav-link-wrap">
-      <div class="article-nav-title">努力并不等于优秀，选择更重要</div>
+    <a href="/2016/05/06/Java/2016-05-06-java-io/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">Java基础 之 IO</div>
       <i class="icon-circle-right"></i>
     </a>
   
@@ -353,7 +353,7 @@
 <script src="//imsun.github.io/gitment/dist/gitment.browser.js"></script>
 <script>
 var gitment = new Gitment({
-  id: "http://mingming.tech/2016/05/09/Program/2016-05-09-user-login-and-regist/",
+  id: "http://heartaway.github.io/2016/05/09/Program/2016-05-09-user-login-and-regist/",
   owner: 'heartaway',
   repo: 'heartaway.github.io',
   oauth: {
@@ -456,14 +456,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
           <ul class="article-tag-list" q-show="showTags">
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">共享变量</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">缓存</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">架构</a>
               </li>
              
@@ -509,6 +501,14 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">感悟</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">共享变量</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">缓存</a>
               </li>
             
             <div class="clearfix"></div>

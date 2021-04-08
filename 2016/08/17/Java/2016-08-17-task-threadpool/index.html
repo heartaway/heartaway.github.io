@@ -5,14 +5,14 @@
   
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <link rel="dns-prefetch" href="http://mingming.tech">
+  <link rel="dns-prefetch" href="http://heartaway.github.io">
   <title>Task混用ThreadPool导致无限等待 | 心静志远</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="description" content="现象：生产环境商品打标异步任务提交任务后，任务没有被执行；查看日志，没有异常日志抛出。 初步猜测：可能是队列出现了饱和或者死锁，但是如果出现了饱和，我们设置的线程池设置的饱和策略是通过主线程去执行，为什么主线程也没有执行呢？ 具体分析：我定义了一个线程池Pool-Z，core_size=5,max_size=20,queue_size=1000，第一个任务A提交后，占用一个线程，那么这个任务A又会">
 <meta name="keywords" content="task threadpool">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Task混用ThreadPool导致无限等待">
-<meta property="og:url" content="http://mingming.tech/2016/08/17/Java/2016-08-17-task-threadpool/index.html">
+<meta property="og:url" content="http://heartaway.github.io/2016/08/17/Java/2016-08-17-task-threadpool/index.html">
 <meta property="og:site_name" content="心静志远">
 <meta property="og:description" content="现象：生产环境商品打标异步任务提交任务后，任务没有被执行；查看日志，没有异常日志抛出。 初步猜测：可能是队列出现了饱和或者死锁，但是如果出现了饱和，我们设置的线程池设置的饱和策略是通过主线程去执行，为什么主线程也没有执行呢？ 具体分析：我定义了一个线程池Pool-Z，core_size=5,max_size=20,queue_size=1000，第一个任务A提交后，占用一个线程，那么这个任务A又会">
 <meta property="og:locale" content="zh-Hans">
@@ -273,7 +273,7 @@
     <a class="close js-modal-close" href="javascript:;"><i class="icon icon-close"></i></a>
     <p>扫一扫，分享到微信</p>
     <div class="wx-qrcode">
-      <img src="//pan.baidu.com/share/qrcode?url=http://mingming.tech/2016/08/17/Java/2016-08-17-task-threadpool/" alt="微信分享二维码">
+      <img src="//pan.baidu.com/share/qrcode?url=http://heartaway.github.io/2016/08/17/Java/2016-08-17-task-threadpool/" alt="微信分享二维码">
     </div>
 </div>
 
@@ -337,7 +337,7 @@
 <script src="//imsun.github.io/gitment/dist/gitment.browser.js"></script>
 <script>
 var gitment = new Gitment({
-  id: "http://mingming.tech/2016/08/17/Java/2016-08-17-task-threadpool/",
+  id: "http://heartaway.github.io/2016/08/17/Java/2016-08-17-task-threadpool/",
   owner: 'heartaway',
   repo: 'heartaway.github.io',
   oauth: {
@@ -440,14 +440,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
           <ul class="article-tag-list" q-show="showTags">
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">共享变量</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">缓存</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">架构</a>
               </li>
              
@@ -493,6 +485,14 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">感悟</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">共享变量</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">缓存</a>
               </li>
             
             <div class="clearfix"></div>

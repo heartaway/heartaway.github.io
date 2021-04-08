@@ -5,14 +5,14 @@
   
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <link rel="dns-prefetch" href="http://mingming.tech">
+  <link rel="dns-prefetch" href="http://heartaway.github.io">
   <title>我对负载均衡演变过程的理解 | 心静志远</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="description" content="之前看到SLB、VIP、LVS、VIPServer这些很相近的名词总不能很好的进行区分，不知道这些在负载均衡领域具体的使用场景，我期望通过这篇文章，帮大家梳理一下这些名词的区别。我们从一个域名的访问开始，挖掘一下我们的访问链路上到底出现了什么，如果业务更复杂，我们的系统改怎么演变。 域名解析：我们在命令行模式下ping一个域名：popcorn.alibaba-inc.com 返回的IP是140.2">
 <meta name="keywords" content="lvs 负载均衡">
 <meta property="og:type" content="article">
 <meta property="og:title" content="我对负载均衡演变过程的理解">
-<meta property="og:url" content="http://mingming.tech/2017/02/10/Middleware/2017-02-10-lsv-change-road/index.html">
+<meta property="og:url" content="http://heartaway.github.io/2017/02/10/Middleware/2017-02-10-lsv-change-road/index.html">
 <meta property="og:site_name" content="心静志远">
 <meta property="og:description" content="之前看到SLB、VIP、LVS、VIPServer这些很相近的名词总不能很好的进行区分，不知道这些在负载均衡领域具体的使用场景，我期望通过这篇文章，帮大家梳理一下这些名词的区别。我们从一个域名的访问开始，挖掘一下我们的访问链路上到底出现了什么，如果业务更复杂，我们的系统改怎么演变。 域名解析：我们在命令行模式下ping一个域名：popcorn.alibaba-inc.com 返回的IP是140.2">
 <meta property="og:locale" content="zh-Hans">
@@ -286,7 +286,7 @@
     <a class="close js-modal-close" href="javascript:;"><i class="icon icon-close"></i></a>
     <p>扫一扫，分享到微信</p>
     <div class="wx-qrcode">
-      <img src="//pan.baidu.com/share/qrcode?url=http://mingming.tech/2017/02/10/Middleware/2017-02-10-lsv-change-road/" alt="微信分享二维码">
+      <img src="//pan.baidu.com/share/qrcode?url=http://heartaway.github.io/2017/02/10/Middleware/2017-02-10-lsv-change-road/" alt="微信分享二维码">
     </div>
 </div>
 
@@ -350,7 +350,7 @@
 <script src="//imsun.github.io/gitment/dist/gitment.browser.js"></script>
 <script>
 var gitment = new Gitment({
-  id: "http://mingming.tech/2017/02/10/Middleware/2017-02-10-lsv-change-road/",
+  id: "http://heartaway.github.io/2017/02/10/Middleware/2017-02-10-lsv-change-road/",
   owner: 'heartaway',
   repo: 'heartaway.github.io',
   oauth: {
@@ -453,14 +453,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
           <ul class="article-tag-list" q-show="showTags">
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">共享变量</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">缓存</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">架构</a>
               </li>
              
@@ -506,6 +498,14 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">感悟</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">共享变量</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">缓存</a>
               </li>
             
             <div class="clearfix"></div>

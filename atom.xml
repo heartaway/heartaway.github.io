@@ -5,9 +5,9 @@
   <subtitle>技术终究会淘汰，思想却永存于世   技术才是硬通货，探求思想与本质</subtitle>
   <link href="/atom.xml" rel="self"/>
   
-  <link href="http://mingming.tech/"/>
+  <link href="http://heartaway.github.io/"/>
   <updated>2021-02-19T03:19:59.659Z</updated>
-  <id>http://mingming.tech/</id>
+  <id>http://heartaway.github.io/</id>
   
   <author>
     <name>心静志远</name>
@@ -18,8 +18,8 @@
   
   <entry>
     <title>二零一八，我的失败与伟大</title>
-    <link href="http://mingming.tech/2019/05/11/Think/2019-05-11-2018-my-success-and-fail/"/>
-    <id>http://mingming.tech/2019/05/11/Think/2019-05-11-2018-my-success-and-fail/</id>
+    <link href="http://heartaway.github.io/2019/05/11/Think/2019-05-11-2018-my-success-and-fail/"/>
+    <id>http://heartaway.github.io/2019/05/11/Think/2019-05-11-2018-my-success-and-fail/</id>
     <published>2019-05-10T16:00:00.000Z</published>
     <updated>2021-02-19T03:19:59.659Z</updated>
     
@@ -34,23 +34,23 @@
     
     </summary>
     
-      <category term="Think" scheme="http://mingming.tech/categories/Think/"/>
+      <category term="Think" scheme="http://heartaway.github.io/categories/Think/"/>
     
     
-      <category term="我的失败与伟大" scheme="http://mingming.tech/tags/%E6%88%91%E7%9A%84%E5%A4%B1%E8%B4%A5%E4%B8%8E%E4%BC%9F%E5%A4%A7/"/>
+      <category term="我的失败与伟大" scheme="http://heartaway.github.io/tags/%E6%88%91%E7%9A%84%E5%A4%B1%E8%B4%A5%E4%B8%8E%E4%BC%9F%E5%A4%A7/"/>
     
-      <category term="年度总结" scheme="http://mingming.tech/tags/%E5%B9%B4%E5%BA%A6%E6%80%BB%E7%BB%93/"/>
+      <category term="年度总结" scheme="http://heartaway.github.io/tags/%E5%B9%B4%E5%BA%A6%E6%80%BB%E7%BB%93/"/>
     
-      <category term="失败" scheme="http://mingming.tech/tags/%E5%A4%B1%E8%B4%A5/"/>
+      <category term="失败" scheme="http://heartaway.github.io/tags/%E5%A4%B1%E8%B4%A5/"/>
     
-      <category term="伟大" scheme="http://mingming.tech/tags/%E4%BC%9F%E5%A4%A7/"/>
+      <category term="伟大" scheme="http://heartaway.github.io/tags/%E4%BC%9F%E5%A4%A7/"/>
     
   </entry>
   
   <entry>
     <title>一次线上系统响应慢的问题定位</title>
-    <link href="http://mingming.tech/2019/03/25/Java/2019-03-25-application-no-response/"/>
-    <id>http://mingming.tech/2019/03/25/Java/2019-03-25-application-no-response/</id>
+    <link href="http://heartaway.github.io/2019/03/25/Java/2019-03-25-application-no-response/"/>
+    <id>http://heartaway.github.io/2019/03/25/Java/2019-03-25-application-no-response/</id>
     <published>2019-03-25T09:17:37.000Z</published>
     <updated>2021-02-19T05:06:46.184Z</updated>
     
@@ -64,19 +64,19 @@
     
     </summary>
     
-      <category term="稳定性" scheme="http://mingming.tech/categories/%E7%A8%B3%E5%AE%9A%E6%80%A7/"/>
+      <category term="稳定性" scheme="http://heartaway.github.io/categories/%E7%A8%B3%E5%AE%9A%E6%80%A7/"/>
     
     
-      <category term="问题定位" scheme="http://mingming.tech/tags/%E9%97%AE%E9%A2%98%E5%AE%9A%E4%BD%8D/"/>
+      <category term="问题定位" scheme="http://heartaway.github.io/tags/%E9%97%AE%E9%A2%98%E5%AE%9A%E4%BD%8D/"/>
     
-      <category term="稳定性" scheme="http://mingming.tech/tags/%E7%A8%B3%E5%AE%9A%E6%80%A7/"/>
+      <category term="稳定性" scheme="http://heartaway.github.io/tags/%E7%A8%B3%E5%AE%9A%E6%80%A7/"/>
     
   </entry>
   
   <entry>
     <title>微服务架构可视化平台实践</title>
-    <link href="http://mingming.tech/2018/11/22/HighAvailability/2018-11-22-architectural-visualization/"/>
-    <id>http://mingming.tech/2018/11/22/HighAvailability/2018-11-22-architectural-visualization/</id>
+    <link href="http://heartaway.github.io/2018/11/22/HighAvailability/2018-11-22-architectural-visualization/"/>
+    <id>http://heartaway.github.io/2018/11/22/HighAvailability/2018-11-22-architectural-visualization/</id>
     <published>2018-11-22T08:32:28.000Z</published>
     <updated>2021-02-19T03:19:59.634Z</updated>
     
@@ -89,21 +89,21 @@
     
     </summary>
     
-      <category term="架构" scheme="http://mingming.tech/categories/%E6%9E%B6%E6%9E%84/"/>
+      <category term="架构" scheme="http://heartaway.github.io/categories/%E6%9E%B6%E6%9E%84/"/>
     
     
-      <category term="架构" scheme="http://mingming.tech/tags/%E6%9E%B6%E6%9E%84/"/>
+      <category term="架构" scheme="http://heartaway.github.io/tags/%E6%9E%B6%E6%9E%84/"/>
     
-      <category term="可视化" scheme="http://mingming.tech/tags/%E5%8F%AF%E8%A7%86%E5%8C%96/"/>
+      <category term="可视化" scheme="http://heartaway.github.io/tags/%E5%8F%AF%E8%A7%86%E5%8C%96/"/>
     
-      <category term="AHAS" scheme="http://mingming.tech/tags/AHAS/"/>
+      <category term="AHAS" scheme="http://heartaway.github.io/tags/AHAS/"/>
     
   </entry>
   
   <entry>
     <title>本地缓存的数据变更</title>
-    <link href="http://mingming.tech/2018/11/16/Java/%202018-11-16-local-cache-chage/"/>
-    <id>http://mingming.tech/2018/11/16/Java/ 2018-11-16-local-cache-chage/</id>
+    <link href="http://heartaway.github.io/2018/11/16/Java/%202018-11-16-local-cache-chage/"/>
+    <id>http://heartaway.github.io/2018/11/16/Java/ 2018-11-16-local-cache-chage/</id>
     <published>2018-11-16T06:29:59.000Z</published>
     <updated>2021-02-19T03:19:59.634Z</updated>
     
@@ -118,19 +118,19 @@
     
     </summary>
     
-      <category term="编程" scheme="http://mingming.tech/categories/%E7%BC%96%E7%A8%8B/"/>
+      <category term="编程" scheme="http://heartaway.github.io/categories/%E7%BC%96%E7%A8%8B/"/>
     
     
-      <category term="共享变量" scheme="http://mingming.tech/tags/%E5%85%B1%E4%BA%AB%E5%8F%98%E9%87%8F/"/>
+      <category term="共享变量" scheme="http://heartaway.github.io/tags/%E5%85%B1%E4%BA%AB%E5%8F%98%E9%87%8F/"/>
     
-      <category term="缓存" scheme="http://mingming.tech/tags/%E7%BC%93%E5%AD%98/"/>
+      <category term="缓存" scheme="http://heartaway.github.io/tags/%E7%BC%93%E5%AD%98/"/>
     
   </entry>
   
   <entry>
     <title>建立人生准则</title>
-    <link href="http://mingming.tech/2018/11/10/Think/2018-11-10-my-life-rule/"/>
-    <id>http://mingming.tech/2018/11/10/Think/2018-11-10-my-life-rule/</id>
+    <link href="http://heartaway.github.io/2018/11/10/Think/2018-11-10-my-life-rule/"/>
+    <id>http://heartaway.github.io/2018/11/10/Think/2018-11-10-my-life-rule/</id>
     <published>2018-11-10T09:27:20.000Z</published>
     <updated>2021-02-19T03:19:59.659Z</updated>
     
@@ -145,21 +145,21 @@
     
     </summary>
     
-      <category term="思考" scheme="http://mingming.tech/categories/%E6%80%9D%E8%80%83/"/>
+      <category term="思考" scheme="http://heartaway.github.io/categories/%E6%80%9D%E8%80%83/"/>
     
     
-      <category term="目标" scheme="http://mingming.tech/tags/%E7%9B%AE%E6%A0%87/"/>
+      <category term="目标" scheme="http://heartaway.github.io/tags/%E7%9B%AE%E6%A0%87/"/>
     
-      <category term="人生" scheme="http://mingming.tech/tags/%E4%BA%BA%E7%94%9F/"/>
+      <category term="人生" scheme="http://heartaway.github.io/tags/%E4%BA%BA%E7%94%9F/"/>
     
-      <category term="感悟" scheme="http://mingming.tech/tags/%E6%84%9F%E6%82%9F/"/>
+      <category term="感悟" scheme="http://heartaway.github.io/tags/%E6%84%9F%E6%82%9F/"/>
     
   </entry>
   
   <entry>
     <title>他人经受的，我必经受</title>
-    <link href="http://mingming.tech/2018/10/06/Think/2018-10-06-marriage-quarrel/"/>
-    <id>http://mingming.tech/2018/10/06/Think/2018-10-06-marriage-quarrel/</id>
+    <link href="http://heartaway.github.io/2018/10/06/Think/2018-10-06-marriage-quarrel/"/>
+    <id>http://heartaway.github.io/2018/10/06/Think/2018-10-06-marriage-quarrel/</id>
     <published>2018-10-05T16:00:00.000Z</published>
     <updated>2021-02-19T03:19:59.659Z</updated>
     
@@ -175,15 +175,15 @@
     
     </summary>
     
-      <category term="Think" scheme="http://mingming.tech/categories/Think/"/>
+      <category term="Think" scheme="http://heartaway.github.io/categories/Think/"/>
     
     
   </entry>
   
   <entry>
     <title>如何解决技术焦虑</title>
-    <link href="http://mingming.tech/2018/04/13/Think/2018-04-13-how-to-resolve-tech-anxious/"/>
-    <id>http://mingming.tech/2018/04/13/Think/2018-04-13-how-to-resolve-tech-anxious/</id>
+    <link href="http://heartaway.github.io/2018/04/13/Think/2018-04-13-how-to-resolve-tech-anxious/"/>
+    <id>http://heartaway.github.io/2018/04/13/Think/2018-04-13-how-to-resolve-tech-anxious/</id>
     <published>2018-04-12T16:00:00.000Z</published>
     <updated>2021-02-19T03:19:59.658Z</updated>
     
@@ -196,15 +196,15 @@
     
     </summary>
     
-      <category term="Think" scheme="http://mingming.tech/categories/Think/"/>
+      <category term="Think" scheme="http://heartaway.github.io/categories/Think/"/>
     
     
   </entry>
   
   <entry>
     <title>Mybatis 核心理念</title>
-    <link href="http://mingming.tech/2018/04/09/Java/2018-04-09-mybatis-core-thought/"/>
-    <id>http://mingming.tech/2018/04/09/Java/2018-04-09-mybatis-core-thought/</id>
+    <link href="http://heartaway.github.io/2018/04/09/Java/2018-04-09-mybatis-core-thought/"/>
+    <id>http://heartaway.github.io/2018/04/09/Java/2018-04-09-mybatis-core-thought/</id>
     <published>2018-04-08T16:00:00.000Z</published>
     <updated>2021-02-19T03:19:59.644Z</updated>
     
@@ -226,15 +226,15 @@
     
     </summary>
     
-      <category term="Java" scheme="http://mingming.tech/categories/Java/"/>
+      <category term="Java" scheme="http://heartaway.github.io/categories/Java/"/>
     
     
   </entry>
   
   <entry>
     <title>阿里云多机房部署网络架构</title>
-    <link href="http://mingming.tech/2018/03/29/HighAvailability/2018-03-29-aliyun-mutil-region/"/>
-    <id>http://mingming.tech/2018/03/29/HighAvailability/2018-03-29-aliyun-mutil-region/</id>
+    <link href="http://heartaway.github.io/2018/03/29/HighAvailability/2018-03-29-aliyun-mutil-region/"/>
+    <id>http://heartaway.github.io/2018/03/29/HighAvailability/2018-03-29-aliyun-mutil-region/</id>
     <published>2018-03-28T16:00:00.000Z</published>
     <updated>2021-02-19T03:19:59.631Z</updated>
     
@@ -250,15 +250,15 @@
     
     </summary>
     
-      <category term="HighAvailability" scheme="http://mingming.tech/categories/HighAvailability/"/>
+      <category term="HighAvailability" scheme="http://heartaway.github.io/categories/HighAvailability/"/>
     
     
   </entry>
   
   <entry>
     <title>POJO 对象setter 方法是否合适return &quot;this&quot;</title>
-    <link href="http://mingming.tech/2018/03/22/Java/2018-03-22-java-bean-setter-return/"/>
-    <id>http://mingming.tech/2018/03/22/Java/2018-03-22-java-bean-setter-return/</id>
+    <link href="http://heartaway.github.io/2018/03/22/Java/2018-03-22-java-bean-setter-return/"/>
+    <id>http://heartaway.github.io/2018/03/22/Java/2018-03-22-java-bean-setter-return/</id>
     <published>2018-03-21T16:00:00.000Z</published>
     <updated>2021-02-19T03:19:59.644Z</updated>
     
@@ -274,15 +274,15 @@
     
     </summary>
     
-      <category term="Java" scheme="http://mingming.tech/categories/Java/"/>
+      <category term="Java" scheme="http://heartaway.github.io/categories/Java/"/>
     
     
   </entry>
   
   <entry>
     <title>AWS应用自动发现服务</title>
-    <link href="http://mingming.tech/2018/03/15/HighAvailability/2018-03-15-aws-application-discovery/"/>
-    <id>http://mingming.tech/2018/03/15/HighAvailability/2018-03-15-aws-application-discovery/</id>
+    <link href="http://heartaway.github.io/2018/03/15/HighAvailability/2018-03-15-aws-application-discovery/"/>
+    <id>http://heartaway.github.io/2018/03/15/HighAvailability/2018-03-15-aws-application-discovery/</id>
     <published>2018-03-14T16:00:00.000Z</published>
     <updated>2021-02-19T03:19:59.631Z</updated>
     
@@ -300,15 +300,15 @@
     
     </summary>
     
-      <category term="HighAvailability" scheme="http://mingming.tech/categories/HighAvailability/"/>
+      <category term="HighAvailability" scheme="http://heartaway.github.io/categories/HighAvailability/"/>
     
     
   </entry>
   
   <entry>
     <title>自用型监控系统方案</title>
-    <link href="http://mingming.tech/2018/03/14/HighAvailability/2018-03-14-monitor-system/"/>
-    <id>http://mingming.tech/2018/03/14/HighAvailability/2018-03-14-monitor-system/</id>
+    <link href="http://heartaway.github.io/2018/03/14/HighAvailability/2018-03-14-monitor-system/"/>
+    <id>http://heartaway.github.io/2018/03/14/HighAvailability/2018-03-14-monitor-system/</id>
     <published>2018-03-13T16:00:00.000Z</published>
     <updated>2021-02-19T03:19:59.631Z</updated>
     
@@ -324,15 +324,15 @@
     
     </summary>
     
-      <category term="HighAvailability" scheme="http://mingming.tech/categories/HighAvailability/"/>
+      <category term="HighAvailability" scheme="http://heartaway.github.io/categories/HighAvailability/"/>
     
     
   </entry>
   
   <entry>
     <title>《基于中间件的基础设施自动发现》</title>
-    <link href="http://mingming.tech/2018/03/14/Paper/2018-03-14-infrastructure-auto-discovery/"/>
-    <id>http://mingming.tech/2018/03/14/Paper/2018-03-14-infrastructure-auto-discovery/</id>
+    <link href="http://heartaway.github.io/2018/03/14/Paper/2018-03-14-infrastructure-auto-discovery/"/>
+    <id>http://heartaway.github.io/2018/03/14/Paper/2018-03-14-infrastructure-auto-discovery/</id>
     <published>2018-03-13T16:00:00.000Z</published>
     <updated>2021-02-19T03:19:59.647Z</updated>
     
@@ -348,15 +348,15 @@
     
     </summary>
     
-      <category term="Paper" scheme="http://mingming.tech/categories/Paper/"/>
+      <category term="Paper" scheme="http://heartaway.github.io/categories/Paper/"/>
     
     
   </entry>
   
   <entry>
     <title>spring quartz 指定trigger的执行机器</title>
-    <link href="http://mingming.tech/2018/03/06/Java/2018-03-06-spring-quartz-trigger/"/>
-    <id>http://mingming.tech/2018/03/06/Java/2018-03-06-spring-quartz-trigger/</id>
+    <link href="http://heartaway.github.io/2018/03/06/Java/2018-03-06-spring-quartz-trigger/"/>
+    <id>http://heartaway.github.io/2018/03/06/Java/2018-03-06-spring-quartz-trigger/</id>
     <published>2018-03-05T16:00:00.000Z</published>
     <updated>2021-02-19T03:19:59.644Z</updated>
     
@@ -371,15 +371,15 @@
     
     </summary>
     
-      <category term="Java" scheme="http://mingming.tech/categories/Java/"/>
+      <category term="Java" scheme="http://heartaway.github.io/categories/Java/"/>
     
     
   </entry>
   
   <entry>
     <title>Spring中property-placeholder的使用与解析</title>
-    <link href="http://mingming.tech/2018/01/19/Java/2018-01-19-spring-properties/"/>
-    <id>http://mingming.tech/2018/01/19/Java/2018-01-19-spring-properties/</id>
+    <link href="http://heartaway.github.io/2018/01/19/Java/2018-01-19-spring-properties/"/>
+    <id>http://heartaway.github.io/2018/01/19/Java/2018-01-19-spring-properties/</id>
     <published>2018-01-18T16:00:00.000Z</published>
     <updated>2021-02-19T03:19:59.644Z</updated>
     
@@ -394,15 +394,15 @@
     
     </summary>
     
-      <category term="Java" scheme="http://mingming.tech/categories/Java/"/>
+      <category term="Java" scheme="http://heartaway.github.io/categories/Java/"/>
     
     
   </entry>
   
   <entry>
     <title>系统权限控制体系</title>
-    <link href="http://mingming.tech/2018/01/04/Program/2018-01-04-permission-system-degisn/"/>
-    <id>http://mingming.tech/2018/01/04/Program/2018-01-04-permission-system-degisn/</id>
+    <link href="http://heartaway.github.io/2018/01/04/Program/2018-01-04-permission-system-degisn/"/>
+    <id>http://heartaway.github.io/2018/01/04/Program/2018-01-04-permission-system-degisn/</id>
     <published>2018-01-03T16:00:00.000Z</published>
     <updated>2021-02-19T03:19:59.649Z</updated>
     
@@ -417,15 +417,15 @@
     
     </summary>
     
-      <category term="Program" scheme="http://mingming.tech/categories/Program/"/>
+      <category term="Program" scheme="http://heartaway.github.io/categories/Program/"/>
     
     
   </entry>
   
   <entry>
     <title>Taobao SSO 跨域登录过程解析</title>
-    <link href="http://mingming.tech/2018/01/04/Program/2018-01-04-taobao-sso/"/>
-    <id>http://mingming.tech/2018/01/04/Program/2018-01-04-taobao-sso/</id>
+    <link href="http://heartaway.github.io/2018/01/04/Program/2018-01-04-taobao-sso/"/>
+    <id>http://heartaway.github.io/2018/01/04/Program/2018-01-04-taobao-sso/</id>
     <published>2018-01-03T16:00:00.000Z</published>
     <updated>2021-02-19T03:19:59.649Z</updated>
     
@@ -440,15 +440,15 @@
     
     </summary>
     
-      <category term="Program" scheme="http://mingming.tech/categories/Program/"/>
+      <category term="Program" scheme="http://heartaway.github.io/categories/Program/"/>
     
     
   </entry>
   
   <entry>
     <title>二零一七，我的失败与伟大</title>
-    <link href="http://mingming.tech/2017/12/29/Think/2017-12-29-2017-my-success-and-fail/"/>
-    <id>http://mingming.tech/2017/12/29/Think/2017-12-29-2017-my-success-and-fail/</id>
+    <link href="http://heartaway.github.io/2017/12/29/Think/2017-12-29-2017-my-success-and-fail/"/>
+    <id>http://heartaway.github.io/2017/12/29/Think/2017-12-29-2017-my-success-and-fail/</id>
     <published>2017-12-28T16:00:00.000Z</published>
     <updated>2021-02-19T03:19:59.658Z</updated>
     
@@ -463,23 +463,23 @@
     
     </summary>
     
-      <category term="Think" scheme="http://mingming.tech/categories/Think/"/>
+      <category term="Think" scheme="http://heartaway.github.io/categories/Think/"/>
     
     
-      <category term="我的失败与伟大" scheme="http://mingming.tech/tags/%E6%88%91%E7%9A%84%E5%A4%B1%E8%B4%A5%E4%B8%8E%E4%BC%9F%E5%A4%A7/"/>
+      <category term="我的失败与伟大" scheme="http://heartaway.github.io/tags/%E6%88%91%E7%9A%84%E5%A4%B1%E8%B4%A5%E4%B8%8E%E4%BC%9F%E5%A4%A7/"/>
     
-      <category term="年度总结" scheme="http://mingming.tech/tags/%E5%B9%B4%E5%BA%A6%E6%80%BB%E7%BB%93/"/>
+      <category term="年度总结" scheme="http://heartaway.github.io/tags/%E5%B9%B4%E5%BA%A6%E6%80%BB%E7%BB%93/"/>
     
-      <category term="失败" scheme="http://mingming.tech/tags/%E5%A4%B1%E8%B4%A5/"/>
+      <category term="失败" scheme="http://heartaway.github.io/tags/%E5%A4%B1%E8%B4%A5/"/>
     
-      <category term="伟大" scheme="http://mingming.tech/tags/%E4%BC%9F%E5%A4%A7/"/>
+      <category term="伟大" scheme="http://heartaway.github.io/tags/%E4%BC%9F%E5%A4%A7/"/>
     
   </entry>
   
   <entry>
     <title>The Twelve-Factor App</title>
-    <link href="http://mingming.tech/2017/12/27/Program/2017-12-27-the-twelve-factor-app/"/>
-    <id>http://mingming.tech/2017/12/27/Program/2017-12-27-the-twelve-factor-app/</id>
+    <link href="http://heartaway.github.io/2017/12/27/Program/2017-12-27-the-twelve-factor-app/"/>
+    <id>http://heartaway.github.io/2017/12/27/Program/2017-12-27-the-twelve-factor-app/</id>
     <published>2017-12-26T16:00:00.000Z</published>
     <updated>2021-02-19T03:19:59.649Z</updated>
     
@@ -494,15 +494,15 @@
     
     </summary>
     
-      <category term="Program" scheme="http://mingming.tech/categories/Program/"/>
+      <category term="Program" scheme="http://heartaway.github.io/categories/Program/"/>
     
     
   </entry>
   
   <entry>
     <title>DevOps的三种方式</title>
-    <link href="http://mingming.tech/2017/12/24/Program/2017-12-24-devops-three-method/"/>
-    <id>http://mingming.tech/2017/12/24/Program/2017-12-24-devops-three-method/</id>
+    <link href="http://heartaway.github.io/2017/12/24/Program/2017-12-24-devops-three-method/"/>
+    <id>http://heartaway.github.io/2017/12/24/Program/2017-12-24-devops-three-method/</id>
     <published>2017-12-23T16:00:00.000Z</published>
     <updated>2021-02-19T03:19:59.649Z</updated>
     
@@ -517,7 +517,7 @@
     
     </summary>
     
-      <category term="Program" scheme="http://mingming.tech/categories/Program/"/>
+      <category term="Program" scheme="http://heartaway.github.io/categories/Program/"/>
     
     
   </entry>

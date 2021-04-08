@@ -5,14 +5,14 @@
   
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <link rel="dns-prefetch" href="http://mingming.tech">
+  <link rel="dns-prefetch" href="http://heartaway.github.io">
   <title>Java基础 之 类的初始化顺序和陷阱 | 心静志远</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="description" content="在阅读之前 建议先了解一下  Java运行原理  和 Java内存分配机制； JAVA类的初始化顺序给你两个类的代码，它们之间是继承的关系，每个类里只有构造器方法和一些变量，构造器里可能还有一段代码对变量值进行了某种运算，另外还有一些将变量值输出到控制台的代码，然后让我们判断输出的结果。这实际上是在考查我们对于继承情况下类的初始化顺序的了解。 我们大家都知道，对于静态变量、静态初始化块、变量、初始">
 <meta name="keywords" content="init 初始化顺序">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Java基础 之 类的初始化顺序和陷阱">
-<meta property="og:url" content="http://mingming.tech/2013/03/04/Java/2013-03-04-java-init/index.html">
+<meta property="og:url" content="http://heartaway.github.io/2013/03/04/Java/2013-03-04-java-init/index.html">
 <meta property="og:site_name" content="心静志远">
 <meta property="og:description" content="在阅读之前 建议先了解一下  Java运行原理  和 Java内存分配机制； JAVA类的初始化顺序给你两个类的代码，它们之间是继承的关系，每个类里只有构造器方法和一些变量，构造器里可能还有一段代码对变量值进行了某种运算，另外还有一些将变量值输出到控制台的代码，然后让我们判断输出的结果。这实际上是在考查我们对于继承情况下类的初始化顺序的了解。 我们大家都知道，对于静态变量、静态初始化块、变量、初始">
 <meta property="og:locale" content="zh-Hans">
@@ -305,7 +305,7 @@
     <a class="close js-modal-close" href="javascript:;"><i class="icon icon-close"></i></a>
     <p>扫一扫，分享到微信</p>
     <div class="wx-qrcode">
-      <img src="//pan.baidu.com/share/qrcode?url=http://mingming.tech/2013/03/04/Java/2013-03-04-java-init/" alt="微信分享二维码">
+      <img src="//pan.baidu.com/share/qrcode?url=http://heartaway.github.io/2013/03/04/Java/2013-03-04-java-init/" alt="微信分享二维码">
     </div>
 </div>
 
@@ -369,7 +369,7 @@
 <script src="//imsun.github.io/gitment/dist/gitment.browser.js"></script>
 <script>
 var gitment = new Gitment({
-  id: "http://mingming.tech/2013/03/04/Java/2013-03-04-java-init/",
+  id: "http://heartaway.github.io/2013/03/04/Java/2013-03-04-java-init/",
   owner: 'heartaway',
   repo: 'heartaway.github.io',
   oauth: {
@@ -472,14 +472,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
           <ul class="article-tag-list" q-show="showTags">
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">共享变量</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">缓存</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">架构</a>
               </li>
              
@@ -525,6 +517,14 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">感悟</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">共享变量</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">缓存</a>
               </li>
             
             <div class="clearfix"></div>

@@ -5,14 +5,14 @@
   
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <link rel="dns-prefetch" href="http://mingming.tech">
+  <link rel="dns-prefetch" href="http://heartaway.github.io">
   <title>高并发系统 之 降级特技 | 心静志远</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="description" content="高并发场景三把利器保护系统：缓存、降级、限流。当访问量剧增、服务出现问题（如响应时间慢或不响应）或非核心服务影响到核心流程的性能时，仍然需要保证服务还是可用的，即使是有损服务。系统可以根据一些关键数据进行自动降级，也可以配置开关实现人工降级。本文将介绍一些笔者在实际工作中遇到的或见到过的一些降级方案供大家参考。  降级按自动化程度分类： 系统根据关键数据自动降级; 人工通过配置进行手工降级;自动">
 <meta name="keywords" content="switch product 高并发 降级">
 <meta property="og:type" content="article">
 <meta property="og:title" content="高并发系统 之 降级特技">
-<meta property="og:url" content="http://mingming.tech/2016/07/05/Program/2016-07-05-product-high-use/index.html">
+<meta property="og:url" content="http://heartaway.github.io/2016/07/05/Program/2016-07-05-product-high-use/index.html">
 <meta property="og:site_name" content="心静志远">
 <meta property="og:description" content="高并发场景三把利器保护系统：缓存、降级、限流。当访问量剧增、服务出现问题（如响应时间慢或不响应）或非核心服务影响到核心流程的性能时，仍然需要保证服务还是可用的，即使是有损服务。系统可以根据一些关键数据进行自动降级，也可以配置开关实现人工降级。本文将介绍一些笔者在实际工作中遇到的或见到过的一些降级方案供大家参考。  降级按自动化程度分类： 系统根据关键数据自动降级; 人工通过配置进行手工降级;自动">
 <meta property="og:locale" content="zh-Hans">
@@ -278,7 +278,7 @@
     <a class="close js-modal-close" href="javascript:;"><i class="icon icon-close"></i></a>
     <p>扫一扫，分享到微信</p>
     <div class="wx-qrcode">
-      <img src="//pan.baidu.com/share/qrcode?url=http://mingming.tech/2016/07/05/Program/2016-07-05-product-high-use/" alt="微信分享二维码">
+      <img src="//pan.baidu.com/share/qrcode?url=http://heartaway.github.io/2016/07/05/Program/2016-07-05-product-high-use/" alt="微信分享二维码">
     </div>
 </div>
 
@@ -342,7 +342,7 @@
 <script src="//imsun.github.io/gitment/dist/gitment.browser.js"></script>
 <script>
 var gitment = new Gitment({
-  id: "http://mingming.tech/2016/07/05/Program/2016-07-05-product-high-use/",
+  id: "http://heartaway.github.io/2016/07/05/Program/2016-07-05-product-high-use/",
   owner: 'heartaway',
   repo: 'heartaway.github.io',
   oauth: {
@@ -445,14 +445,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
           <ul class="article-tag-list" q-show="showTags">
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">共享变量</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">缓存</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">架构</a>
               </li>
              
@@ -498,6 +490,14 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">感悟</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">共享变量</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">缓存</a>
               </li>
             
             <div class="clearfix"></div>
