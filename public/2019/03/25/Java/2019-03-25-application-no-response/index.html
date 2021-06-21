@@ -5,45 +5,45 @@
   
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <link rel="dns-prefetch" href="http://mingming.tech">
-  <title>一次线上系统响应慢的问题定位 | 心静志远</title>
+  <link rel="dns-prefetch" href="https://mingming.tech">
+  <title>一次线上系统响应慢的问题定位 | 心静思远</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="description" content="发现问题3月8日收到线上部分区域监控系统报警，提示数据处理服务大批异常报警；登录机器查看系统负载情况：系统CPU占用并不高。 同事提示，发现了HSF日志中输出了HSF连接池满的情况：">
 <meta name="keywords" content="问题定位,稳定性">
 <meta property="og:type" content="article">
 <meta property="og:title" content="一次线上系统响应慢的问题定位">
-<meta property="og:url" content="http://mingming.tech/2019/03/25/Java/2019-03-25-application-no-response/index.html">
-<meta property="og:site_name" content="心静志远">
+<meta property="og:url" content="https://mingming.tech/2019/03/25/Java/2019-03-25-application-no-response/index.html">
+<meta property="og:site_name" content="心静思远">
 <meta property="og:description" content="发现问题3月8日收到线上部分区域监控系统报警，提示数据处理服务大批异常报警；登录机器查看系统负载情况：系统CPU占用并不高。 同事提示，发现了HSF日志中输出了HSF连接池满的情况：">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:image" content="http://mingming.tech/images/posts/20190325/host-cpu.png">
-<meta property="og:image" content="http://mingming.tech/images/posts/20190325/host-hsf.png">
-<meta property="og:image" content="http://mingming.tech/images/posts/20190325/process-cost-time.png">
-<meta property="og:image" content="http://mingming.tech/images/posts/20190325/tsar-load.png">
-<meta property="og:image" content="http://mingming.tech/images/posts/20190325/tsar-mem.png">
-<meta property="og:image" content="http://mingming.tech/images/posts/20190325/tsar-disk.png">
-<meta property="og:image" content="http://mingming.tech/images/posts/20190325/jstack-thread.png">
-<meta property="og:image" content="http://mingming.tech/images/posts/20190325/jstack-thread-group.png">
-<meta property="og:image" content="http://mingming.tech/images/posts/20190325/jstack-thread-blocked.png">
-<meta property="og:image" content="http://mingming.tech/images/posts/20190325/block-code.png">
-<meta property="og:image" content="http://mingming.tech/images/posts/20190325/block-log-config.png">
-<meta property="og:image" content="http://mingming.tech/images/posts/20190325/system-alert.png">
-<meta property="og:image" content="http://mingming.tech/images/posts/20190325/gateway-qps.png">
-<meta property="og:image" content="http://mingming.tech/images/posts/20190325/gateway-sla.png">
-<meta property="og:image" content="http://mingming.tech/images/posts/20190325/offline-host-jstack.png">
-<meta property="og:image" content="http://mingming.tech/images/posts/20190325/host-gc.png">
-<meta property="og:image" content="http://mingming.tech/images/posts/20190325/host-jmap.png">
-<meta property="og:image" content="http://mingming.tech/images/posts/20190325/ots-block.png">
-<meta property="og:image" content="http://mingming.tech/images/posts/20190325/jstack-total.png">
-<meta property="og:image" content="http://mingming.tech/images/posts/20190325/jstack-detail.png">
-<meta property="og:image" content="http://mingming.tech/images/posts/20190325/code-thead-pool-config.png">
-<meta property="og:updated_time" content="2021-02-19T05:06:46.184Z">
+<meta property="og:image" content="https://mingming.tech/images/posts/20190325/host-cpu.png">
+<meta property="og:image" content="https://mingming.tech/images/posts/20190325/host-hsf.png">
+<meta property="og:image" content="https://mingming.tech/images/posts/20190325/process-cost-time.png">
+<meta property="og:image" content="https://mingming.tech/images/posts/20190325/tsar-load.png">
+<meta property="og:image" content="https://mingming.tech/images/posts/20190325/tsar-mem.png">
+<meta property="og:image" content="https://mingming.tech/images/posts/20190325/tsar-disk.png">
+<meta property="og:image" content="https://mingming.tech/images/posts/20190325/jstack-thread.png">
+<meta property="og:image" content="https://mingming.tech/images/posts/20190325/jstack-thread-group.png">
+<meta property="og:image" content="https://mingming.tech/images/posts/20190325/jstack-thread-blocked.png">
+<meta property="og:image" content="https://mingming.tech/images/posts/20190325/block-code.png">
+<meta property="og:image" content="https://mingming.tech/images/posts/20190325/block-log-config.png">
+<meta property="og:image" content="https://mingming.tech/images/posts/20190325/system-alert.png">
+<meta property="og:image" content="https://mingming.tech/images/posts/20190325/gateway-qps.png">
+<meta property="og:image" content="https://mingming.tech/images/posts/20190325/gateway-sla.png">
+<meta property="og:image" content="https://mingming.tech/images/posts/20190325/offline-host-jstack.png">
+<meta property="og:image" content="https://mingming.tech/images/posts/20190325/host-gc.png">
+<meta property="og:image" content="https://mingming.tech/images/posts/20190325/host-jmap.png">
+<meta property="og:image" content="https://mingming.tech/images/posts/20190325/ots-block.png">
+<meta property="og:image" content="https://mingming.tech/images/posts/20190325/jstack-total.png">
+<meta property="og:image" content="https://mingming.tech/images/posts/20190325/jstack-detail.png">
+<meta property="og:image" content="https://mingming.tech/images/posts/20190325/code-thead-pool-config.png">
+<meta property="og:updated_time" content="2021-04-25T12:05:36.960Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="一次线上系统响应慢的问题定位">
 <meta name="twitter:description" content="发现问题3月8日收到线上部分区域监控系统报警，提示数据处理服务大批异常报警；登录机器查看系统负载情况：系统CPU占用并不高。 同事提示，发现了HSF日志中输出了HSF连接池满的情况：">
-<meta name="twitter:image" content="http://mingming.tech/images/posts/20190325/host-cpu.png">
+<meta name="twitter:image" content="https://mingming.tech/images/posts/20190325/host-cpu.png">
   
-    <link rel="alternative" href="/atom.xml" title="心静志远" type="application/atom+xml">
+    <link rel="alternative" href="/atom.xml" title="心静思远" type="application/atom+xml">
   
   
     <link rel="icon" href="/favicon.ico">
@@ -73,7 +73,7 @@
 			<img src="https://avatars3.githubusercontent.com/u/5878884" class="js-avatar">
 		</a>
 		<hgroup>
-		  <h1 class="header-author"><a href="/">心静志远</a></h1>
+		  <h1 class="header-author"><a href="/">心静思远</a></h1>
 		</hgroup>
 		
 		<p class="header-subtitle">技术终究会淘汰，思想却永存于世   技术才是硬通货，探求思想与本质</p>
@@ -129,7 +129,7 @@
 				<img src="https://avatars3.githubusercontent.com/u/5878884" class="js-avatar">
 			</div>
 			<hgroup>
-			  <h1 class="header-author js-header-author">心静志远</h1>
+			  <h1 class="header-author js-header-author">心静思远</h1>
 			</hgroup>
 			
 			<p class="header-subtitle"><i class="icon icon-quo-left"></i>技术终究会淘汰，思想却永存于世   技术才是硬通货，探求思想与本质<i class="icon icon-quo-right"></i></p>
@@ -378,7 +378,7 @@
     <a class="close js-modal-close" href="javascript:;"><i class="icon icon-close"></i></a>
     <p>扫一扫，分享到微信</p>
     <div class="wx-qrcode">
-      <img src="//pan.baidu.com/share/qrcode?url=http://mingming.tech/2019/03/25/Java/2019-03-25-application-no-response/" alt="微信分享二维码">
+      <img src="//pan.baidu.com/share/qrcode?url=https://mingming.tech/2019/03/25/Java/2019-03-25-application-no-response/" alt="微信分享二维码">
     </div>
 </div>
 
@@ -442,7 +442,7 @@
 <script src="//imsun.github.io/gitment/dist/gitment.browser.js"></script>
 <script>
 var gitment = new Gitment({
-  id: "http://mingming.tech/2019/03/25/Java/2019-03-25-application-no-response/",
+  id: "https://mingming.tech/2019/03/25/Java/2019-03-25-application-no-response/",
   owner: 'heartaway',
   repo: 'heartaway.github.io',
   oauth: {
@@ -462,7 +462,7 @@ gitment.render('gitment-ctn')
   <div class="outer">
     <div id="footer-info">
     	<div class="footer-left">
-    		&copy; 2021 心静志远
+    		&copy; 2021 心静思远
     	</div>
       	<div class="footer-right">
       		<a href="http://hexo.io/" target="_blank">Hexo</a>  Theme <a href="https://github.com/litten/hexo-theme-yilia" target="_blank">Yilia</a> by Litten

@@ -5,15 +5,15 @@
   
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <link rel="dns-prefetch" href="http://mingming.tech">
-  <title>Redis连接池的相关问题分析与总结 | 心静志远</title>
+  <link rel="dns-prefetch" href="https://mingming.tech">
+  <title>Redis连接池的相关问题分析与总结 | 心静思远</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="description" content="问题表象：服务端连接未释放   问题背景：商品系统在运行过程中发生过一次Redis服务端连接数超限的问题。截图未保存，表现是：商品服务停掉，但RedisServer端看到的TCP连接任然存在，而且是 ESTABLISHED状态，导致的直接结果就是每次商品重启都会创建400个（minIdle=400）新的redis连接，而且停止的时候还不释放，重启几次之后RedisServer的连接就超过上限10">
 <meta name="keywords" content="redis pool 连接池">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Redis连接池的相关问题分析与总结">
-<meta property="og:url" content="http://mingming.tech/2016/06/02/Redis/2016-06-02-redis-conn-pool/index.html">
-<meta property="og:site_name" content="心静志远">
+<meta property="og:url" content="https://mingming.tech/2016/06/02/Redis/2016-06-02-redis-conn-pool/index.html">
+<meta property="og:site_name" content="心静思远">
 <meta property="og:description" content="问题表象：服务端连接未释放   问题背景：商品系统在运行过程中发生过一次Redis服务端连接数超限的问题。截图未保存，表现是：商品服务停掉，但RedisServer端看到的TCP连接任然存在，而且是 ESTABLISHED状态，导致的直接结果就是每次商品重启都会创建400个（minIdle=400）新的redis连接，而且停止的时候还不释放，重启几次之后RedisServer的连接就超过上限10">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="https://gw.alipayobjects.com/zos/skylark/e83ac639-7c60-469a-8afa-96bc5718fb9f/2018/png/e5579d08-d8f9-45bd-bea9-2fdc7c3998e0.png">
@@ -23,13 +23,13 @@
 <meta property="og:image" content="https://gw.alipayobjects.com/zos/skylark/5d473e6b-6c35-4da3-9b34-16e253bea9b4/2018/png/94eb98c1-e1b2-426d-9a4a-ee38ce3aa64f.png">
 <meta property="og:image" content="https://gw.alipayobjects.com/zos/skylark/9bad20ef-a810-4977-96ab-ec29b47791cf/2018/png/87ba7148-e01a-4fe0-bd05-95e17cbab107.png">
 <meta property="og:image" content="https://gw.alipayobjects.com/zos/skylark/0de79097-cb5a-4be1-a347-cc768552f1e8/2018/png/be1e459a-944e-4044-bb7a-bec234f052bc.png">
-<meta property="og:updated_time" content="2021-02-19T03:19:59.650Z">
+<meta property="og:updated_time" content="2021-04-25T12:05:36.964Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Redis连接池的相关问题分析与总结">
 <meta name="twitter:description" content="问题表象：服务端连接未释放   问题背景：商品系统在运行过程中发生过一次Redis服务端连接数超限的问题。截图未保存，表现是：商品服务停掉，但RedisServer端看到的TCP连接任然存在，而且是 ESTABLISHED状态，导致的直接结果就是每次商品重启都会创建400个（minIdle=400）新的redis连接，而且停止的时候还不释放，重启几次之后RedisServer的连接就超过上限10">
 <meta name="twitter:image" content="https://gw.alipayobjects.com/zos/skylark/e83ac639-7c60-469a-8afa-96bc5718fb9f/2018/png/e5579d08-d8f9-45bd-bea9-2fdc7c3998e0.png">
   
-    <link rel="alternative" href="/atom.xml" title="心静志远" type="application/atom+xml">
+    <link rel="alternative" href="/atom.xml" title="心静思远" type="application/atom+xml">
   
   
     <link rel="icon" href="/favicon.ico">
@@ -59,7 +59,7 @@
 			<img src="https://avatars3.githubusercontent.com/u/5878884" class="js-avatar">
 		</a>
 		<hgroup>
-		  <h1 class="header-author"><a href="/">心静志远</a></h1>
+		  <h1 class="header-author"><a href="/">心静思远</a></h1>
 		</hgroup>
 		
 		<p class="header-subtitle">技术终究会淘汰，思想却永存于世   技术才是硬通货，探求思想与本质</p>
@@ -115,7 +115,7 @@
 				<img src="https://avatars3.githubusercontent.com/u/5878884" class="js-avatar">
 			</div>
 			<hgroup>
-			  <h1 class="header-author js-header-author">心静志远</h1>
+			  <h1 class="header-author js-header-author">心静思远</h1>
 			</hgroup>
 			
 			<p class="header-subtitle"><i class="icon icon-quo-left"></i>技术终究会淘汰，思想却永存于世   技术才是硬通货，探求思想与本质<i class="icon icon-quo-right"></i></p>
@@ -357,7 +357,7 @@
     <a class="close js-modal-close" href="javascript:;"><i class="icon icon-close"></i></a>
     <p>扫一扫，分享到微信</p>
     <div class="wx-qrcode">
-      <img src="//pan.baidu.com/share/qrcode?url=http://mingming.tech/2016/06/02/Redis/2016-06-02-redis-conn-pool/" alt="微信分享二维码">
+      <img src="//pan.baidu.com/share/qrcode?url=https://mingming.tech/2016/06/02/Redis/2016-06-02-redis-conn-pool/" alt="微信分享二维码">
     </div>
 </div>
 
@@ -421,7 +421,7 @@
 <script src="//imsun.github.io/gitment/dist/gitment.browser.js"></script>
 <script>
 var gitment = new Gitment({
-  id: "http://mingming.tech/2016/06/02/Redis/2016-06-02-redis-conn-pool/",
+  id: "https://mingming.tech/2016/06/02/Redis/2016-06-02-redis-conn-pool/",
   owner: 'heartaway',
   repo: 'heartaway.github.io',
   oauth: {
@@ -441,7 +441,7 @@ gitment.render('gitment-ctn')
   <div class="outer">
     <div id="footer-info">
     	<div class="footer-left">
-    		&copy; 2021 心静志远
+    		&copy; 2021 心静思远
     	</div>
       	<div class="footer-right">
       		<a href="http://hexo.io/" target="_blank">Hexo</a>  Theme <a href="https://github.com/litten/hexo-theme-yilia" target="_blank">Yilia</a> by Litten

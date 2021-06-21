@@ -5,25 +5,25 @@
   
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <link rel="dns-prefetch" href="http://mingming.tech">
-  <title>高并发系统 之 降级特技 | 心静志远</title>
+  <link rel="dns-prefetch" href="https://mingming.tech">
+  <title>高并发系统 之 降级特技 | 心静思远</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="description" content="高并发场景三把利器保护系统：缓存、降级、限流。当访问量剧增、服务出现问题（如响应时间慢或不响应）或非核心服务影响到核心流程的性能时，仍然需要保证服务还是可用的，即使是有损服务。系统可以根据一些关键数据进行自动降级，也可以配置开关实现人工降级。本文将介绍一些笔者在实际工作中遇到的或见到过的一些降级方案供大家参考。  降级按自动化程度分类： 系统根据关键数据自动降级; 人工通过配置进行手工降级;自动">
 <meta name="keywords" content="switch product 高并发 降级">
 <meta property="og:type" content="article">
 <meta property="og:title" content="高并发系统 之 降级特技">
-<meta property="og:url" content="http://mingming.tech/2016/07/05/Program/2016-07-05-product-high-use/index.html">
-<meta property="og:site_name" content="心静志远">
+<meta property="og:url" content="https://mingming.tech/2016/07/05/Program/2016-07-05-product-high-use/index.html">
+<meta property="og:site_name" content="心静思远">
 <meta property="og:description" content="高并发场景三把利器保护系统：缓存、降级、限流。当访问量剧增、服务出现问题（如响应时间慢或不响应）或非核心服务影响到核心流程的性能时，仍然需要保证服务还是可用的，即使是有损服务。系统可以根据一些关键数据进行自动降级，也可以配置开关实现人工降级。本文将介绍一些笔者在实际工作中遇到的或见到过的一些降级方案供大家参考。  降级按自动化程度分类： 系统根据关键数据自动降级; 人工通过配置进行手工降级;自动">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/65c75dcce27bf193d84787ddc1eda237.png">
-<meta property="og:updated_time" content="2021-02-19T03:19:59.648Z">
+<meta property="og:updated_time" content="2021-04-25T12:05:36.962Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="高并发系统 之 降级特技">
 <meta name="twitter:description" content="高并发场景三把利器保护系统：缓存、降级、限流。当访问量剧增、服务出现问题（如响应时间慢或不响应）或非核心服务影响到核心流程的性能时，仍然需要保证服务还是可用的，即使是有损服务。系统可以根据一些关键数据进行自动降级，也可以配置开关实现人工降级。本文将介绍一些笔者在实际工作中遇到的或见到过的一些降级方案供大家参考。  降级按自动化程度分类： 系统根据关键数据自动降级; 人工通过配置进行手工降级;自动">
 <meta name="twitter:image" content="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/65c75dcce27bf193d84787ddc1eda237.png">
   
-    <link rel="alternative" href="/atom.xml" title="心静志远" type="application/atom+xml">
+    <link rel="alternative" href="/atom.xml" title="心静思远" type="application/atom+xml">
   
   
     <link rel="icon" href="/favicon.ico">
@@ -53,7 +53,7 @@
 			<img src="https://avatars3.githubusercontent.com/u/5878884" class="js-avatar">
 		</a>
 		<hgroup>
-		  <h1 class="header-author"><a href="/">心静志远</a></h1>
+		  <h1 class="header-author"><a href="/">心静思远</a></h1>
 		</hgroup>
 		
 		<p class="header-subtitle">技术终究会淘汰，思想却永存于世   技术才是硬通货，探求思想与本质</p>
@@ -109,7 +109,7 @@
 				<img src="https://avatars3.githubusercontent.com/u/5878884" class="js-avatar">
 			</div>
 			<hgroup>
-			  <h1 class="header-author js-header-author">心静志远</h1>
+			  <h1 class="header-author js-header-author">心静思远</h1>
 			</hgroup>
 			
 			<p class="header-subtitle"><i class="icon icon-quo-left"></i>技术终究会淘汰，思想却永存于世   技术才是硬通货，探求思想与本质<i class="icon icon-quo-right"></i></p>
@@ -278,7 +278,7 @@
     <a class="close js-modal-close" href="javascript:;"><i class="icon icon-close"></i></a>
     <p>扫一扫，分享到微信</p>
     <div class="wx-qrcode">
-      <img src="//pan.baidu.com/share/qrcode?url=http://mingming.tech/2016/07/05/Program/2016-07-05-product-high-use/" alt="微信分享二维码">
+      <img src="//pan.baidu.com/share/qrcode?url=https://mingming.tech/2016/07/05/Program/2016-07-05-product-high-use/" alt="微信分享二维码">
     </div>
 </div>
 
@@ -342,7 +342,7 @@
 <script src="//imsun.github.io/gitment/dist/gitment.browser.js"></script>
 <script>
 var gitment = new Gitment({
-  id: "http://mingming.tech/2016/07/05/Program/2016-07-05-product-high-use/",
+  id: "https://mingming.tech/2016/07/05/Program/2016-07-05-product-high-use/",
   owner: 'heartaway',
   repo: 'heartaway.github.io',
   oauth: {
@@ -362,7 +362,7 @@ gitment.render('gitment-ctn')
   <div class="outer">
     <div id="footer-info">
     	<div class="footer-left">
-    		&copy; 2021 心静志远
+    		&copy; 2021 心静思远
     	</div>
       	<div class="footer-right">
       		<a href="http://hexo.io/" target="_blank">Hexo</a>  Theme <a href="https://github.com/litten/hexo-theme-yilia" target="_blank">Yilia</a> by Litten

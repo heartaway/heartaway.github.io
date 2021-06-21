@@ -5,27 +5,27 @@
   
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <link rel="dns-prefetch" href="http://mingming.tech">
-  <title>Object Mapping in Java | 心静志远</title>
+  <link rel="dns-prefetch" href="https://mingming.tech">
+  <title>Object Mapping in Java | 心静思远</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="description" content="我们在Java代码编写中经常会遇到DO 、DTO之间的对象隐射转换，我们在设计DO、DTO的时候一般会尽量让对象名称、对象属性保持一致，利于属性拷贝，但是现实场景中可能存在一些对象名称不一致、对象类型不一致的情况，不同的拷贝方案，性能与使用场景也可能存在不一样，那么在众多的对象拷贝框架中如何选择合适的使用呢？ 常用对象属性拷贝方法：  commons-beanutils 框架中的 BeanUtil">
 <meta name="keywords" content="mapping">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Object Mapping in Java">
-<meta property="og:url" content="http://mingming.tech/2016/06/12/Java/2016-06-12-object-mapping/index.html">
-<meta property="og:site_name" content="心静志远">
+<meta property="og:url" content="https://mingming.tech/2016/06/12/Java/2016-06-12-object-mapping/index.html">
+<meta property="og:site_name" content="心静思远">
 <meta property="og:description" content="我们在Java代码编写中经常会遇到DO 、DTO之间的对象隐射转换，我们在设计DO、DTO的时候一般会尽量让对象名称、对象属性保持一致，利于属性拷贝，但是现实场景中可能存在一些对象名称不一致、对象类型不一致的情况，不同的拷贝方案，性能与使用场景也可能存在不一样，那么在众多的对象拷贝框架中如何选择合适的使用呢？ 常用对象属性拷贝方法：  commons-beanutils 框架中的 BeanUtil">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:image" content="http://mingming.tech/ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/7236b8abc31ef20753e7d002106a0caf.png">
-<meta property="og:image" content="http://mingming.tech/images/posts/20160612/object-mapping-per-hightchart-two.png">
-<meta property="og:image" content="http://mingming.tech/images/posts/20160612/bean-util-sample.png">
-<meta property="og:updated_time" content="2021-02-19T03:19:59.640Z">
+<meta property="og:image" content="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/7236b8abc31ef20753e7d002106a0caf.png">
+<meta property="og:image" content="https://mingming.tech/images/posts/20160612/object-mapping-per-hightchart-two.png">
+<meta property="og:image" content="https://mingming.tech/images/posts/20160612/bean-util-sample.png">
+<meta property="og:updated_time" content="2021-04-25T12:05:36.954Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Object Mapping in Java">
 <meta name="twitter:description" content="我们在Java代码编写中经常会遇到DO 、DTO之间的对象隐射转换，我们在设计DO、DTO的时候一般会尽量让对象名称、对象属性保持一致，利于属性拷贝，但是现实场景中可能存在一些对象名称不一致、对象类型不一致的情况，不同的拷贝方案，性能与使用场景也可能存在不一样，那么在众多的对象拷贝框架中如何选择合适的使用呢？ 常用对象属性拷贝方法：  commons-beanutils 框架中的 BeanUtil">
-<meta name="twitter:image" content="http://mingming.tech/ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/7236b8abc31ef20753e7d002106a0caf.png">
+<meta name="twitter:image" content="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/7236b8abc31ef20753e7d002106a0caf.png">
   
-    <link rel="alternative" href="/atom.xml" title="心静志远" type="application/atom+xml">
+    <link rel="alternative" href="/atom.xml" title="心静思远" type="application/atom+xml">
   
   
     <link rel="icon" href="/favicon.ico">
@@ -55,7 +55,7 @@
 			<img src="https://avatars3.githubusercontent.com/u/5878884" class="js-avatar">
 		</a>
 		<hgroup>
-		  <h1 class="header-author"><a href="/">心静志远</a></h1>
+		  <h1 class="header-author"><a href="/">心静思远</a></h1>
 		</hgroup>
 		
 		<p class="header-subtitle">技术终究会淘汰，思想却永存于世   技术才是硬通货，探求思想与本质</p>
@@ -111,7 +111,7 @@
 				<img src="https://avatars3.githubusercontent.com/u/5878884" class="js-avatar">
 			</div>
 			<hgroup>
-			  <h1 class="header-author js-header-author">心静志远</h1>
+			  <h1 class="header-author js-header-author">心静思远</h1>
 			</hgroup>
 			
 			<p class="header-subtitle"><i class="icon icon-quo-left"></i>技术终究会淘汰，思想却永存于世   技术才是硬通货，探求思想与本质<i class="icon icon-quo-right"></i></p>
@@ -307,7 +307,7 @@
     <a class="close js-modal-close" href="javascript:;"><i class="icon icon-close"></i></a>
     <p>扫一扫，分享到微信</p>
     <div class="wx-qrcode">
-      <img src="//pan.baidu.com/share/qrcode?url=http://mingming.tech/2016/06/12/Java/2016-06-12-object-mapping/" alt="微信分享二维码">
+      <img src="//pan.baidu.com/share/qrcode?url=https://mingming.tech/2016/06/12/Java/2016-06-12-object-mapping/" alt="微信分享二维码">
     </div>
 </div>
 
@@ -371,7 +371,7 @@
 <script src="//imsun.github.io/gitment/dist/gitment.browser.js"></script>
 <script>
 var gitment = new Gitment({
-  id: "http://mingming.tech/2016/06/12/Java/2016-06-12-object-mapping/",
+  id: "https://mingming.tech/2016/06/12/Java/2016-06-12-object-mapping/",
   owner: 'heartaway',
   repo: 'heartaway.github.io',
   oauth: {
@@ -391,7 +391,7 @@ gitment.render('gitment-ctn')
   <div class="outer">
     <div id="footer-info">
     	<div class="footer-left">
-    		&copy; 2021 心静志远
+    		&copy; 2021 心静思远
     	</div>
       	<div class="footer-right">
       		<a href="http://hexo.io/" target="_blank">Hexo</a>  Theme <a href="https://github.com/litten/hexo-theme-yilia" target="_blank">Yilia</a> by Litten

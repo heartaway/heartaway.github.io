@@ -1,5 +1,5 @@
 {
-  "name":"xinyuan",  
+  "name": "xinyuan",
   "version": "0.0.0",
   "private": true,
   "yuqueConfig": {
@@ -27,4 +27,3 @@
     "hexo-server": "^0.3.1"
   }
 }
-

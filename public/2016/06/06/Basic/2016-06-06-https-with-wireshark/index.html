@@ -5,42 +5,42 @@
   
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <link rel="dns-prefetch" href="http://mingming.tech">
-  <title>Wireshark监控分析Https的交互过程 | 心静志远</title>
+  <link rel="dns-prefetch" href="https://mingming.tech">
+  <title>Wireshark监控分析Https的交互过程 | 心静思远</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="description" content="首先介绍一下Https在Client与Server之间的理论交互过程： 试想，我们期望在网络中传输的数据是被加密的，并且这个数据包在客户端和服务器端都能进行加密和解密，那么需要对称加密算法，客户端和服务端都需要有一个加解密Key（对称加密），对数据包进行加解密，那么这个Key如何产生并在在网络中安全的传递呢？假设这秘钥是有服务端产生，分配给客户端，为了保证安全，需要在派送Key的过程中进行加密，那">
 <meta name="keywords" content="https Wireshark">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Wireshark监控分析Https的交互过程">
-<meta property="og:url" content="http://mingming.tech/2016/06/06/Basic/2016-06-06-https-with-wireshark/index.html">
-<meta property="og:site_name" content="心静志远">
+<meta property="og:url" content="https://mingming.tech/2016/06/06/Basic/2016-06-06-https-with-wireshark/index.html">
+<meta property="og:site_name" content="心静思远">
 <meta property="og:description" content="首先介绍一下Https在Client与Server之间的理论交互过程： 试想，我们期望在网络中传输的数据是被加密的，并且这个数据包在客户端和服务器端都能进行加密和解密，那么需要对称加密算法，客户端和服务端都需要有一个加解密Key（对称加密），对数据包进行加解密，那么这个Key如何产生并在在网络中安全的传递呢？假设这秘钥是有服务端产生，分配给客户端，为了保证安全，需要在派送Key的过程中进行加密，那">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/fbcfb4b7d254a68b4e39ddbeef776927.png">
 <meta property="og:image" content="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/f3fea5e73ee24a7e97bf9f43a7e29534.png">
-<meta property="og:image" content="http://mingming.tech/images/posts/20160606/wirdshark-tencent-cloud-tcp-stream-get.png">
-<meta property="og:image" content="http://mingming.tech/images/posts/20160606/tcp-third-handshake.png">
-<meta property="og:image" content="http://mingming.tech/images/posts/20160606/tcp-first-handshake.png">
-<meta property="og:image" content="http://mingming.tech/images/posts/20160606/tcp-second-handshake.png">
-<meta property="og:image" content="http://mingming.tech/images/posts/20160606/tcp-third-time-handshake.png">
-<meta property="og:image" content="http://mingming.tech/images/posts/20160606/https-tcp-graph.png">
-<meta property="og:image" content="http://mingming.tech/images/posts/20160606/https-tcp-client-hello.png">
-<meta property="og:image" content="http://mingming.tech/images/posts/20160606/https-tcp-client-hello-random.png">
-<meta property="og:image" content="http://mingming.tech/images/posts/20160606/https-tcp-client-hello-sid.png">
-<meta property="og:image" content="http://mingming.tech/images/posts/20160606/https-tcp-client-hello-cipher.png">
-<meta property="og:image" content="http://mingming.tech/images/posts/20160606/https-tcp-client-hello-servername.png">
-<meta property="og:image" content="http://mingming.tech/images/posts/20160606/https-tcp-server-hello.png">
-<meta property="og:image" content="http://mingming.tech/images/posts/20160606/https-tcp-certificate.png">
-<meta property="og:image" content="http://mingming.tech/images/posts/20160606/https-tcp-client-key-exchanger.png">
-<meta property="og:image" content="http://mingming.tech/images/posts/20160606/https-tcp-secret-encrypted.png">
-<meta property="og:image" content="http://mingming.tech/images/posts/20160606/https-tcp-data-transport.png">
-<meta property="og:updated_time" content="2021-02-19T03:19:59.630Z">
+<meta property="og:image" content="https://mingming.tech/images/posts/20160606/wirdshark-tencent-cloud-tcp-stream-get.png">
+<meta property="og:image" content="https://mingming.tech/images/posts/20160606/tcp-third-handshake.png">
+<meta property="og:image" content="https://mingming.tech/images/posts/20160606/tcp-first-handshake.png">
+<meta property="og:image" content="https://mingming.tech/images/posts/20160606/tcp-second-handshake.png">
+<meta property="og:image" content="https://mingming.tech/images/posts/20160606/tcp-third-time-handshake.png">
+<meta property="og:image" content="https://mingming.tech/images/posts/20160606/https-tcp-graph.png">
+<meta property="og:image" content="https://mingming.tech/images/posts/20160606/https-tcp-client-hello.png">
+<meta property="og:image" content="https://mingming.tech/images/posts/20160606/https-tcp-client-hello-random.png">
+<meta property="og:image" content="https://mingming.tech/images/posts/20160606/https-tcp-client-hello-sid.png">
+<meta property="og:image" content="https://mingming.tech/images/posts/20160606/https-tcp-client-hello-cipher.png">
+<meta property="og:image" content="https://mingming.tech/images/posts/20160606/https-tcp-client-hello-servername.png">
+<meta property="og:image" content="https://mingming.tech/images/posts/20160606/https-tcp-server-hello.png">
+<meta property="og:image" content="https://mingming.tech/images/posts/20160606/https-tcp-certificate.png">
+<meta property="og:image" content="https://mingming.tech/images/posts/20160606/https-tcp-client-key-exchanger.png">
+<meta property="og:image" content="https://mingming.tech/images/posts/20160606/https-tcp-secret-encrypted.png">
+<meta property="og:image" content="https://mingming.tech/images/posts/20160606/https-tcp-data-transport.png">
+<meta property="og:updated_time" content="2021-04-25T12:05:36.944Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Wireshark监控分析Https的交互过程">
 <meta name="twitter:description" content="首先介绍一下Https在Client与Server之间的理论交互过程： 试想，我们期望在网络中传输的数据是被加密的，并且这个数据包在客户端和服务器端都能进行加密和解密，那么需要对称加密算法，客户端和服务端都需要有一个加解密Key（对称加密），对数据包进行加解密，那么这个Key如何产生并在在网络中安全的传递呢？假设这秘钥是有服务端产生，分配给客户端，为了保证安全，需要在派送Key的过程中进行加密，那">
 <meta name="twitter:image" content="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/fbcfb4b7d254a68b4e39ddbeef776927.png">
   
-    <link rel="alternative" href="/atom.xml" title="心静志远" type="application/atom+xml">
+    <link rel="alternative" href="/atom.xml" title="心静思远" type="application/atom+xml">
   
   
     <link rel="icon" href="/favicon.ico">
@@ -70,7 +70,7 @@
 			<img src="https://avatars3.githubusercontent.com/u/5878884" class="js-avatar">
 		</a>
 		<hgroup>
-		  <h1 class="header-author"><a href="/">心静志远</a></h1>
+		  <h1 class="header-author"><a href="/">心静思远</a></h1>
 		</hgroup>
 		
 		<p class="header-subtitle">技术终究会淘汰，思想却永存于世   技术才是硬通货，探求思想与本质</p>
@@ -126,7 +126,7 @@
 				<img src="https://avatars3.githubusercontent.com/u/5878884" class="js-avatar">
 			</div>
 			<hgroup>
-			  <h1 class="header-author js-header-author">心静志远</h1>
+			  <h1 class="header-author js-header-author">心静思远</h1>
 			</hgroup>
 			
 			<p class="header-subtitle"><i class="icon icon-quo-left"></i>技术终究会淘汰，思想却永存于世   技术才是硬通货，探求思想与本质<i class="icon icon-quo-right"></i></p>
@@ -374,7 +374,7 @@
     <a class="close js-modal-close" href="javascript:;"><i class="icon icon-close"></i></a>
     <p>扫一扫，分享到微信</p>
     <div class="wx-qrcode">
-      <img src="//pan.baidu.com/share/qrcode?url=http://mingming.tech/2016/06/06/Basic/2016-06-06-https-with-wireshark/" alt="微信分享二维码">
+      <img src="//pan.baidu.com/share/qrcode?url=https://mingming.tech/2016/06/06/Basic/2016-06-06-https-with-wireshark/" alt="微信分享二维码">
     </div>
 </div>
 
@@ -438,7 +438,7 @@
 <script src="//imsun.github.io/gitment/dist/gitment.browser.js"></script>
 <script>
 var gitment = new Gitment({
-  id: "http://mingming.tech/2016/06/06/Basic/2016-06-06-https-with-wireshark/",
+  id: "https://mingming.tech/2016/06/06/Basic/2016-06-06-https-with-wireshark/",
   owner: 'heartaway',
   repo: 'heartaway.github.io',
   oauth: {
@@ -458,7 +458,7 @@ gitment.render('gitment-ctn')
   <div class="outer">
     <div id="footer-info">
     	<div class="footer-left">
-    		&copy; 2021 心静志远
+    		&copy; 2021 心静思远
     	</div>
       	<div class="footer-right">
       		<a href="http://hexo.io/" target="_blank">Hexo</a>  Theme <a href="https://github.com/litten/hexo-theme-yilia" target="_blank">Yilia</a> by Litten

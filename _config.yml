@@ -3,16 +3,16 @@
 ## Source: https://github.com/hexojs/hexo/
 
 # Site
-title: 心静志远
+title: 心静思远
 subtitle: 技术终究会淘汰，思想却永存于世   技术才是硬通货，探求思想与本质
-keywords: 心静志远, xinjinzhiyuan, heartaway, yanmingming
-author: 心静志远
+keywords: 心静思远, xinjinsiyuan, heartaway, mingming
+author: 心静思远
 language: zh-Hans
 timezone: Asia/Shanghai
 
 # URL
 ## If your site is put in a subdirectory, set url as 'http://yoursite.com/child' and root as '/child/'
-url: http://mingming.tech
+url: https://mingming.tech
 root: /
 permalink: :year/:month/:day/:title/
 permalink_defaults:
@@ -97,7 +97,6 @@ jsonContent:
       excerpt: false
       categories: false
       tags: true
-
 
 # Deployment
 ## Docs: https://hexo.io/docs/deployment.html

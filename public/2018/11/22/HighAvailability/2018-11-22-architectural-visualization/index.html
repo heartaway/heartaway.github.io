@@ -5,15 +5,15 @@
   
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <link rel="dns-prefetch" href="http://mingming.tech">
-  <title>微服务架构可视化平台实践 | 心静志远</title>
+  <link rel="dns-prefetch" href="https://mingming.tech">
+  <title>微服务架构可视化平台实践 | 心静思远</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="description" content="为什么需要架构可视化随着企业进行微服务架构改造，系统架构复杂度越来越高，架构变化日益频繁，微服务改造后的实际架构模型可能与预期已经产生了巨大差异，架构师或系统运维人员很难准确记忆所有资源实例的构成和交互情况；其次，系统架构在动态演化过程中可能引入了一些不可靠的因素，比如弱依赖变强依赖、局部容量不足、系统耦合过重等，给系统的稳定性带了极大的安全隐患。所以我们每次在面对系统改造、业务大促以及稳定性治">
 <meta name="keywords" content="架构,可视化,AHAS">
 <meta property="og:type" content="article">
 <meta property="og:title" content="微服务架构可视化平台实践">
-<meta property="og:url" content="http://mingming.tech/2018/11/22/HighAvailability/2018-11-22-architectural-visualization/index.html">
-<meta property="og:site_name" content="心静志远">
+<meta property="og:url" content="https://mingming.tech/2018/11/22/HighAvailability/2018-11-22-architectural-visualization/index.html">
+<meta property="og:site_name" content="心静思远">
 <meta property="og:description" content="为什么需要架构可视化随着企业进行微服务架构改造，系统架构复杂度越来越高，架构变化日益频繁，微服务改造后的实际架构模型可能与预期已经产生了巨大差异，架构师或系统运维人员很难准确记忆所有资源实例的构成和交互情况；其次，系统架构在动态演化过程中可能引入了一些不可靠的因素，比如弱依赖变强依赖、局部容量不足、系统耦合过重等，给系统的稳定性带了极大的安全隐患。所以我们每次在面对系统改造、业务大促以及稳定性治">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="https://cdn.nlark.com/yuque/0/2018/png/104361/1542956362235-c47820c3-d1a6-4470-8be3-343ed710ceb7.png#width=638">
@@ -24,13 +24,13 @@
 <meta property="og:image" content="https://cdn.nlark.com/yuque/0/2018/png/104361/1542960362139-534dd303-c1b7-493a-8685-ac502e356028.png#width=747">
 <meta property="og:image" content="https://cdn.nlark.com/yuque/0/2018/gif/104361/1542969119301-c0372346-6922-4537-a611-1e772bee351f.gif#width=747">
 <meta property="og:image" content="https://cdn.nlark.com/yuque/0/2018/gif/104361/1542971799291-1e0987da-79c4-4e2d-b9d3-4e847a9c82eb.gif#width=747">
-<meta property="og:updated_time" content="2021-02-19T03:19:59.634Z">
+<meta property="og:updated_time" content="2021-04-25T12:05:36.949Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="微服务架构可视化平台实践">
 <meta name="twitter:description" content="为什么需要架构可视化随着企业进行微服务架构改造，系统架构复杂度越来越高，架构变化日益频繁，微服务改造后的实际架构模型可能与预期已经产生了巨大差异，架构师或系统运维人员很难准确记忆所有资源实例的构成和交互情况；其次，系统架构在动态演化过程中可能引入了一些不可靠的因素，比如弱依赖变强依赖、局部容量不足、系统耦合过重等，给系统的稳定性带了极大的安全隐患。所以我们每次在面对系统改造、业务大促以及稳定性治">
 <meta name="twitter:image" content="https://cdn.nlark.com/yuque/0/2018/png/104361/1542956362235-c47820c3-d1a6-4470-8be3-343ed710ceb7.png#width=638">
   
-    <link rel="alternative" href="/atom.xml" title="心静志远" type="application/atom+xml">
+    <link rel="alternative" href="/atom.xml" title="心静思远" type="application/atom+xml">
   
   
     <link rel="icon" href="/favicon.ico">
@@ -60,7 +60,7 @@
 			<img src="https://avatars3.githubusercontent.com/u/5878884" class="js-avatar">
 		</a>
 		<hgroup>
-		  <h1 class="header-author"><a href="/">心静志远</a></h1>
+		  <h1 class="header-author"><a href="/">心静思远</a></h1>
 		</hgroup>
 		
 		<p class="header-subtitle">技术终究会淘汰，思想却永存于世   技术才是硬通货，探求思想与本质</p>
@@ -116,7 +116,7 @@
 				<img src="https://avatars3.githubusercontent.com/u/5878884" class="js-avatar">
 			</div>
 			<hgroup>
-			  <h1 class="header-author js-header-author">心静志远</h1>
+			  <h1 class="header-author js-header-author">心静思远</h1>
 			</hgroup>
 			
 			<p class="header-subtitle"><i class="icon icon-quo-left"></i>技术终究会淘汰，思想却永存于世   技术才是硬通货，探求思想与本质<i class="icon icon-quo-right"></i></p>
@@ -345,7 +345,7 @@
     <a class="close js-modal-close" href="javascript:;"><i class="icon icon-close"></i></a>
     <p>扫一扫，分享到微信</p>
     <div class="wx-qrcode">
-      <img src="//pan.baidu.com/share/qrcode?url=http://mingming.tech/2018/11/22/HighAvailability/2018-11-22-architectural-visualization/" alt="微信分享二维码">
+      <img src="//pan.baidu.com/share/qrcode?url=https://mingming.tech/2018/11/22/HighAvailability/2018-11-22-architectural-visualization/" alt="微信分享二维码">
     </div>
 </div>
 
@@ -409,7 +409,7 @@
 <script src="//imsun.github.io/gitment/dist/gitment.browser.js"></script>
 <script>
 var gitment = new Gitment({
-  id: "http://mingming.tech/2018/11/22/HighAvailability/2018-11-22-architectural-visualization/",
+  id: "https://mingming.tech/2018/11/22/HighAvailability/2018-11-22-architectural-visualization/",
   owner: 'heartaway',
   repo: 'heartaway.github.io',
   oauth: {
@@ -429,7 +429,7 @@ gitment.render('gitment-ctn')
   <div class="outer">
     <div id="footer-info">
     	<div class="footer-left">
-    		&copy; 2021 心静志远
+    		&copy; 2021 心静思远
     	</div>
       	<div class="footer-right">
       		<a href="http://hexo.io/" target="_blank">Hexo</a>  Theme <a href="https://github.com/litten/hexo-theme-yilia" target="_blank">Yilia</a> by Litten
