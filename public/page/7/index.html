@@ -149,6 +149,346 @@
           <div id="js-content" class="content-ll">
             
   
+    <article id="post-Mysql/2016-06-15-mysql-lock-table-ddl" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2016/06/15/Mysql/2016-06-15-mysql-lock-table-ddl/">Mysql新增字段到大数据表导致锁表</a>
+    </h1>
+  
+
+        
+        <a href="/2016/06/15/Mysql/2016-06-15-mysql-lock-table-ddl/" class="archive-article-date">
+  	<time datetime="2016-06-14T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2016-06-15</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>生产环境对Mysql中一张表（sc_stockout_order）做新增一个字段操作：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ALTER TABLE `sc_stockout_order` ADD `route_remarks` VARCHAR(<span class="number">1024</span>)  CHARACTER SET utf8mb4  NULL  DEFAULT NULL  COMMENT <span class="string">&#x27;物流备注&#x27;</span>  AFTER `remarks`;</span><br></pre></td></tr></table></figure>
+
+<p>Mysql的配置：</p>
+<p><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/04f830403a41d77a161d11469427417f.png"></p>
+<p>应用系统也开始报错：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Cause: org.springframework.jdbc.CannotGetJdbcConnectionException: Could not get JDBC Connection; </span><br><span class="line">        nested exception is org.apache.tomcat.jdbc.pool.PoolExhaustedException: </span><br><span class="line">        [DubboServerHandler-<span class="number">10.162</span><span class="number">.99</span><span class="number">.129</span>:<span class="number">20880</span>-thread-<span class="number">105</span>] Timeout: Pool empty. </span><br><span class="line">        Unable to fetch a connection in <span class="number">50</span> seconds, none available[size:<span class="number">80</span>; busy:<span class="number">79</span>; idle:<span class="number">0</span>; lastwait:<span class="number">50000</span>].</span><br><span class="line">        at org.apache.ibatis.exceptions.ExceptionFactory.wrapException(ExceptionFactory.java:<span class="number">26</span>) ~[mybatis-<span class="number">3.2</span><span class="number">.8</span>.jar:<span class="number">3.2</span><span class="number">.8</span></span><br></pre></td></tr></table></figure>
+
+<p>从日志上可以看出JDBC连接池拿不到可用连接了，连接池大小为80，当前空闲为0，由于有2太机器，所以这个时候总的最大连接数为160，虽然数据库的最大连接数是300，但是已经达到了客户端的配置；其实这里的配置不太可以，2太机器的话，可以配高一点，比如每台最大连接数可以配置为150。</p>
+<p>发现问题后，首先为了解决问题，在Mysql客户端中  show processlist  发现由于ALTER TABLE xx 这条语句导致大量的Query条件的语句处于等待状态，为了减少继续产生问题，必须先解决问题，通过 kill processId  杀掉修改表结构的语句，发现马上processlist恢复正常。</p>
+<p>show processlist 中还出现了一条语句：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Waiting <span class="keyword">for</span> table metadata lock</span><br></pre></td></tr></table></figure>
+
+<p>sc_stockout_order 中现有字段个数 91 个，数据量为 3959102  条,  数据量还是比较大的。</p>
+<h4 id="Mysql的连接数："><a href="#Mysql的连接数：" class="headerlink" title="Mysql的连接数："></a>Mysql的连接数：</h4><p><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/62bb08da180f2be0647b257b8c9ea9bb.png"></p>
+<p>从图中也可以看出活跃连接数达到160之后就不变了，顶端蓝色水平线部分，当杀掉阻塞进程后，连接得到释放。</p>
+<h4 id="事后，查找资料，进行原因分析："><a href="#事后，查找资料，进行原因分析：" class="headerlink" title="事后，查找资料，进行原因分析："></a>事后，查找资料，进行原因分析：</h4><p>Mysql在5.6版本之前，直接修改表结构的过程中会锁表，具体的操作步骤如下：</p>
+<ol>
+<li>首先创建新的临时表，表结构通过命令ALTAR TABLE新定义的结构</li>
+<li>然后把原表中数据导入到临时表</li>
+<li>删除原表</li>
+<li>最后把临时表重命名为原来的表名</li>
+</ol>
+<blockquote>
+<p>Historically, many DDL operations on InnoDB tables were expensive. Many ALTER TABLE operations worked by creating a new, empty table defined with the requested table options and indexes, then copying the existing rows to the new table one-by-one, updating the indexes as the rows were inserted. After all rows from the original table were copied, the old table was dropped and the copy was renamed with the name of the original table.</p>
+</blockquote>
+<p>但是在Mysql 5.6 之后引入了Online DDL：</p>
+<blockquote>
+<p>MySQL 5.6 enhances many other types of ALTER TABLE operations to avoid copying the table. Another enhancement allows SELECT queries and INSERT, UPDATE, and DELETE (DML) statements to proceed while the table is being altered. This combination of features is now known as online DDL.</p>
+</blockquote>
+<p>那么Online DDL下是如何实现的呢？<br>参考：<a href="http://www.cnblogs.com/cchust/p/4639397.html">http://www.cnblogs.com/cchust/p/4639397.html</a></p>
+<p>Mysql 5.6 虽然引入了Online DDL，但是并不是修改表结构的时候，一定不会导致锁表，在一些场景下还是会锁表的，比如</p>
+<p>①某个慢SQL或者比较大的结果集的SQL在运行，执行ALTER TABLE时将会导致锁表发生；</p>
+<p>②存在一个事务在操作表的时候，执行ALTER TABLE也会导致修改等待；</p>
+<p>查看我们mysql的版本：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> VERSION();</span><br><span class="line"><span class="number">5.6</span><span class="number">.16</span><span class="operator">-</span>log</span><br></pre></td></tr></table></figure>
+
+<p>我们通过Mysql的慢SQL控制台，也在发生问题的时间段内没有出现慢SQL，所以需要排除第一种可能性；<br>由于当时没有保留现场，所以当时是不是由于事物导致的锁表，现在也无从查起，这只能下次查看分析了。</p>
+<h4 id="总结："><a href="#总结：" class="headerlink" title="总结："></a>总结：</h4><p>对大表的修改以后千万要注意，修改需要满足一下条件：</p>
+<ul>
+<li>需要找一个流量比较小的时候；</li>
+<li>需要查看当前是否有未提交的实物；</li>
+<li>需要测试环境预演练，有一定预期；</li>
+<li>知晓表数据大小（SELECT  DATA_LENGTH + INDEX_LENGTH  FROM TABLES WHERE TABLE_SCHEMA&#x3D;’logistics’ AND TABLE_NAME&#x3D;’stockout_order’ ;）</li>
+</ul>
+<p>Mysql大表一般DBA都会做归档操作，把大表转为小表；或者使用 <a href="https://www.percona.com/doc/percona-toolkit/2.2/pt-online-schema-change.html">percona-toolkit </a>工具来辅助完成DDL操作，关于PT的工具原理和介绍：<a href="http://www.cnblogs.com/zhoujinyi/p/3491059.html">http://www.cnblogs.com/zhoujinyi/p/3491059.html</a><br>有关 Metadata lock wait  请参考：<a href="https://help.aliyun.com/knowledge_detail/41723.html">https://help.aliyun.com/knowledge_detail&#x2F;41723.html</a></p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Mysql//" class="article-tag-list-link color1">Mysql</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2016/06/15/Mysql/2016-06-15-mysql-lock-table-ddl/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-Java/2016-06-14-threadpool-handle-batch" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2016/06/14/Java/2016-06-14-threadpool-handle-batch/">用线程池解决批量任务执行</a>
+    </h1>
+  
+
+        
+        <a href="/2016/06/14/Java/2016-06-14-threadpool-handle-batch/" class="archive-article-date">
+  	<time datetime="2016-06-13T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2016-06-14</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <blockquote>
+<p>今天遇到一个场景：用于有一批数据需要批量处理，每一个任务的处理都会花费300~500ms的时间，如果列表为30个时，直接导致http请求超时了（设置的Http请求时间为10s）。所以期望服务端能够多线程执行任务，所有执行完毕后返回最终结果。</p>
+</blockquote>
+<p>解决方案大家比较明确了，在外部接口无法被优化的场景下，只能将顺序执行的任务变为并行执行，Java提供了线程模型和线程池模型。但是要做到合理的利用线程池，必须对其原理了如指掌。</p>
+<p>所以问题的解决方案是：</p>
+<h4 id="定义线程池对象"><a href="#定义线程池对象" class="headerlink" title="定义线程池对象"></a>定义线程池对象</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">protected</span> <span class="type">BlockingQueue</span> <span class="variable">queue</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">LinkedBlockingQueue</span>(<span class="number">100</span>);</span><br><span class="line">    <span class="keyword">protected</span> <span class="type">ExecutorService</span> <span class="variable">taskExecutor</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ThreadPoolExecutor</span>(<span class="number">5</span>, <span class="number">20</span>, <span class="number">10</span>, TimeUnit.MILLISECONDS, queue);</span><br></pre></td></tr></table></figure>
+<p>为什么不使用Executors工厂类提供的集中固定的线程池对象呢？</p>
+<p>Executors工厂提供了以下集中常见的线程池（基本上都是通过不同参数实例化ThreadPoolExecutor得到）：</p>
+<ul>
+<li>Executors.newFixedThreadPool 创建固定数量线程的线程池，线程空闲多久都不会自动关闭，直到线程池主动关闭。当我们线程数不均匀的时候，无法做到很好的扩容。</li>
+<li>Executors.newSingleThreadExecutor 创建单线程的线程池。</li>
+<li>Executors.newCachedThreadPool 创建无线程上限(Integer.MAX_VALUE)的线程池，默认线程空闲60秒后自动回收，防止资源浪费，因为无上限，所以就没必要使用阻塞队列来存储任务了，因为原则上线程池不会满，这里采用的是SynchronousQueue，这个阻塞队列要求每个插入操作必须等待另一个线程的对应移除操作，相当于一个数量为1的缓冲区，既然线程无上限，那SynchronousQueue的作用是什么呢，我猜想应该是线程池初始化线程是要时间，采用这样一个缓冲区就可以等待线程池中新的线程创建完毕后直接使用，而不是任务当代线程池中线程的创建。一般生产环境线程数受限于Jvm、Linux等限制不可能做到无限大，为了更高的可控性，不会直接使用此方法。</li>
+<li>Executors.newScheduledThreadPool 创建一个支持定时及周期性的任务执行的线程池，多数情况下可用来替代Timer类。</li>
+</ul>
+<p>我们自定义线程池：</p>
+<ul>
+<li>corePoolSize（线程池的基本大小），而不是0，原因是线程空闲时，线程可以直接使用，而不需要等待新线程的创建，加快运行效率；</li>
+<li>maximumPoolSize（线程池最大大小），设置线程池的最大值而不是Integer.MAX_VALUE，因为我们需要做到资源可控，jvm、linux os的可创建线程数都是有限的（记一次系统Dubbo调用超时的故障）；</li>
+<li>keepAliveTime（线程活动保持时间），为了加大线程的可用性，设置空闲线程的存活时间，不能太小，否则线程就一直处于销毁和创建过程，也不能太大，否则会是线程池长期处于满空闲状态，导致资源浪费，默认值为60s。</li>
+<li>runnableTaskQueue（任务队列），设置当线程池慢后的任务等待队列，ArrayBlockingQueue：是一个基于数组结构的有界阻塞队列，此队列按 FIFO（先进先出）原则对元素进行排序；LinkedBlockingQueue：一个基于链表结构的阻塞队列，此队列按FIFO （先进先出） 排序元素，吞吐量通常要高于ArrayBlockingQueue；PriorityBlockingQueue：一个具有优先级的无限阻塞队列。</li>
+<li>RejectedExecutionHandler（饱和策略），当队列和线程池都满了，说明线程池处于饱和状态，那么必须采取一种策略处理提交的新任务。这个策略默认情况下是AbortPolicy，表示无法处理新任务时抛出异常。JDK提供了四种策略：AbortPolicy：直接抛出异常；CallerRunsPolicy：只用调用者所在线程来运行任务；DiscardOldestPolicy：丢弃队列里最近的一个任务，并执行当前任务；DiscardPolicy：不处理，丢弃掉；所以我们推荐使用CallerRunsPolicy，保证业务不受严重影响。</li>
+</ul>
+<p>当然这些参数具体该设置多少合适呢？在业务初期我们只能靠经验值才设置，但是运行过程中，我们是可以通过一些线程池的监控来做到调优我们的配置的。</p>
+<p>顺便了解一下线程池的工作流程：</p>
+<p><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/10a39f5ab6ff4780007537e2e73ee106.png"><br>当核心线程数未满的时候，创新新的线程，当核心线程数慢了之后，新加入的任务会进入队列，当队列慢了后，如果最大核心数未满，则创建新的线程，如果最大核心数也满了，则使用配置的饱和策略来决定怎么处理新加入的线程。</p>
+<h3 id="CountDownLatch-记录并等待所有线程执行完毕"><a href="#CountDownLatch-记录并等待所有线程执行完毕" class="headerlink" title="CountDownLatch 记录并等待所有线程执行完毕"></a>CountDownLatch 记录并等待所有线程执行完毕</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//多线程处理</span></span><br><span class="line">          <span class="type">CountDownLatch</span> <span class="variable">countDownLatch</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">CountDownLatch</span>(stockoutOrderDOs4Update.size());<span class="comment">//初始化countDown</span></span><br><span class="line">          List&lt;Future&gt; taskResultList = <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;Future&gt;();</span><br><span class="line">          <span class="keyword">for</span> (StockoutOrderDO orderDO : stockoutOrderDOs4Update) &#123;</span><br><span class="line">              <span class="type">StockoutOrderStateConvertTask</span> <span class="variable">stockoutOrderStateConvertTask</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">StockoutOrderStateConvertTask</span>(orderDO, toState, countDownLatch);</span><br><span class="line">              <span class="type">Future</span> <span class="variable">future</span> <span class="operator">=</span> taskExecutor.submit(stockoutOrderStateConvertTask);</span><br><span class="line">              taskResultList.add(future);</span><br><span class="line">          &#125;</span><br><span class="line"></span><br><span class="line">          <span class="keyword">try</span> &#123;</span><br><span class="line">              <span class="comment">//等待所有子线程执行完</span></span><br><span class="line">              countDownLatch.await();</span><br><span class="line">          &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">              logger.error(<span class="string">&quot;设置出库单状态异常&quot;</span>, e);</span><br><span class="line">          &#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里没有使用Executor的execute方法，使用的submit方法，他返回一个future，因为我们期望获取每一个线程执行的结果信息，我们需要统计那些执行失败了，那些执行成功了，方便做整体业务回滚。</p>
+<p>通过这个future来判断任务是否执行成功，通过future的get方法来获取返回值，get方法会阻塞住直到任务完成，而使用get(long timeout, TimeUnit unit)方法则会阻塞一段时间后立即返回，这时有可能任务没有执行完。其次，我们还可以在submit方法中向外抛出业务异常，通过future.get()捕获异常，并处理异常。</p>
+<p>相比循环判断每一个任务的返回结果是否都执行完毕了，通过计数器CountDownLatch来记录任务是否都完毕的方式更加简洁和清晰，性能也会更高一些。</p>
+<p><strong>可能会遇到的问题：</strong></p>
+<p>之前单线程处理的任务如果一个失败了，整个请求可以通过Spring的事务进行回滚，但是如果多线程处理的话，就无法做到失败回滚，如果业务允许部分失败，可以将失败的任务信息反馈给用户，如果业务上必须具有强原子性，所以需要自己实现回滚逻辑，比如每次把执行成功的和失败的都记录下来，后续统一处理回滚逻辑。</p>
+<h4 id="总结："><a href="#总结：" class="headerlink" title="总结："></a>总结：</h4><p>通过本次优化，之前的一直容易出现超时的问题得到了一定的优化，但是期望更高的性能的话，需要优化外部调用方的性能。</p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2016/06/14/Java/2016-06-14-threadpool-handle-batch/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-Java/2016-06-12-object-mapping" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2016/06/12/Java/2016-06-12-object-mapping/">Object Mapping in Java</a>
+    </h1>
+  
+
+        
+        <a href="/2016/06/12/Java/2016-06-12-object-mapping/" class="archive-article-date">
+  	<time datetime="2016-06-11T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2016-06-12</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>我们在Java代码编写中经常会遇到DO 、DTO之间的对象隐射转换，我们在设计DO、DTO的时候一般会尽量让对象名称、对象属性保持一致，利于属性拷贝，但是现实场景中可能存在一些对象名称不一致、对象类型不一致的情况，不同的拷贝方案，性能与使用场景也可能存在不一样，那么在众多的对象拷贝框架中如何选择合适的使用呢？</p>
+<p>常用对象属性拷贝方法：</p>
+<ol>
+<li>commons-beanutils 框架中的 BeanUtils</li>
+<li>commons-beanutils 框架中的 PropertyUtils</li>
+<li>ModelMapper</li>
+<li>Cglib中提供的BeanCopier, BulkBean,BeanMap,FastClass&#x2F;FastMethod</li>
+<li>Orika</li>
+<li>Dozer</li>
+<li>HardCopy，手工硬编码</li>
+</ol>
+<p>有人做了一张性能对比图：</p>
+<p><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/7236b8abc31ef20753e7d002106a0caf.png"></p>
+<p><img src="/images/posts/20160612/object-mapping-per-hightchart-two.png"></p>
+<h4 id="HardCopy："><a href="#HardCopy：" class="headerlink" title="HardCopy："></a>HardCopy：</h4><p>手工硬编码的方式是基本是效率最高的方式，但是当一个类有几十个属性的时候，代码编写效率低下，而且丑陋，最重要的是，当新扩展一个字段后，往往容易忽略在mapping convert文件中添加相应的属性隐射，给业务带来一定的潜在风险（error-prone）。硬编码并不是一无是处，当对象属性比较固定，且对性能要求非常高的时候，硬编码是最好的选择方案。但是很多Object的 大量属性需要编写Convert方法时，就感觉很浪费时间，有没有更有效率的编写方法呢？当然，我自己写了一个Convert方法生成器（密码: ycag，Console输出，需要复制粘贴），这样就可以大量节省硬编码ModelConvert的时间。</p>
+<h4 id="BeanUtils："><a href="#BeanUtils：" class="headerlink" title="BeanUtils："></a>BeanUtils：</h4><p>因为我们项目中最常用的就是Spring-bean，所以最先想到使用属性拷贝的就是Apache的BeanUtils.copyProperties方法。</p>
+<h5 id="工作原理："><a href="#工作原理：" class="headerlink" title="工作原理："></a>工作原理：</h5><p>BeanUtils通过反射机制的方式从orig中获取属性信息和属性的可读、可写方法（通过get、set方法，如果属性没有get、set方法，则此属性不会被拷贝），调用orig的get方法获取属性值，将属性值写入dest的对应属性中（使用dest的set方法）。可以看出BeanUtils是严格要求orig、dest必须符合bean规范，有get、set方法，无法完成不同属性名之间的隐射拷贝。</p>
+<h5 id="对象类型转换："><a href="#对象类型转换：" class="headerlink" title="对象类型转换："></a>对象类型转换：</h5><p>BeanUtils为了方便对象类型转换，还提供了ConvertUtilsBean类，此类可以注入一系列Converter对象，提供对象的初始值或者其他转换方法，比如设置Integer的默认值为0 或 从Date 类型到long类型，我们在使用过程中一般NULL与0是不一样的，所以不期望对象转换过程中默认设置值，所以会自定义对象类型转换器。由此说明BeanUtils是对属性类型没有强一致性判断的。</p>
+<p><img src="/images/posts/20160612/bean-util-sample.png"></p>
+<p>对象拷贝深度：待测试。<br>由于大量采用反射机制&amp;严格的参数校验，所以性能较差，不建议使用。</p>
+<h4 id="PropertyUtils："><a href="#PropertyUtils：" class="headerlink" title="PropertyUtils："></a>PropertyUtils：</h4><p>PropertyUtils实际上使用的也是beanUtils，但是在初始化的时候就会发现，BeanUtils初始化了ConvertUtilsBean和PropertyUtilsBean，而PropertyUtils只初始化了PropertyUtilsBean，说明PropertyUtils不支持属性类型自动转换的功能(如果类型不同则会抛出异常)，而BeanUtils支持属性类型自动转换的功能，这也是两者的区别。</p>
+<p>性能上，PropertyUtils 与 BeanUtils稍微好一点。</p>
+<h4 id="ModelMapper："><a href="#ModelMapper：" class="headerlink" title="ModelMapper："></a>ModelMapper：</h4><p>ModelMapper能用更加紧凑的代码对Java对象进行映射，在更简单的情况下甚至可以实现零配置。它支持以下特性：</p>
+<ul>
+<li>基于名称的对象属性映射</li>
+<li>复制公开的、受保护的和私有的字段</li>
+<li>略过某些字段</li>
+<li>可用转换器来影响映射（如将字符串转换为小写）</li>
+<li>在不同类型的字段间进行映射（如将字符串转换为数字）</li>
+<li>采用不同的条件进行映射</li>
+<li>默认条件不充分时采用松散的映射策略</li>
+<li>对映射过程进行验证以确保所有字段都被处理</li>
+<li>对特殊情况下的映射过程进行完全可定制化的控制</li>
+<li>与Guice或Spring集成</li>
+</ul>
+<h4 id="Cglib：BeanCopier"><a href="#Cglib：BeanCopier" class="headerlink" title="Cglib：BeanCopier"></a>Cglib：BeanCopier</h4><p>参考：<a href="http://agapple.iteye.com/blog/799827">http://agapple.iteye.com/blog/799827</a>，据说性能比BeanUtils优一个数量级以上，但是其提供的功能也比较简单。</p>
+<h4 id="Orika："><a href="#Orika：" class="headerlink" title="Orika："></a><a href="http://orika-mapper.github.io/orika-docs/">Orika</a>：</h4><p>Github中的源码：<a href="https://github.com/orika-mapper/orika">https://github.com/orika-mapper/orika</a><br>基于生成字节码的方式进行属性映射，是目前出了硬编码外性能最好的一款Object mapping工具，他比ModelMapper占用的内存会稍微多一点，空间换时间，这也符合计算机规律。不足时文档较少，API看起来有一些混乱，支持的特性不较少，其次一些属性的注册使用的是“弱类型”，当属性名称变更时容易被忽略（error-prone）。</p>
+<h4 id="Dozer："><a href="#Dozer：" class="headerlink" title="Dozer："></a><a href="http://dozer.sourceforge.net/">Dozer</a>：</h4><p>虽然Dozer提供了丰富的特性支持，但是由于其性能较差，所以这里就不做介绍。<br>除了以上介绍的几种之外还有一些其他的Object mapping工具类，比如 mapping4java、GeDA等。</p>
+<h4 id="总结："><a href="#总结：" class="headerlink" title="总结："></a>总结：</h4><p>根据自己的需求选择一款合适且性能优雅的框架，如果觉得没有合适的，当然在时间和精力允许的情况下自己也可以去造一个轮子。</p>
+<h4 id="参考："><a href="#参考：" class="headerlink" title="参考："></a>参考：</h4><p><a href="https://prezi.com/q7pd1ad2spro/copy-of-object-mapping-in-java/">https://prezi.com/q7pd1ad2spro/copy-of-object-mapping-in-java/</a></p>
+<p><a href="http://stackoverflow.com/questions/1432764/any-tool-for-java-object-to-object-mapping">http://stackoverflow.com/questions/1432764/any-tool-for-java-object-to-object-mapping</a></p>
+<p><a href="http://agapple.iteye.com/blog/1075671">http://agapple.iteye.com/blog/1075671</a></p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2016/06/12/Java/2016-06-12-object-mapping/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
     <article id="post-Basic/2016-06-06-https-with-wireshark" class="article article-type-post  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
     
@@ -990,284 +1330,6 @@
 
 
   
-    <article id="post-Think/2016-05-09-choice-is-important" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2016/05/09/Think/2016-05-09-choice-is-important/">努力并不等于优秀，选择更重要</a>
-    </h1>
-  
-
-        
-        <a href="/2016/05/09/Think/2016-05-09-choice-is-important/" class="archive-article-date">
-  	<time datetime="2016-05-08T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2016-05-09</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>最近从原来的工作岗位跳了出来，尝试去做不同的事情。回顾过去，结果发现自己在过去的一年过得非常混沌，没有目的，自以为是，非常努力的做着对自身毫无价值的事情。</p>
-<p>一个事情，你做的时间长了，就容易产生惰性，因为你已经有了舒适区，很多时候忘记了为什么要做这样的事情。就比如我负责的物流订单系统，每天都要处理很多的异常单，处理多了，也就习惯了，忘记了怎么彻底的解决问题或者寻找高效的解决方案，总想着，怎么把当前问题摆平，事情一多，难免需要加班解决。我每天加班到很晚，实则是在<strong>用行为上上的努力来掩饰思维上的懒惰</strong>。</p>
-<p>决定一个人有多优秀，并不是看他有多努力，而是看这个人的思维模式，思维方式决定了行为习惯。</p>
-<p>再努力，再加班，如果不思考的话，也只能做一些简单的活，提供的也是基本价值，因为<strong>你选择的做事情的内容和方式已经决定了你即将提供的价值</strong>。过去一年，我为公司的业务发展燃烧着自己的生命，几乎把除了睡觉的时间都投入在了工作当中，然而结果却是，我让自己逐渐丧失了竞争能力。</p>
-<p>你很努力，每天工作16个小时，然并卵，你并没有变得更优秀，因为走在错误的道路上，停止努力，你就是进步。</p>
-<p>**优秀的人能够快速抓取事物背后的运行规律(方法论)**。看实物不要去看表面，尝试去抓取事物背后的运行规律和本质。反思自己，感觉还是太年轻，一般人都懂的道理，自己却不懂，全世界感觉就自己一个是傻瓜。</p>
-<p>优秀的人知道自己想要什么，<strong>能很好的实现理想与现实之间的自洽</strong>。理想是什么，现实又是什么，一开始我还天真的以为自己真的是在创业，一年之后幡然醒悟，自己原来只是在一家创业公司打工而已。之前一切动心的承诺都似那过眼烟云，纵然是落下的白纸黑字，有时也无济于事。你在资本的游戏里面，只是一个连智力都没有发展健全的婴儿而已。</p>
-<p>每一个人的时间与精力都是有限的，想要变得优秀，需要在这个领域不断的投入和产出，因而优秀的人往往方向明确，<strong>知道自己想要什么，并且最大化自己的投入与产出比</strong>。时间与精力就是他们的匕首和投枪，用只会来指挥操纵他们，战无不胜。</p>
-<p>不做无用功，多想想你得到了什么？</p>
-<p>你的选择决定了你是什么样的人。</p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Think//" class="article-tag-list-link color1">Think</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2016/05/09/Think/2016-05-09-choice-is-important/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-Java/2016-05-06-java-io" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2016/05/06/Java/2016-05-06-java-io/">Java基础 之 IO</a>
-    </h1>
-  
-
-        
-        <a href="/2016/05/06/Java/2016-05-06-java-io/" class="archive-article-date">
-  	<time datetime="2016-05-05T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2016-05-06</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>操作系统IO五类模型</p>
-<ul>
-<li><p>IO操作的两个阶段：1.等待数据的到来，当数据到来时将数据拷贝到内核临时缓冲区；2. 将数据从内核临时缓冲区拷贝到用户缓冲区；</p>
-</li>
-<li><p>阻塞IO、非阻塞IO：阻塞IO就是进程一直等待数据的到来直到抵达超时时间；非阻塞IO就是采用“轮询”的方式询问操作是否准备就绪，是一种浪费CPU的方式；在阻塞IO上上进一步改进，一个阻塞IO监控一个套接字比较改进为使用IO复用（select 、poll），一次监控多个套接字，减少轮询次数，轮询模式一定程度上牺牲了实时性；当然select一次管理的socket的数量有上限，比如在linux 2.6.15内核中最大值为1024。</p>
-</li>
-<li><p>当然IO复用一定程度上解决了我们一些问题，但是他的副作用也很明显，对CPU的压力、牺牲的实时性。接下来还有2种方式时异步IO模式，型号驱动IO模式和异步IO模式；异步IO与异步信号IO的区别是异步IO是内核所有操作处理完毕后才会通知，而信号异步IO是内核执行过程中也会通知，比如数据准备完毕后的通知。异步IO是最理想的工作方式，但是目前在实践中一直没有稳定的内核版本推出。</p>
-</li>
-<li><p>在异步IO未成熟的情况下，解决select模式的socket句柄数限制，在Linux 2.6 内核中引入了epoll IO多路复用技术。poll每次调用时对集合进行线性扫描，而epoll只会对活跃的socket进行操作，这样IO效率不随FS数量的增加而线性下降；其次，为了解决数据从内核态到用户态的拷贝，在用户空间和内核空间的划出一片共同区域mmap实现数据交换；基于事件驱动，避免每次都把所有fd都扫描一遍</p>
-</li>
-</ul>
-<p><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/acb8761f8dca4cd913caf1a23cec53de.png?zoom=2"></p>
-<h3 id="BIO-Blcok-IO"><a href="#BIO-Blcok-IO" class="headerlink" title="BIO(Blcok IO)"></a>BIO(Blcok IO)</h3><h4 id="基本类熟悉"><a href="#基本类熟悉" class="headerlink" title="基本类熟悉:"></a>基本类熟悉:</h4><ul>
-<li>File类</li>
-<li>InputStream OutputStream  面向字节形式的I&#x2F;O</li>
-<li>Reader Writer  兼容Unicode与面向字符的I&#x2F;O; 提供了内置锁lock，对临界区考虑了线程安全性，默认使用自身对象作为对象锁，否则使用构造函数传入的锁对象。</li>
-<li>FilterInputStream FilterOutputStream  对InputStream outStream进行包装，实现装饰器模式。为什么要使用装饰器模式？</li>
-<li>FilterReader  FilterWriter</li>
-<li>InputStreamReader OutputStreamWriter    适配器模式，提供了对InputStream、OutputStream的兼容</li>
-<li>bufferedInputStram bufferedOutputStream  通过 属性添加volatile&#x2F;方法sychronized关键字实现线程安全；   bufferedReader bufferedWriter 通过synchronized+内部对象锁实现临界区的并发访问；通过自己写测试类，确认方法synchronized是对象锁this，多一个synchronized方法之间互斥访问；因为后者在已经方法就进行加锁，所以两种方式在执行性能上相差无几，只是两种代码编写风格，synchronized写在方法上会更优雅一些，因为可以让使用者明确知晓方法为线程安全的，此次对象锁也会增加代码工作量。如果一个方法中只有很少一部分访问临界区，那么采用编写对象lock锁性能更高。</li>
-</ul>
-<h4 id="理解："><a href="#理解：" class="headerlink" title="理解："></a>理解：</h4><ul>
-<li><p>两个对称性：1. InputStream 与 OutputStream 对称，分别位于流管道的两端；2. （inputStream、outputStream）字节操作与字符（reader、writer）操作的对称性；</p>
-</li>
-<li><p>两个设计模式：装饰器模式 和 适配器模式；IO库使用装饰器（组合）模式，不采用继承的原因是，如果采用继承,那么在多个实现类上每一个都需要添加子类，会导致类爆炸，采用装饰器模式，让原始类与辅助功能类进行拆分，可以做到辅助功能类对其它原始类复用。其次可以做到原始实现类对修改关闭，装饰器对扩展开放。这个就像我们我们提供豆制品（Component）的一种实现原味的豆腐脑（ConcreteComponent）、和原味豆浆（ConcreteComponent），并且提供了佐料 糖、盐、酱油、花生米等（Decorator）,每一种作料都可以用来装饰豆腐脑或者豆浆形成新的口味。佐料需要接受一个豆制品的具体实现素材才能制作新口味饮品，所以必须把豆制品的引用传递给佐料。</p>
-</li>
-<li><p>为什么Decorator也需要实现Component接口呢？举个例子，豆腐脑加了酱油形成了酱油豆腐脑，如果酱油豆腐脑不是一种Component，那么用户要吃带花生米的酱油豆腐脑怎么办呢，没法扩展了，因为花生米只接受豆制品（Component），所以佐料也实现Component接口这样通过Decorator组建的新产品可以作为另外一个佐料的输入源进一步被装饰。这样不仅支持了纵向扩展，也支持了水平扩展。</p>
-</li>
-<li><p>为什么Decorator需要一个抽象父类呢？因为没必要为每一个装饰后的类都重新写一个装饰器，其次抽象装饰器父类可以做到ConcreteComponent与Decorator解耦。</p>
-</li>
-</ul>
-<h3 id="NIO-Non-blcok-IO"><a href="#NIO-Non-blcok-IO" class="headerlink" title="NIO(Non-blcok IO)"></a>NIO(Non-blcok IO)</h3><p>NIO里面重要的引入了三个概念，通道Channels、缓冲区Buffers、选择器Selectors。在BIO中IO基于字节或字符，但NIO基于通道、缓冲区进行操作。</p>
-<h4 id="Buffer："><a href="#Buffer：" class="headerlink" title="Buffer："></a>Buffer：</h4><p>底层是一个固定长度数组，并有几个int对象标识一些指针，capacity &gt;&#x3D; limit &gt;&#x3D; position &gt;&#x3D; mark，通过这些指针标识写入的数据位置和可读数据的区域。一帮对象采用HeapByteBuffer，但堆大小有限，对于大文件的操作需要机遇磁盘IO进行处理，这个时候就需要借助MappedByteBuffer进行处理。</p>
-<h4 id="文件加锁："><a href="#文件加锁：" class="headerlink" title="文件加锁："></a>文件加锁：</h4><p>通过Channel的lock()或tryLock()方法获得文件锁，文件锁依赖于操作系统实现，属于系统调用，也因此当文件被加锁以后，不仅是当前进程中的其它线程无法再次获得锁，其他任何进程（无论本地还是远程）都无法再对文件进行操作（具体还要取决于操作系统对文件是否支持共享锁，比如我的Mac系统就不支持共享锁）。但是由于这种机制高度依赖系统，所以实际应用中应该并不常用。而且FileLock是JVM持有的，而非线程持有，一个JVM只能持有一次，所以当已经持有锁的情况下同一JVM里的另一线程再次请求锁，会抛出OverlappingFileLockException，而非阻塞，即使是使用tryLock()方法，也不会直接返回null，同样抛出OverlappingFileLockException。</p>
-<p>图形化demo学习工具：<a href="http://www.javanio.info/filearea/demos/">http://www.javanio.info/filearea/demos/</a></p>
-<p>参考：<a href="http://www.iteye.com/magazines/132-Java-NIO">http://www.iteye.com/magazines/132-Java-NIO</a></p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2016/05/06/Java/2016-05-06-java-io/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-Java/2016-05-05-mem-visiable" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2016/05/05/Java/2016-05-05-mem-visiable/">JVM内存可见性之use Or read-load-use</a>
-    </h1>
-  
-
-        
-        <a href="/2016/05/05/Java/2016-05-05-mem-visiable/" class="archive-article-date">
-  	<time datetime="2016-05-04T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2016-05-05</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <blockquote>
-<p>问题描述：<br>如果两个线程都对静态共享变量shareVar有引用，其中一个线程1使用 shareVar，另外一个线程2对shareVar进行修改，那么线程1是否能够理解拿到修改后的值呢？</p>
-</blockquote>
-<p><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/85bf0b2656136362bbe81ace0ae8c981.png?zoom=2"></p>
-<p>代码描述：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">StaticVarVisibility</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="type">boolean</span> <span class="variable">shareVar</span> <span class="operator">=</span> <span class="literal">true</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">        <span class="keyword">new</span> <span class="title class_">Thread</span>(<span class="keyword">new</span> <span class="title class_">Runnable</span>() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">run</span><span class="params">()</span> &#123;</span><br><span class="line">                <span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line">                <span class="comment">//JVM优化导致，当频繁使用主存变量的时候只做use，并未做read-load-use</span></span><br><span class="line">                <span class="keyword">while</span> (shareVar) &#123;</span><br><span class="line">                    i++;</span><br><span class="line">                    <span class="comment">//循环1000次，进行new Object();</span></span><br><span class="line">                    <span class="comment">//synchronized (this) &#123; &#125; 会强制刷新主内存的变量值到线程栈?我认为不是，是因为同步操作是一个耗时操作，所以对is的使用从单纯的use变为read-load-use</span></span><br><span class="line">                    <span class="comment">//System.out.println(i); //println 是synchronized 的</span></span><br><span class="line">                    <span class="comment">//try &#123;</span></span><br><span class="line">                    <span class="comment">//sleep操作释放了CPU，所以遵循JVM优化基准，尽可能保证工作内存和主存的及时同步，如果CPU一直被占用，就无法及时做到数据同步</span></span><br><span class="line">                    <span class="comment">//TimeUnit.MICROSECONDS.sleep(1);</span></span><br><span class="line">                    <span class="comment">//&#125; catch (InterruptedException e) &#123;</span></span><br><span class="line">                    <span class="comment">//&#125;</span></span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;).start();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            TimeUnit.SECONDS.sleep(<span class="number">1</span>);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">new</span> <span class="title class_">Thread</span>(<span class="keyword">new</span> <span class="title class_">Runnable</span>() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">run</span><span class="params">()</span> &#123;</span><br><span class="line">                shareVar = <span class="literal">false</span>;  <span class="comment">//设置shareVar为false，使上面的线程结束while循环</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;).start();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h4 id="程序现象："><a href="#程序现象：" class="headerlink" title="程序现象："></a>程序现象：</h4><p>如果线程1中循环体内只有i++，此时循环并不会立即停止下来，为什么呢？线程2已经对shareVar设置了false，为什么线程1没有及时获取到修改后的变量呢？</p>
-<p>在线程1中无论是循环创建对象还是使用synchronized还是sleep，都会触发线程1对shareVar变量的可见性。</p>
-<h4 id="结果分析："><a href="#结果分析：" class="headerlink" title="结果分析："></a>结果分析：</h4><p>为什么static的变量能够实现可见性？其实跟static是否无关，即使只是一个简单的变量，线程1也是可以读到修改后的数据的，只是时间不可预期而已。</p>
-<p>那为什么开始循环没有及时停止呢？原因是在JVM的优化策略下，当线程1频繁使用主存变量shareVar的时候只做use，并未做read-load-use，所以变更后的数据未能及时同步，当执行创建对象、sleep、synchronized这些耗时操作时，cpu对共享变量shareVar的使用不再频繁，所以jvm就可以来保证数据的同步，并从单纯的use变为read-load-use。</p>
-<p>当然在shareVar变量前主动加上volatile关键字，程序会立即停下来，因为这相当于告诉jvm当变量进行变更后强制进行read-load-use。</p>
-<h4 id="总结："><a href="#总结：" class="headerlink" title="总结："></a>总结：</h4><p>  知晓JVM什么时候只进行use，什么时候进行read-load-use。 在后续的编程中，如果需要修改后的数据必须做到实时可见性，必须在前面添加volatile关键字，这可能在支付相关的业务中存在。</p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2016/05/05/Java/2016-05-05-mem-visiable/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
   
     <nav id="page-nav">
       <a class="extend prev" rel="prev" href="/page/6/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/5/">5</a><a class="page-number" href="/page/6/">6</a><span class="page-number current">7</span><a class="page-number" href="/page/8/">8</a><a class="page-number" href="/page/9/">9</a><a class="page-number" href="/page/10/">10</a><a class="extend next" rel="next" href="/page/8/">Next &raquo;</a>
@@ -1426,6 +1488,10 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">书信</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">青春</a>
               </li>
             
             <div class="clearfix"></div>

@@ -149,6 +149,498 @@
           <div id="js-content" class="content-ll">
             
   
+    <article id="post-Program/2018-01-04-taobao-sso" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/01/04/Program/2018-01-04-taobao-sso/">Taobao SSO 跨域登录过程解析</a>
+    </h1>
+  
+
+        
+        <a href="/2018/01/04/Program/2018-01-04-taobao-sso/" class="archive-article-date">
+  	<time datetime="2018-01-03T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-01-04</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>今年的双十一和双十二已经告一段落，你是否买到了你想要的宝贝呢？我们知道双十一是天猫的主场，双十二是淘宝的主场，你有没有注意到你在登录了淘宝后，访问天猫或者飞猪，你还是处于登录态的，但是我们知道cookie是不能跨域的，那么阿里是如何做到了多域名下的登录态同步呢？接下来我们通过抓包进行请求解析来了解这个过程。</p>
+<h2 id="基础知识："><a href="#基础知识：" class="headerlink" title="基础知识："></a>基础知识：</h2><ol>
+<li>如果忘了Cookie和Session的区别，那么建议你先回顾一下，可以参考：<a href="https://github.com/astaxie/build-web-application-with-golang/blob/master/zh/06.1.md">https://github.com/astaxie/build-web-application-with-golang/blob/master/zh/06.1.md</a></li>
+<li>如果不知道为什么需要鉴权，为什么需要SSO，为什么需要跨域登录，建议你先阅读上一篇文章“系统权限控制”。</li>
+</ol>
+<h2 id="测试过程："><a href="#测试过程：" class="headerlink" title="测试过程："></a>测试过程：</h2><ol>
+<li>访问<a href="http://www.taobao.com/">www.taobao.com</a> 请求登录，跳转到 login.taobao.com<ul>
+<li>输入用户名和密码后，登录成功，302 回调到<a href="http://www.taobao.com页面/">www.taobao.com页面</a></li>
+<li>Post 表单到 login.taobao.com , response 为 set-cookie，并通过redirectURL 跳会<a href="http://www.taobao.com首页;/">www.taobao.com首页；</a></li>
+</ul>
+</li>
+<li>访问 <a href="http://www.tmall.com/">www.tmall.com</a><ul>
+<li><a href="http://www.tmall.com页面响应中发起新的请求/">www.tmall.com页面响应中发起新的请求</a> tmcc.tmall.com&#x2F;pass.com</li>
+</ul>
+</li>
+<li>请求页面 <a href="https://tmcc.tmall.com/pass.htm">https://tmcc.tmall.com/pass.htm</a><ul>
+<li>响应为 302 跳转到： <a href="https://login.taobao.com/jump?target=https://tmcc.tmall.com/pass.htm?tbpm=1">https://login.taobao.com/jump?target=https://tmcc.tmall.com/pass.htm?tbpm=1</a></li>
+<li>tbpm&#x3D;1表示：进行tbsession的跨域同步；</li>
+</ul>
+</li>
+<li>请求页面 <a href="https://login.taobao.com/jump?target=https://tmcc.tmall.com/pass.htm?tbpm=1">https://login.taobao.com/jump?target=https://tmcc.tmall.com/pass.htm?tbpm=1</a><ul>
+<li>在请求login.taobao.com&#x2F;jump时，会携带上taobao.com域下的cookie信息</li>
+<li>响应为302跳转到：<a href="https://pass.tmall.com/add?_tb_token_=eef03e35fbe&u......&target=https://tmcc.tmall.com/pass.htm?tbpm=1">https://pass.tmall.com/add?_tb_token_=eef03e35fbe&amp;u......&amp;target=https%3A%2F%2Ftmcc.tmall.com%2Fpass.htm%3Ftbpm%3D1</a></li>
+<li>服务器端把taobao域下的cookie信息拼接到了302跳转的url 的 query string上。</li>
+</ul>
+</li>
+<li>请求页面 <a href="https://pass.tmall.com/add?_tb_token_=eef03e35fbe&u......&target=https://tmcc.tmall.com/pass.htm?tbpm=1">https://pass.tmall.com/add?_tb_token_=eef03e35fbe&amp;u......&amp;target=https%3A%2F%2Ftmcc.tmall.com%2Fpass.htm%3Ftbpm%3D1</a><ul>
+<li>携带cookie 信息的query string 参数请求 tmall.com域名下的信息，请求添加cookie。</li>
+<li>响应中把请求中的cookie信息set 到 浏览器cookie中，以此完成tmall.com域名下的cookie同步；</li>
+<li>响应状态未302 重定向到 <a href="https://tmcc.tmall.com/pass.htm?tbpm=1">https://tmcc.tmall.com/pass.htm?tbpm=1</a></li>
+</ul>
+</li>
+<li>请求页面<a href="https://tmcc.tmall.com/pass.htm?tbpm=1">https://tmcc.tmall.com/pass.htm?tbpm=1</a> 302 跳转到 <a href="https://tmcc.tmall.com/pass.htm">https://tmcc.tmall.com/pass.htm</a></li>
+</ol>
+<p>抓包信息：<br><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/87d35687c06bdf7d01ea78c3aa1f8c7f.png"><br>图中隐藏了非关键请求，比如页面的静态资源等；</p>
+<p>同样：</p>
+<ol>
+<li>访问 <a href="http://www.alitrip.com,会同步请求https//ffa.alitrip.com/userInfo.htm%E7%9A%84%E8%AF%B7%E6%B1%82">www.alitrip.com，会同步请求https://ffa.alitrip.com/userInfo.htm的请求</a></li>
+<li>请求页面<a href="https://ffa.alitrip.com/userInfo.htm">https://ffa.alitrip.com/userInfo.htm</a><ul>
+<li>响应为 302 跳转到：<a href="https://login.taobao.com/jump?target=https://ffa.alitrip.com/userInfo.htm">https://login.taobao.com/jump?target=https%3A%2F%2Fffa.alitrip.com%2FuserInfo.htm</a></li>
+</ul>
+</li>
+<li>请求页面<a href="https://login.taobao.com/jump?target=https://ffa.alitrip.com/userIn">https://login.taobao.com/jump?target=https%3A%2F%2Fffa.alitrip.com%2FuserIn</a><ul>
+<li>在请求login.taobao.com&#x2F;jump时，会携带上taobao.com域下的cookie信息</li>
+<li>响应为302跳转到：<a href="https://pass.alitrip.com/add?_tb_token_=eef03e35fbe&uss=UtBTusG4%E2%80%A6">https://pass.alitrip.com/add?_tb_token_=eef03e35fbe&amp;uss=UtBTusG4…</a></li>
+<li>服务器端把taobao域下的cookie信息拼接到了302跳转的url 的 query string上。</li>
+</ul>
+</li>
+<li>请求页面<a href="https://pass.alitrip.com/add?_tb_token_=eef03e35fbe&uss=UtBTusG4">https://pass.alitrip.com/add?_tb_token_=eef03e35fbe&amp;uss=UtBTusG4</a><ul>
+<li>携带cookie 信息的query string 参数请求 alitrip.com 域名下的信息，请求添加cookie</li>
+<li>响应中把请求中的cookie信息set 到 浏览器cookie中，以此完成tmall.com域名下的cookie同步;</li>
+</ul>
+</li>
+</ol>
+<p>示意图：<br><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/ad93fbcaff26e6b4bc3ca3af620468e9.png"></p>
+<ol>
+<li>访问原始url： tmcc.tmall.com</li>
+<li>重定向，访问login.taobao.com&#x2F;jump</li>
+<li>重定向，访问pass.tmall.com</li>
+<li>重定向，访问原始url（带有同步标识tbpm）</li>
+<li>重定向，访问原始url（去掉同步标识tbpm）</li>
+</ol>
+<p>如果我们taobao.com域下没有登录cookie，通过在login.tmall.com页面进行登录，那么cookie的传递是怎么样的呢？<br>通过测试，发现在请求login.tmall.com的时候会同步请求login.taobao.com然后cookie依然是通过taobao域同步到tmall域名，也就是cookie的同步是单向；</p>
+<p>当然，这个过程是正向流程，那退出登录的逆向流程是怎么样的呢？会同步请求login.taobao.com&#x2F;clear, 通过set-cookie 清楚session cookie（会话cookie），然后进行 302 跳转到 <a href="https://pass.tmall.com/clear">https://pass.tmall.com/clear</a> 进行cookie清理，然后 302 跳转到 <a href="https://pass.etao.com/clear">https://pass.etao.com/clear</a> 进行cookie清理，然后 302 跳转到<a href="https://pass.etao.com/clear">https://pass.etao.com/clear</a> 进行 cookie清理，如此重复知道所有域名cookie进行清理完毕。<br><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/eafb7fc66c6139c50a6a8bbb5bd89e58.png"><br>通过测试发现淘系的系统所有的退出登录都是走login.taobao.com&#x2F;member&#x2F;logout.jhtml , 然后通过一些列302 跳转pass系统进行登录态的清理。 登录态在到阿里云、支付宝是不通的,因为阿里云和支付宝的账号体系不一样。</p>
+<h2 id="禁用Cookie："><a href="#禁用Cookie：" class="headerlink" title="禁用Cookie："></a>禁用Cookie：</h2><p>可以看出整个跨域登录依赖的是cookie信息的传递与跨域设置，如果出于安全考虑，我们禁用了cookie，是否还能正常工作呢？经过测试，发现禁用cookie后，跨域自动登录不能正常执行了，跨域请求后对于受限的访问请求还是会自动跳登录。由于设计上没有考虑cookie禁用的情况，淘宝的登录页面竟然无法进入，一直循环跳转登录页面。</p>
+<h2 id="分布式Session-的常见解决方案："><a href="#分布式Session-的常见解决方案：" class="headerlink" title="分布式Session 的常见解决方案："></a>分布式Session 的常见解决方案：</h2><ol>
+<li>通过cookie进行共享；</li>
+<li>借助第三方进行存储，比如缓存；</li>
+<li>不容服务器之间进行session同步；</li>
+</ol>
+<p>这里面涉及到阿里两个重要级产品：tbsession、passcookie。</p>
+<ol>
+<li>tbsession：用来解决多应用间session共享存储与同步问题；tbsession采用的是 方法1 + 方法2的结合；</li>
+<li>passcookie：用来解决不同域名之间cookie同步的问题，以及决定同步那些cookie；</li>
+</ol>
+<h2 id="思考："><a href="#思考：" class="headerlink" title="思考："></a>思考：</h2><p>问：为什么有了cookie 还需要 session？</p>
+<p>答：cookie存储本身具备一些优势，比如信息存储在客户端，分散了资源消耗，cookie可以在客户端进行持久化存储（cookie在客户端分为：Permanent Cookies，Session Cookie）。    主要是只使用cookie作为资源访问的鉴权记录具备不安全性，容易引起CSRF（跨站请求伪造），比如攻击者劫持登录后的cookie信息进行页面操作，此时服务器以为还是用户自身在登录态下的本人操作。当然，只是简单的使用session也并不能彻底解决CSRF，使用session只是把用户的登录态信息保存在服务器端，客户端cookie往往会记录一个JSessionId 用来标识当前会话ID，jsessionid在网络中传输还是存在被劫持的可能性（参考下面的session劫持），所以需要配合响应的解决手段防止CSRF的发生。其次，cookie的使用在大小和条数上限制，大于需要存储大量用户态信息的场景下已经不够用了，此时需要借助session在服务端的存储设备来实现。<br><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/877347f9c7fc1318a494640818519c2a.png"></p>
+<p>问：登录后会会话中的每一次访问受限资源都需要访问验证？</p>
+<p>答：是的，因为每一次请求都无法确认你的身份，所以为了降低复杂认证授权的过程，通过sessionId 来标识某一会话；如果我们的Cookie信息泄露，那么不法分子就可以使用我们包含登录态的Cookie进行访问我们的受限资源（比如拷贝登录后的cookie信息通过postman请求需要登录后才能查看的信息），即便是我们丢增删改的请求采用了crsf_token ,不法分子还是可以看到我们的信息，信息已经造成了泄露。所以对于持久化Cookie，尽量设置为httpOnly，不允许通过JS脚本读取Cookie信息。还有就是使用https协议代替http协议（从tcp到ssl），这样不法分子劫持了请求信息，也无法破解请求信息的内容。</p>
+<p>问：是否采用了https就不需要防范CSRF了？</p>
+<p>答：不是的，我们采用https，是在数据传输层对请求进行进行加密后发送，但是如果CSRF是在浏览器的本地读取我们的Cookie信息（存储在我们浏览器中本地的Cookie信息确实明文的），还是可以读取到我们明文的Cookie信息。采用https只是防止了请求在传输中拦截后窃取我们的Cookie进行攻击而已。</p>
+<h2 id="Session-劫持与防范："><a href="#Session-劫持与防范：" class="headerlink" title="Session 劫持与防范："></a>Session 劫持与防范：</h2><p>这篇文章详细阐述了服务器端不做任何处理下的sessionId劫持的案例。<br><a href="https://github.com/astaxie/build-web-application-with-golang/blob/master/zh/06.4.md">https://github.com/astaxie/build-web-application-with-golang/blob/master/zh/06.4.md</a></p>
+<p>session 劫持的防范措施：</p>
+<ol>
+<li>使用POST 请求 + Referer验证；<ul>
+<li>此方式简单容易实现；</li>
+<li>弊端：1.所有请求都是用POST方式不符合规范，比如RestFul。2.很多场景下请求是无法携带referer的；</li>
+</ul>
+</li>
+<li>使用csrf_token：在涉及增删改的请求中，带上一个和服务器端同步的随机数(token)，然后在服务器端做校验。由于这个token是变化的，同时具有私密性，只会内嵌到当前用户的页面中，因此可以起到防止CSRF的作用，比如淘宝域下cookie中的_tb_token_参数。</li>
+</ol>
+<p>csrftoken的整个生命周期一般是这样的：</p>
+<ul>
+<li>后端针对每一个用户生成唯一的csrftoken后    </li>
+<li>将csrftoken存储在服务器端，且和当前用户一一绑定</li>
+<li>当用户访问页面时，将csrftoken埋入前端页面</li>
+<li>用户提交请求时，需要在请求中附带上csrftoken</li>
+<li>后端对接收到的csrftoken进行校验，判断请求是否合法</li>
+<li>根据请求，后端判断是非需要更新csrftoken</li>
+</ul>
+<p>使用csrf_token 方案目前来说是最有效的安全措施，但是方案实施起来也相对复杂很多，需要考虑csrf_token的存储、更新、埋点以及校验等逻辑。</p>
+<h2 id="本质思考："><a href="#本质思考：" class="headerlink" title="本质思考："></a>本质思考：</h2><p>SSO 跨域统一登录的本质就是【登录态信息的跨域共享，为了实现共享采用了复制的方式】，这跟我们现实世界中为了达到知识共享，需要把知识转化为书籍，然后通过书籍印刷进行分发。</p>
+<h2 id="抓包工具介绍："><a href="#抓包工具介绍：" class="headerlink" title="抓包工具介绍："></a>抓包工具介绍：</h2><ol>
+<li>工具采用 mac 下的 Charles；</li>
+<li>https由于安全限制无法抓取到具体的内容，所以需要通过一些列的设置才能抓到请求数据；</li>
+<li>Charles -&gt; Help -&gt; SSL Proxying -&gt; Install Charles Root Certificate</li>
+<li>Proxy -&gt; SSL Proxying Setting -&gt; SSL Proxying 添加正则域名</li>
+</ol>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Program//" class="article-tag-list-link color3">Program</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2018/01/04/Program/2018-01-04-taobao-sso/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-Think/2017-12-29-2017-my-success-and-fail" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/12/29/Think/2017-12-29-2017-my-success-and-fail/">二零一七，我的失败与伟大</a>
+    </h1>
+  
+
+        
+        <a href="/2017/12/29/Think/2017-12-29-2017-my-success-and-fail/" class="archive-article-date">
+  	<time datetime="2017-12-28T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2017-12-29</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>2017年飘然离去，留下的唯有回忆。这一年总有一些刻骨铭心，总有一些难以忘怀，依依不舍。或遗落在某一渡口，或消失在某段站台，或模糊在某页书籍。岁月洗礼而后，一一封存，装帧成册，遗忘的森林，层出不穷的景致，黯淡了记忆的门窗。当又一次轻扣，忽而想起那年夏天的故事，亦或冬天里的恋歌，轻捻时光，掀开了往事，撑开了回忆的帆。这一年有过痛苦、焦虑、烦躁，也有过欢乐，自信和拼搏。</p>
+<p>如果说让我用一句话总结一下2017年，我想这句话会比较合适：</p>
+<blockquote>
+<p>认知上升了一个台阶，但仍未能克服行为上的懒惰；工作生活，持续反思与学习，但仍沉溺于专业深度的自卑之中。</p>
+</blockquote>
+<p>如果非要让我从过去一年中对自己的失败和伟大之处做一些“套路”上的总结的话，以下这几天应该被展现出来，愿它们像伴随我成长之路上的路灯，时时照亮我前行的路。</p>
+<h2 id="1-认知升级，追本溯源"><a href="#1-认知升级，追本溯源" class="headerlink" title="1. 认知升级，追本溯源"></a>1. 认知升级，追本溯源</h2><p>这一年自己思想的改变应该算是最大的收获了。以前对待事情总是浮在表面，现在会主动去思考事情背后的关系与本质，到底是什么导致了当前的状态，每个人说的话其背后的逻辑是什么；比如当开会、讨论、看演讲时，都会跳出当前讨论的事情，去想他们为什么会这么说，理论基础是什么，期望达到一个什么目标。</p>
+<p>近期通过研究高效学习的理论知识，逐步掌握学习知识的方法套路。学习的理论自己在高中和大学阶段坚持的不错，但是工作以来，坚持的并不算好，很多时候，一天过去了，回顾时，是浑浑噩噩的，对自己的人生似乎帮助并不大，感慨自己的浪费生命。记得之前看到过一句话，我们现在做的觉得有挑战的事情，之前已经有很多人应该都做过了，我们只需要看看他们踩过的吭和趟出的路就好的。这点无论是放在编程还是人生上来说，都适用。很多时候，我们不需要重复造轮子，有轮子直接购买使用就好，为自己的工作生活快速提效，这是一个一切为“<strong>效率</strong>”为核心的时代。</p>
+<p>什么是认知升级，就是看到了之前自己看不到的地方，看问题的角度比之前上升了一个角度。如果把认知划分为本能层、情绪层、立场层、利益层、社会心理层、系统认知层和智慧认知层的话，我目前只能算是从本能层走到了情绪层，未来的路还有很多要走。</p>
+<p><img src="/images/posts/20171229/2017-12-12-renzhi-lay.jpeg"><br>​                            （图片来自“雾满拦江”）</p>
+<p>什么是认知，什么是格局，我觉得有一个例子很不错，值得自己记在心里：</p>
+<p>《吕氏套秋》里记载着一则楚王失弓的故事，讲的是楚王去云梦泽打猎，不小心把自己心爱的弓丢了，侍从们要循原路寻找，楚王说，算了吧，不必去找了，楚人失之，楚人得之，到不了别处的。侍从们都很佩服楚王的豁达与胸怀。孔子听闻此事后说，这句话如果去掉“楚”字就好了，不妨说“人失之，人得之。”老子听说了孔子的评论后，也发表了自己的看法。他说再去掉“人”字会更好。那样就是“失之，得之”，这样才符合天道。</p>
+<h2 id="2-把握自己的命运，不要把自己的未来寄托在别人手上"><a href="#2-把握自己的命运，不要把自己的未来寄托在别人手上" class="headerlink" title="2. 把握自己的命运，不要把自己的未来寄托在别人手上"></a>2. 把握自己的命运，不要把自己的未来寄托在别人手上</h2><p><img src="/images/posts/20171229/2017-12-12-stock.jpeg"></p>
+<p>相信炒股的朋友都收到过推销内幕股的电话或者微信，他们通过前一天收盘后的预期与第二天开盘后的涨幅逐步获取你的信任，之后采用盈利分成或者入会费的方式，跟你合作，告诉你什么时间点买哪只股票，什么价位卖出。开始的时候，我确实在短时间内赚了好几千快，感觉他们太牛了，感觉这种赚钱方式比工作快多了，无法克制住自己的<strong>贪婪</strong>，投入大量的资金进去，此时一次正常的下跌也让我们损失惨重，炒作垃圾股，根本就没有持仓的信心。跳出来好好想一想，如果钱真的这么好赚，他们为什么还要花这么大的心思跟你分成呢？他们过分强调了平分你的收益而把风险完全抛给了你。其次，走位一个多年的老股票，完全听信一个不知专业深浅的人指导，这跟板上鱼肉有何区别呢？即使是赚了钱，你也获取不到技能的提升，对于你后续的投资思路不会有半毛钱帮助，有的只有那点钱了。</p>
+<p>正确的投资股市方式是建立其自己投资模式，比如改“投机”为“投资”，注重收益与风险的管理，做优质企业的中长线价值投资等。</p>
+<p>其次，这点在个人职业生涯中同样适用，我们伴随着团队成长的同时，也要明确知道自己在职业这个坐标体系中自己的位置，明确自己的目标坐标，通过资源争取或者个人努力，逐渐向目标靠拢，而不是等待着老板或者同事赶着你走。如果事事都是你的老板说了算，你自己没有主见的话，这跟被牵着鼻子走的牛没什么两样，在团队中，你也只能成为“老黄牛”了，当你老了，结果会是“卸磨杀驴”（2017年华为清退老员工事件）。反观自己，以前很少与老板探讨自己想要什么，不要做什么，现在有一定的自信说出自己的诉求，然后主动把握机会磨练自己的独特优势，这一点是一个进步。</p>
+<h2 id="3-矫正心理饥饿的金钱观"><a href="#3-矫正心理饥饿的金钱观" class="headerlink" title="3. 矫正心理饥饿的金钱观"></a>3. 矫正心理饥饿的金钱观</h2><p><img src="/images/posts/20171229/2017-12-12-yunnan-lgh.jpeg"></p>
+<p>由于自己出生在一个比较贫困的家庭，自幼对金钱就分外珍惜，什么钱都不舍得花，甚至认为除了基本保证生活的开支外，一切的花销都是多余的。很多人看到这点肯定会评价说是“抠门”，我们不能拿着自己优越的生活去评论不曾经历的贫穷生活，因为你想象不到，贫穷深入骨髓后是一种什么状态。每当在相亲节目中看到那些抠门的男方的时候，我都很难能理解，然而面对确实大家一边倒式的批判。改革开放40年来，人们的生活质量有了非常的提升，但是很多的养成的节省系统并不是说改掉就能改掉的，就像我父母，他们年幼时经历了大饥荒，知道现在全家年收入超过已经达到小康水平，但还每日担忧未来可能没有饭吃，非要在自家的储藏室中储藏上几袋大米，心理才有安全感，其实这个陈为“心理饥饿”。由于害怕失去钱，害怕自己变得一无所有，所以自己万事都尽量已保守节省的方式在生活，殊不知，在现代经济中，反而认为最安全的方式往往却是最危险的方式，比如父母为了少还一些利息，买房时尽量不让贷款，几乎全款买房，殊不知，合理负债才是家庭财务经营的正确指导。</p>
+<p>这个世界正在以超乎我们想象的速度变化，如果我们还保守着过去看似正确的理念生活，那么我们会与优质生活质量相差越来越远。钱是用来花的，不是用来存储的，学会花钱也是一门艺术。合理的消费，不仅有助于提高自身生活质量，还能提高国家的经济效应。现在的我不在为一周多买一次水果而大呼小叫，不再为每餐两人三菜而觉得浪费，为了让自己生活有点品质，还是不是给家里买一些鲜花来装饰装饰，美好的生活反过来会对我们的工作行程正反馈，心情好了，工作效率也会高不少。</p>
+<p>自从买了车之后，生活确实变得不一样了，说走就走的旅行变得不再那么困难，自驾游去千岛湖，飞行去昆明、丽江、大理和香格里拉，感受祖国的大美河山和不同的乡土文化，读千卷书，行万里路。世界这么大大，我们应该时长走出去看看，走出工作家庭两点一线之间的线性单调区间。</p>
+<h2 id="4-为专业付费，免费的往往是最贵的"><a href="#4-为专业付费，免费的往往是最贵的" class="headerlink" title="4. 为专业付费，免费的往往是最贵的"></a>4. 为专业付费，免费的往往是最贵的</h2><p>互联网在过去5年，倡导的一直是“免费”的文化，让产品免费，让更多用户受益。我们在使用各种软件或者观看各种收费视频的时候，首先先到的是找一找有没有破解版或者不需要收费的服务，为了获得免费的东西，有时候我们花费了大量的时间和精力，事后想一想，如果把时间换算成钱的话，我们是亏了的。往往<strong>看似免费的东西是最贵的</strong>，这个世界上没有免费的午餐，<strong>一切事情都是有成本的</strong>，只是有些事情的成本是隐形的，不容易被我们察觉罢了。免费的东西，人人都能力，其质量就很差，我们长期阅读低质的信息，会阻碍我们思维升级。反而那些付费的内容，正因为我们的付费，才促就了内容生产者以更加严谨的态度来对待产品，这是一个良性循环。我们值得为优质内容付费，科学高效的方法论告诉我们，跟随业界一流的牛人学习，才是高效的学习策略之一。</p>
+<h2 id="5-你的圈子决定了你的价值"><a href="#5-你的圈子决定了你的价值" class="headerlink" title="5. 你的圈子决定了你的价值"></a>5. 你的圈子决定了你的价值</h2><p>查尔斯琼斯说：通过一个人的朋友圈和他看的书就可以看到5年以后的他，也就是说呢，一个人是他周围5个人的综合体。从而形成了“五次元密友理论”。环境的力量，我们不得不信服。古代有孟母三迁，现代人为了一套学区房挤破脑袋。跟优秀的人在一起，我们会被优秀的气场所影响，观念、行为也逐步会发生改变。</p>
+<p>所以很多成功学或者心灵鸡汤类的文章常常建议我们每年主动与比我们自身段位高的人的人交往与交流，虽然在我们与他们交往中会有一定的不适感，但我们需要认识到这是正常的生理反应，是突破舒适区的副作用，我们终究会逐渐习惯，这种不适感会随着我们段位的提升而逐渐消失。</p>
+<p>反观身边那些职场中晋升非常快的人，在他们成长的路上，几乎都有一个伙伴，和他们一起成长，帮助他们坚持正确的决定，从而避开错误。一个好的有责任心的伙伴是这样的，无条件的爱你，他本身就渴望成功，成熟，会征求你的建议，在你需要帮助的时候能帮助你，能够陪伴鼓励你！你是不能一个人在成长的道路上走下去的，除非你不想达到顶峰。在看看自己当前身处的环境，是否有这样一个伙伴一同成长，如果没有，我们改如何破局？</p>
+<h2 id="6-感悟人性"><a href="#6-感悟人性" class="headerlink" title="6. 感悟人性"></a>6. 感悟人性</h2><p>狗为什么会对陌生人狂吠，人为什么会对伤害自身利益的言论会极力反驳进而情绪失控？面对巨大利益的时候，我们为什么会贪婪？这些都跟本性有关，了解人性，对我们日常生活非常有帮助，无论是我们做投资还是与人相处。就好像，以前老婆跟我抱怨工作上的不顺利，每次在她还没有说完前，我就不耐烦的打断，一口要求都是你自己的错误，在无法改变别人的前提下，你为什么不改变自己呢，然后噼里啪啦的堆砌出一大推自认为很有哲理性的说教语句，换来的结果总是无话可说。当我知晓了这背后的人性需求后，从说教着改为倾听者、陪伴者，效果一下子就不一样了。人性，是需要持续学习和感悟的东西，未来我会花时间系统性的去了解人性的心理学体系。</p>
+<h2 id="7-成为一名佛系青年"><a href="#7-成为一名佛系青年" class="headerlink" title="7. 成为一名佛系青年"></a>7. 成为一名佛系青年</h2><p><img src="/images/posts/20171229/2017-12-12-yunnan-party.jpeg"></p>
+<p>去了一趟香格里拉，接触藏民后，彻底改变了我对藏民和佛教的看法。认知中，藏M是野蛮和暴利的代名词，佛教是无知的人期望佛教来改变自身命运，现在看来，原来自己如井底之蛙般视野短浅，认知还停留在本能层。在一名叫做“幸福哥”的藏M导游解说藏传佛教的信仰之时，自己不知不觉中流下了真诚而感动的泪水。回来的途中，阅读了鬼脚七的《人生所有经过的路，都是必经之路》，感受他在出嫁求佛路中的点滴感悟，领悟颇多，自此下定决心，没事就开始背诵和抄写心经。佛教教会我们如何看待自己和这个世界，这个视角是脱离自我的视角，是以更高层的认识来看到实物的视角；比如“画外看画”，脱离自我，站在旁观者角度审视自己的举止言行，我们会有不一样的思考。</p>
+<p>在工作生活中，我也不断践行佛教的自我审视的方法，遇到不开心的或者困惑的事情，也尝试着使用佛教中思想来指导言行，虽然有些时候还是不能控制住自己的身为人的本性，但是我相信，通过不断的练习，终究会抵达彼岸，菩提萨婆诃。</p>
+<h2 id="8-让自己成为有一技之长的专业人才"><a href="#8-让自己成为有一技之长的专业人才" class="headerlink" title="8. 让自己成为有一技之长的专业人才"></a>8. 让自己成为有一技之长的专业人才</h2><p><img src="/images/posts/20171229/2017-12-12-aliyun-profile-money.png"></p>
+<p>身为一名软件工程师，但是迟迟没有专业自信，究其原因，是因为自己在专业性上的精力投入远远不够，由于积累的太薄，很多技术都不说不清其核心思想，当面对未知的问题时，顿时会觉得恐慌和无助，更不要谈自信了。如何成为专业的人才，方法和策略其实自己都已知晓，但是迟迟未能行动，即便是行动起来了，也是三天打鱼两天晒网。这是一个道理过剩，行动力匮乏的年代，我们不会因为知道了变得不一样，而会因我们做了什么而不一样。以此祭奠我过去5年的专业自卑感，计划用一到两年时间来培养自己的专业自信。</p>
+<h2 id="9-认清自己的核心优势，差异化竞争"><a href="#9-认清自己的核心优势，差异化竞争" class="headerlink" title="9. 认清自己的核心优势，差异化竞争"></a>9. 认清自己的核心优势，差异化竞争</h2><p>总觉得自己啥都能干，但是啥都不专业。在面对当前追求效率的社会大浪潮中，分工越来越细化，我们必须清楚的自己在社会大分工中位置，知道自己相比于其他人有哪些优势，短板在哪里，如何发挥个人的差异化竞争。最近在招聘中，对于那些什么都能干，然后什么研究的都不深入，有没有任何亮点的同学，我们基本都会直接Pass掉。我们常常笑道：如果按照现在的标准，我们也许都面不过当前的岗位。</p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color3">我的失败与伟大</a>
+        		</li>
+      		 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color5">年度总结</a>
+        		</li>
+      		 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color3">失败</a>
+        		</li>
+      		 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color3">伟大</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Think//" class="article-tag-list-link color1">Think</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2017/12/29/Think/2017-12-29-2017-my-success-and-fail/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-Program/2017-12-27-the-twelve-factor-app" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/12/27/Program/2017-12-27-the-twelve-factor-app/">The Twelve-Factor App</a>
+    </h1>
+  
+
+        
+        <a href="/2017/12/27/Program/2017-12-27-the-twelve-factor-app/" class="archive-article-date">
+  	<time datetime="2017-12-26T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2017-12-27</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>如今，软件通常会作为一种服务来交付，它们被称为网络应用程序，或软件即服务（SaaS）。12-Factor 为构建如下的 SaaS 应用提供了方法论：</p>
+<ul>
+<li>使用标准化流程自动配置，从而使新的开发者花费最少的学习成本加入这个项目。</li>
+<li>和操作系统之间尽可能的划清界限，在各个系统中提供最大的可移植性。</li>
+<li>适合部署在现代的云计算平台，从而在服务器和系统管理方面节省资源。</li>
+<li>将开发环境和生产环境的差异降至最低，并使用持续交付实施敏捷开发。</li>
+<li>可以在工具、架构和开发流程不发生明显变化的前提下实现扩展。</li>
+<li>这套理论适用于任意语言和后端服务（数据库、消息队列、缓存等）开发的应用程序。</li>
+</ul>
+<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>本文的贡献者者参与过数以百计的应用程序的开发和部署，并通过 Heroku 平台间接见证了数十万应用程序的开发，运作以及扩展的过程。</p>
+<p>本文综合了我们关于 SaaS 应用几乎所有的经验和智慧，是开发此类应用的理想实践标准，并特别关注于应用程序如何保持良性成长，开发者之间如何进行有效的代码协作，以及如何 避免软件污染 。</p>
+<p>我们的初衷是分享在现代软件开发过程中发现的一些系统性问题，并加深对这些问题的认识。我们提供了讨论这些问题时所需的共享词汇，同时使用相关术语给出一套针对这些问题的广义解决方案。本文格式的灵感来自于 Martin Fowler 的书籍： Patterns of Enterprise Application Architecture ， Refactoring 。</p>
+<h2 id="读者应该是哪些人？"><a href="#读者应该是哪些人？" class="headerlink" title="读者应该是哪些人？"></a>读者应该是哪些人？</h2><p>任何 SaaS 应用的开发人员。部署和管理此类应用的运维工程师。</p>
+<hr>
+<h1 id="12-factors"><a href="#12-factors" class="headerlink" title="12-factors"></a>12-factors</h1><h2 id="I-基准代码"><a href="#I-基准代码" class="headerlink" title="I. 基准代码"></a>I. 基准代码</h2><p>一份基准代码（Codebase），多份部署（deploy）<br>12-Factor应用(译者注：应该是说一个使用本文概念来设计的应用，下同)通常会使用版本控制系统加以管理，如Git, Mercurial, Subversion。一份用来跟踪代码所有修订版本的数据库被称作 代码库（code repository, code repo, repo）。</p>
+<p>在类似 SVN 这样的集中式版本控制系统中，基准代码 就是指控制系统中的这一份代码库；而在 Git 那样的分布式版本控制系统中，基准代码 则是指最上游的那份代码库。</p>
+<p><img src="https://12factor.net/images/codebase-deploys.png"></p>
+<p>基准代码和应用之间总是保持一一对应的关系：</p>
+<ul>
+<li>一旦有多个基准代码，就不能称为一个应用，而是一个分布式系统。分布式系统中的每一个组件都是一个应用，每一个应用可以分别使用 12-Factor 进行开发。</li>
+<li>多个应用共享一份基准代码是有悖于 12-Factor 原则的。解决方案是将共享的代码拆分为独立的类库，然后使用 依赖管理 策略去加载它们。</li>
+</ul>
+<p>尽管每个应用只对应一份基准代码，但可以同时存在多份部署。每份 部署 相当于运行了一个应用的实例。通常会有一个生产环境，一个或多个预发布环境。此外，每个开发人员都会在自己本地环境运行一个应用实例，这些都相当于一份部署。</p>
+<p>所有部署的基准代码相同，但每份部署可以使用其不同的版本。比如，开发人员可能有一些提交还没有同步至预发布环境；预发布环境也有一些提交没有同步至生产环境。但它们都共享一份基准代码，我们就认为它们只是相同应用的不同部署而已。</p>
+<h2 id="II-依赖"><a href="#II-依赖" class="headerlink" title="II. 依赖"></a>II. 依赖</h2><p>显式声明依赖关系（ dependency ）<br>大多数编程语言都会提供一个打包系统，用来为各个类库提供打包服务，就像 Perl 的 CPAN 或是 Ruby 的 Rubygems 。通过打包系统安装的类库可以是系统级的（称之为 “site packages”），或仅供某个应用程序使用，部署在相应的目录中（称之为 “vendoring” 或 “bunding”）。</p>
+<p>12-Factor规则下的应用程序不会隐式依赖系统级的类库。 它一定通过 依赖清单 ，确切地声明所有依赖项。此外，在运行过程中通过 依赖隔离 工具来确保程序不会调用系统中存在但清单中未声明的依赖项。这一做法会统一应用到生产和开发环境。</p>
+<p>例如， Ruby 的 <a href="https://bundler.io/">Bundler</a> 使用 Gemfile 作为依赖项声明清单，使用 bundle exec 来进行依赖隔离。Python 中则可分别使用两种工具 – <a href="http://www.pip-installer.org/en/latest/">Pip</a> 用作依赖声明， <a href="http://www.virtualenv.org/en/latest/">Virtualenv</a> 用作依赖隔离。甚至 C 语言也有类似工具， <a href="http://www.gnu.org/s/autoconf/">Autoconf</a> 用作依赖声明，静态链接库用作依赖隔离。无论用什么工具，依赖声明和依赖隔离必须一起使用，否则无法满足 12-Factor 规范。</p>
+<p>显式声明依赖的优点之一是为新进开发者简化了环境配置流程。新进开发者可以检出应用程序的基准代码，安装编程语言环境和它对应的依赖管理工具，只需通过一个 构建命令 来安装所有的依赖项，即可开始工作。例如，Ruby&#x2F;Bundler 下使用 bundle install，而 Clojure&#x2F;Leiningen 则是 lein deps。</p>
+<p>12-Factor 应用同样不会隐式依赖某些系统工具，如 ImageMagick 或是curl。即使这些工具存在于几乎所有系统，但终究无法保证所有未来的系统都能支持应用顺利运行，或是能够和应用兼容。如果应用必须使用到某些系统工具，那么这些工具应该被包含在应用之中。</p>
+<h2 id="III-配置"><a href="#III-配置" class="headerlink" title="III. 配置"></a>III. 配置</h2><p>在环境中存储配置<br>通常，应用的 配置 在不同 部署 (预发布、生产环境、开发环境等等)间会有很大差异。这其中包括：</p>
+<ul>
+<li>数据库，Memcached，以及其他 后端服务 的配置</li>
+<li>第三方服务的证书，如 Amazon S3、Twitter 等</li>
+<li>每份部署特有的配置，如域名等</li>
+</ul>
+<p>有些应用在代码中使用常量保存配置，这与 12-Factor 所要求的代码和配置严格分离显然大相径庭。配置文件在各部署间存在大幅差异，代码却完全一致。</p>
+<p>判断一个应用是否正确地将配置排除在代码之外，一个简单的方法是看该应用的基准代码是否可以立刻开源，而不用担心会暴露任何敏感的信息。</p>
+<p>需要指出的是，这里定义的“配置”并不包括应用的内部配置，比如 Rails 的 config&#x2F;routes.rb，或是使用 <a href="http://spring.io/">Spring</a> 时 <a href="http://docs.spring.io/spring/docs/current/spring-framework-reference/html/beans.html">代码模块间的依赖注入关系</a> 。这类配置在不同部署间不存在差异，所以应该写入代码。</p>
+<p>另外一个解决方法是使用配置文件，但不把它们纳入版本控制系统，就像 Rails 的 config&#x2F;database.yml 。这相对于在代码中使用常量已经是长足进步，但仍然有缺点：总是会不小心将配置文件签入了代码库；配置文件的可能会分散在不同的目录，并有着不同的格式，这让找出一个地方来统一管理所有配置变的不太现实。更糟的是，这些格式通常是语言或框架特定的。</p>
+<p><strong>12-Factor推荐将应用的配置存储于</strong> 环境变量 中（ env vars, env ）。环境变量可以非常方便地在不同的部署间做修改，却不动一行代码；与配置文件不同，不小心把它们签入代码库的概率微乎其微；与一些传统的解决配置问题的机制（比如 Java 的属性配置文件）相比，环境变量与语言和系统无关。</p>
+<p>配置管理的另一个方面是分组。有时应用会将配置按照特定部署进行分组（或叫做“环境”），例如Rails中的 development,test, 和 production 环境。这种方法无法轻易扩展：更多部署意味着更多新的环境，例如 staging或 qa 。 随着项目的不断深入，开发人员可能还会添加他们自己的环境，比如 joes-staging ，这将导致各种配置组合的激增，从而给管理部署增加了很多不确定因素。</p>
+<p>12-Factor 应用中，环境变量的粒度要足够小，且相对独立。它们永远也不会组合成一个所谓的“环境”，而是独立存在于每个部署之中。当应用程序不断扩展，需要更多种类的部署时，这种配置管理方式能够做到平滑过渡。</p>
+<h2 id="IV-后端服务"><a href="#IV-后端服务" class="headerlink" title="IV. 后端服务"></a>IV. 后端服务</h2><p>把后端服务(backing services)当作附加资源<br>后端服务是指程序运行所需要的通过网络调用的各种服务，如数据库（<a href="http://dev.mysql.com/">MySQL</a>，<a href="http://couchdb.apache.org/">CouchDB</a>），消息&#x2F;队列系统（<a href="http://www.rabbitmq.com/">RabbitMQ</a>，<a href="http://kr.github.com/beanstalkd/">Beanstalkd</a>），SMTP 邮件发送服务（<a href="http://www.postfix.org/">Postfix</a>），以及缓存系统（<a href="http://memcached.org/">Memcached</a>）。</p>
+<p>类似数据库的后端服务，通常由部署应用程序的系统管理员一起管理。除了本地服务之外，应用程序有可能使用了第三方发布和管理的服务。示例包括 SMTP（例如 <a href="http://postmarkapp.com/">Postmark</a>），数据收集服务（例如 <a href="http://newrelic.com/">New Relic</a> 或 <a href="http://www.loggly.com/">Loggly</a>），数据存储服务（如 <a href="http://http//aws.amazon.com/s3/">Amazon S3</a>），以及使用 API 访问的服务（例如 Twitter, Google Maps, Last.fm）。</p>
+<p><strong>12-Factor 应用不会区别对待本地或第三方服务。</strong> 对应用程序而言，两种都是附加资源，通过一个 url 或是其他存储在 配置 中的服务定位&#x2F;服务证书来获取数据。12-Factor 应用的任意 部署 ，都应该可以在不进行任何代码改动的情况下，将本地 MySQL 数据库换成第三方服务（例如 Amazon RDS）。类似的，本地 SMTP 服务应该也可以和第三方 SMTP 服务（例如 Postmark ）互换。上述 2 个例子中，仅需修改配置中的资源地址。</p>
+<p>每个不同的后端服务是一份 资源 。例如，一个 MySQL 数据库是一个资源，两个 MySQL 数据库（用来数据分区）就被当作是 2 个不同的资源。12-Factor 应用将这些数据库都视作 附加资源 ，这些资源和它们附属的部署保持松耦合。</p>
+<p><img src="https://12factor.net/images/attached-resources.png"></p>
+<p>部署可以按需加载或卸载资源## 部署可以按需加载或卸载资源部署可以按需加载或卸载资源部署可以按需加载或卸载资源。例如，如果应用的数据库服务由于硬件问题出现异常，管理员可以从最近的备份中恢复一个数据库，卸载当前的数据库，然后加载新的数据库 – 整个过程都不需要修改代码。</p>
+<h2 id="V-构建，发布，运行"><a href="#V-构建，发布，运行" class="headerlink" title="V. 构建，发布，运行"></a>V. 构建，发布，运行</h2><p> 严格分离构建和运行</p>
+<p><a href="https://12factor.net/zh_cn/codebase">基准代码</a> 转化为一份部署(非开发环境)需要以下三个阶段：</p>
+<ul>
+<li>构建阶段 是指将代码仓库转化为可执行包的过程。构建时会使用指定版本的代码，获取和打包 依赖项，编译成二进制文件和资源文件。</li>
+<li>发布阶段 会将构建的结果和当前部署所需 配置 相结合，并能够立刻在运行环境中投入使用。</li>
+<li>运行阶段 （或者说“运行时”）是指针对选定的发布版本，在执行环境中启动一系列应用程序 进程。</li>
+</ul>
+<p><img src="https://12factor.net/images/release.png"></p>
+<p><strong>12-factor 应用严格区分构建，发布，运行这三个步骤。</strong> 举例来说，直接修改处于运行状态的代码是非常不可取的做法，因为这些修改很难再同步回构建步骤。</p>
+<p>部署工具通常都提供了发布管理工具，最引人注目的功能是退回至较旧的发布版本。比如， <a href="">Capistrano</a> 将所有发布版本都存储在一个叫 releases 的子目录中，当前的在线版本只需映射至对应的目录即可。该工具的 rollback 命令可以很容易地实现回退版本的功能。</p>
+<p>每一个发布版本必须对应一个唯一的发布 ID，例如可以使用发布时的时间戳（2011-04-06-20:32:17），亦或是一个增长的数字（v100）。发布的版本就像一本只能追加的账本，一旦发布就不可修改，任何的变动都应该产生一个新的发布版本。</p>
+<p>新的代码在部署之前，需要开发人员触发构建操作。但是，运行阶段不一定需要人为触发，而是可以自动进行。如服务器重启，或是进程管理器重启了一个崩溃的进程。因此，运行阶段应该保持尽可能少的模块，这样假设半夜发生系统故障而开发人员又捉襟见肘也不会引起太大问题。构建阶段是可以相对复杂一些的，因为错误信息能够立刻展示在开发人员面前，从而得到妥善处理。</p>
+<h2 id="VI-进程"><a href="#VI-进程" class="headerlink" title="VI. 进程"></a>VI. 进程</h2><p>以一个或多个无状态进程运行应用<br>运行环境中，应用程序通常是以一个和多个 进程 运行的。</p>
+<p>最简单的场景中，代码是一个独立的脚本，运行环境是开发人员自己的笔记本电脑，进程由一条命令行（例如python my_script.py）。另外一个极端情况是，复杂的应用可能会使用很多 进程类型 ，也就是零个或多个进程实例。</p>
+<p>12-Factor 应用的进程必须无状态且 无共享 。 任何需要持久化的数据都要存储在 后端服务 内，比如数据库。</p>
+<p>内存区域或磁盘空间可以作为进程在做某种事务型操作时的缓存，例如下载一个很大的文件，对其操作并将结果写入数据库的过程。12-Factor应用根本不用考虑这些缓存的内容是不是可以保留给之后的请求来使用，这是因为应用启动了多种类型的进程，将来的请求多半会由其他进程来服务。即使在只有一个进程的情形下，先前保存的数据（内存或文件系统中）也会因为重启（如代码部署、配置更改、或运行环境将进程调度至另一个物理区域执行）而丢失。</p>
+<p>源文件打包工具（Jammit, django-compressor） 使用文件系统来缓存编译过的源文件。12-Factor 应用更倾向于在 构建步骤做此动作——正如 Rails资源管道 ，而不是在运行阶段。</p>
+<p>一些互联网系统依赖于 “粘性 session”， 这是指将用户 session 中的数据缓存至某进程的内存中，并将同一用户的后续请求路由到同一个进程。粘性 session 是 12-Factor 极力反对的。Session 中的数据应该保存在诸如 Memcached 或 Redis 这样的带有过期时间的缓存中。</p>
+<h2 id="VII-端口绑定"><a href="#VII-端口绑定" class="headerlink" title="VII. 端口绑定"></a>VII. 端口绑定</h2><p>通过端口绑定(Port binding)来提供服务<br>互联网应用有时会运行于服务器的容器之中。例如 PHP 经常作为 Apache HTTPD 的一个模块来运行，正如 Java 运行于 Tomcat 。</p>
+<p>12-Factor 应用完全自我加载 而不依赖于任何网络服务器就可以创建一个面向网络的服务。互联网应用 通过端口绑定来提供服务 ，并监听发送至该端口的请求。</p>
+<p>本地环境中，开发人员通过类似<a href="http://localhost:5000/%E7%9A%84%E5%9C%B0%E5%9D%80%E6%9D%A5%E8%AE%BF%E9%97%AE%E6%9C%8D%E5%8A%A1%E3%80%82%E5%9C%A8%E7%BA%BF%E4%B8%8A%E7%8E%AF%E5%A2%83%E4%B8%AD%EF%BC%8C%E8%AF%B7%E6%B1%82%E7%BB%9F%E4%B8%80%E5%8F%91%E9%80%81%E8%87%B3%E5%85%AC%E5%85%B1%E5%9F%9F%E5%90%8D%E8%80%8C%E5%90%8E%E8%B7%AF%E7%94%B1%E8%87%B3%E7%BB%91%E5%AE%9A%E4%BA%86%E7%AB%AF%E5%8F%A3%E7%9A%84%E7%BD%91%E7%BB%9C%E8%BF%9B%E7%A8%8B%E3%80%82">http://localhost:5000/的地址来访问服务。在线上环境中，请求统一发送至公共域名而后路由至绑定了端口的网络进程。</a></p>
+<p>通常的实现思路是，将网络服务器类库通过 依赖声明 载入应用。例如，Python 的 Tornado, Ruby 的Thin , Java 以及其他基于 JVM 语言的 Jetty。完全由 用户端 ，确切的说应该是应用的代码，发起请求。和运行环境约定好绑定的端口即可处理这些请求。</p>
+<p>HTTP 并不是唯一一个可以由端口绑定提供的服务。其实几乎所有服务器软件都可以通过进程绑定端口来等待请求。例如，使用 XMPP 的 ejabberd ， 以及使用 Redis 协议 的 Redis 。</p>
+<p>还要指出的是，端口绑定这种方式也意味着一个应用可以成为另外一个应用的 后端服务 ，调用方将服务方提供的相应 URL 当作资源存入 配置 以备将来调用。</p>
+<h2 id="VIII-并发"><a href="#VIII-并发" class="headerlink" title="VIII. 并发"></a>VIII. 并发</h2><p>通过进程模型进行扩展<br>任何计算机程序，一旦启动，就会生成一个或多个进程。互联网应用采用多种进程运行方式。例如，PHP 进程作为 Apache 的子进程存在，随请求按需启动。Java 进程则采取了相反的方式，在程序启动之初 JVM 就提供了一个超级进程储备了大量的系统资源(CPU 和内存)，并通过多线程实现内部的并发管理。上述 2 个例子中，进程是开发人员可以操作的最小单位。<br><img src="https://12factor.net/images/process-types.png"><br>扩展表现为运行中的进程，工作多样性表现为进程类型。</p>
+<p>在 12-factor 应用中，进程是一等公民。12-Factor 应用的进程主要借鉴于 unix 守护进程模型 。开发人员可以运用这个模型去设计应用架构，将不同的工作分配给不同的 进程类型 。例如，HTTP 请求可以交给 web 进程来处理，而常驻的后台工作则交由 worker 进程负责。</p>
+<p>这并不包括个别较为特殊的进程，例如通过虚拟机的线程处理并发的内部运算，或是使用诸如 EventMachine, Twisted, Node.js 的异步&#x2F;事件触发模型。但一台独立的虚拟机的扩展有瓶颈（垂直扩展），所以应用程序必须可以在多台物理机器间跨进程工作。</p>
+<p>上述进程模型会在系统急需扩展时大放异彩。 12-Factor 应用的进程所具备的无共享，水平分区的特性 意味着添加并发会变得简单而稳妥。这些进程的类型以及每个类型中进程的数量就被称作 进程构成 。</p>
+<p>12-Factor 应用的进程 不需要守护进程 或是写入 PID 文件。相反的，应该借助操作系统的进程管理器(例如 systemd ，分布式的进程管理云平台，或是类似 Foreman 的工具)，来管理 输出流 ，响应崩溃的进程，以及处理用户触发的重启和关闭超级进程的请求。</p>
+<h2 id="IX-易处理"><a href="#IX-易处理" class="headerlink" title="IX. 易处理"></a>IX. 易处理</h2><p>快速启动和优雅终止可最大化健壮性<br>12-Factor 应用的 进程 是 易处理（disposable）的，意思是说它们可以瞬间开启或停止。 这有利于快速、弹性的伸缩应用，迅速部署变化的 代码 或 配置 ，稳健的部署应用。</p>
+<p>进程应当追求 最小启动时间 。 理想状态下，进程从敲下命令到真正启动并等待请求的时间应该只需很短的时间。更少的启动时间提供了更敏捷的 发布 以及扩展过程，此外还增加了健壮性，因为进程管理器可以在授权情形下容易的将进程搬到新的物理机器上。</p>
+<p>进程 一旦接收 终止信号（SIGTERM） 就会优雅的终止 。就网络进程而言，优雅终止是指停止监听服务的端口，即拒绝所有新的请求，并继续执行当前已接收的请求，然后退出。此类型的进程所隐含的要求是HTTP请求大多都很短(不会超过几秒钟)，而在长时间轮询中，客户端在丢失连接后应该马上尝试重连。</p>
+<p>对于 worker 进程来说，优雅终止是指将当前任务退回队列。例如，RabbitMQ 中，worker 可以发送一个NACK信号。 Beanstalkd 中，任务终止并退回队列会在worker断开时自动触发。有锁机制的系统诸如 Delayed Job 则需要确定释放了系统资源。此类型的进程所隐含的要求是，任务都应该 可重复执行 ， 这主要由将结果包装进事务或是使重复操作 幂等 来实现。</p>
+<p>进程还应当在面对突然死亡时保持健壮，例如底层硬件故障。虽然这种情况比起优雅终止来说少之又少，但终究有可能发生。一种推荐的方式是使用一个健壮的后端队列，例如 Beanstalkd ，它可以在客户端断开或超时后自动退回任务。无论如何，12-Factor 应用都应该可以设计能够应对意外的、不优雅的终结。Crash-only design 将这种概念转化为 合乎逻辑的理论。</p>
+<h2 id="X-开发环境与线上环境等价"><a href="#X-开发环境与线上环境等价" class="headerlink" title="X. 开发环境与线上环境等价"></a>X. 开发环境与线上环境等价</h2><p>尽可能的保持开发，预发布，线上环境相同<br>从以往经验来看，开发环境（* 从以往经验来看，开发环境（即开发人员的本地 部署）和线上环境（外部用户访问的真实部署）之间存在着很多差异。这些差异表现在以下三个方面：</p>
+<ul>
+<li>时间差异： 开发人员正在编写的代码可能需要几天，几周，甚至几个月才会上线。</li>
+<li>人员差异： 开发人员编写代码，运维人员部署代码。</li>
+<li>工具差异： 开发人员或许使用 Nginx，SQLite，OS X，而线上环境使用 Apache，MySQL 以及 Linux。</li>
+</ul>
+<p>想要做到 持续部署 就必须* 想要做到 持续部署 就必须缩小本地与线上差异。 再回头看上面所描述的三个差异:</p>
+<ul>
+<li>缩小时间差异：开发人员可以几小时，甚至几分钟就部署代码。</li>
+<li>缩小人员差异：开发人员不只要编写代码，更应该密切参与部署过程以及代码在线上的表现。</li>
+<li>缩小工具差异：尽量保证开发环境以及线上环境的一致性。</li>
+</ul>
+<p>将上述总结变为一个表格如下：</p>
+<p>传统应用	12-FACTOR 应用<br>每次部署间隔	数周	几小时<br>开发人员 VS 运维人员	不同的人	相同的人<br>开发环境 VS 线上环境	不同	尽量接近<br>后端服务 是保持开发与线上等价的重要部分，例如数据库，队列系统，以及缓存。许多语言都提供了简化获取后端服务的类库，例如不同类型服务的 适配器 。下列表格提供了一些例子。</p>
+<p>类型	语言	类库	适配器<br>数据库	Ruby&#x2F;Rails	ActiveRecord	MySQL, PostgreSQL, SQLite<br>队列	Python&#x2F;Django	Celery	RabbitMQ, Beanstalkd, Redis<br>缓存	Ruby&#x2F;Rails	ActiveSupport::Cache	Memory, filesystem, Memcached<br>开发人员有时会觉得在本地环境中使用轻量的后端服务具有很强的吸引力，而那些更重量级的健壮的后端服务应该使用在生产环境。例如，本地使用 SQLite 线上使用 PostgreSQL；又如本地缓存在进程内存中而线上存入 Memcached。</p>
+<p>12-Factor 应用的开发人员应该反对在不同环境间使用不同的后端服务 ，即使适配器已经可以几乎消除使用上的差异。这是因为，不同的后端服务意味着会突然出现的不兼容，从而导致测试、预发布都正常的代码在线上出现问题。这些错误会给持续部署带来阻力。从应用程序的生命周期来看，消除这种阻力需要花费很大的代价。</p>
+<p>与此同时，轻量的本地服务也不像以前那样引人注目。借助于Homebrew，apt-get等现代的打包系统，诸如Memcached、PostgreSQL、RabbitMQ 等后端服务的安装与运行也并不复杂。此外，使用类似 Chef 和 Puppet 的声明式配置工具，结合像 Vagrant 这样轻量的虚拟环境就可以使得开发人员的本地环境与线上环境无限接近。与同步环境和持续部署所带来的益处相比，安装这些系统显然是值得的。</p>
+<p>不同后端服务的适配器仍然是## 不同后端服务的适配器仍然是有用的，因为它们可以使移植后端服务变得简单。但应用的所有部署，这其中包括开发、预发布以及线上环境，都应该使用同一个后端服务的相同版本。</p>
+<h2 id="XI-日志"><a href="#XI-日志" class="headerlink" title="XI. 日志"></a>XI. 日志</h2><p>把日志当做事件流<br>日志 使得应用程序运行的动作变得透明。在基于服务器的环境中，日志通常被写在硬盘的一个文件里，但这只是一种输出格式。</p>
+<p>日志应该是 事件流 的汇总，将所有运行中进程和后端服务的输出流按照时间顺序收集起来。尽管在回溯问题时可能需要看很多行，日志最原始的格式确实是一个事件一行。日志没有确定开始和结束，但随着应用在运行会持续的增加。</p>
+<p>12-factor应用本身从不考虑存储自己的输出流。 不应该试图去写或者管理日志文件。相反，每一个运行的进程都会直接的标准输出（stdout）事件流。开发环境中，开发人员可以通过这些数据流，实时在终端看到应用的活动。</p>
+<p>在预发布或线上部署中，每个进程的输出流由运行环境截获，并将其他输出流整理在一起，然后一并发送给一个或多个最终的处理程序，用于查看或是长期存档。这些存档路径对于应用来说不可见也不可配置，而是完全交给程序的运行环境管理。类似 Logplex 和 Fluentd 的开源工具可以达到这个目的。</p>
+<p>这些事件流可以输出至文件，或者在终端实时观察。最重要的，输出流可以发送到 Splunk 这样的日志索引及分析系统，或 Hadoop&#x2F;Hive 这样的通用数据存储系统。这些系统为查看应用的历史活动提供了强大而灵活的功能，包括：</p>
+<p>找出过去一段时间特殊的事件。<br>图形化一个大规模的趋势，比如每分钟的请求量。<br>根据用户定义的条件实时触发警报，比如每分钟的报错超过某个警戒线。</p>
+<h2 id="XII-管理进程"><a href="#XII-管理进程" class="headerlink" title="XII. 管理进程"></a>XII. 管理进程</h2><p>后台管理任务当作一次性进程运行<br>进程构成（process formation）是指用来处理应用的常规业务（比如处理 web 请求）的一组进程。与此不同，开发人员经常希望执行一些管理或维护应用的一次性任务，例如：</p>
+<p>运行数据移植（Django 中的 manage.py migrate, Rails 中的 rake db:migrate）。<br>运行一个控制台（也被称为 REPL shell），来执行一些代码或是针对线上数据库做一些检查。大多数语言都通过解释器提供了一个 REPL 工具（python 或 perl） ，或是其他命令（Ruby 使用 irb, Rails 使用 rails console）。<br>运行一些提交到代码仓库的一次性脚本。<br>一次性管理进程应该和正常的 常驻进程 使用同样的环境。这些管理进程和任何其他的进程一样使用相同的 代码 和 配置 ，基于某个 发布版本 运行。后台管理代码应该随其他应用程序代码一起发布，从而避免同步问题。</p>
+<p>所有进程类型应该使用同样的 依赖隔离 技术。例如，如果Ruby的web进程使用了命令 bundle exec thin start ，那么数据库移植应使用 bundle exec rake db:migrate 。同样的，如果一个 Python 程序使用了 Virtualenv，则需要在运行 Tornado Web 服务器和任何 manage.py 管理进程时引入 bin&#x2F;python 。</p>
+<p>12-factor 尤其青睐那些提供了 REPL shell 的语言，因为那会让运行一次性脚本变得简单。在本地部署中，开发人员直接在命令行使用 shell 命令调用一次性管理进程。在线上部署中，开发人员依旧可以使用ssh或是运行环境提供的其他机制来运行这样的进程。</p>
+<p>转发自：<a href="https://12factor.net/zh_cn/">https://12factor.net/zh_cn/</a></p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Program//" class="article-tag-list-link color3">Program</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2017/12/27/Program/2017-12-27-the-twelve-factor-app/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
     <article id="post-Program/2017-12-24-devops-three-method" class="article article-type-post  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
     
@@ -961,418 +1453,6 @@
 
 
   
-    <article id="post-Think/2017-09-12-person-grouth" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/09/12/Think/2017-09-12-person-grouth/">成长集：在阿里的做事方式</a>
-    </h1>
-  
-
-        
-        <a href="/2017/09/12/Think/2017-09-12-person-grouth/" class="archive-article-date">
-  	<time datetime="2017-09-11T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2017-09-12</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>对自己要求很高、产品的商业价值、爽的地方和不爽的地方</p>
-<p>能力全面，有擅长的东西</p>
-<p>应对变化，技能没有竞争力，什么都能干</p>
-<p>平台的放大器效应</p>
-<p>规定时间拿到结果</p>
-<p>新业务的短平快</p>
-<p>技术创建不一样的东西</p>
-<p>自主发起尝试新东西</p>
-<p>工作干到9点且技术探索在干2小时</p>
-<p>评论需要真知灼见否则不要评论，会显得肤浅</p>
-<p>做过业务才能理解价值</p>
-<p>所有的技术要懂，有些必须精通，比别人要懂</p>
-<p>共赢和合作，技术不一定是自己做的，可以使用官方的东西</p>
-<p>我们必须要结果不管谁做</p>
-<p>方法论</p>
-<p>双十一驱动</p>
-<p>赚钱</p>
-<p>向上管理、水平管理</p>
-<p>标杆、机会成本（超出期望是所有人认为不可能）</p>
-<p>借假修真、自己的身价、</p>
-<p>效率学习方向结果、方向比努力重要</p>
-<p>创新者的窘境、团队的健康、兼容限制创新、平台能力、平台化、创新型产品、技术超越业务、创新是一个伪需求。</p>
-<p>不要拘泥于眼前的事情，看到未来，把事情干出来</p>
-<p>做多快好省的事情、不同事情做不同事情、形式逼人强、为离开阿里准备能力，选择相信的东西去坚持、自我驱动、学习不能放松、控多大场、眼界、难中易抢活。</p>
-<p>谁都可以做的事情没什么竞争价值、在自己擅长的领域跟别人打，开源并不一定是好事情，关键是看你的商业逻辑，比如google和dubbo的案例。</p>
-<p>总结：</p>
-<ol>
-<li>不断学习，什么都学，有所专长（终身学习）；</li>
-<li>要结果，不管过程，老板交代的事情，必须提前完成，并能主动向上沟通；</li>
-<li>相信安排给你做的事情；</li>
-</ol>
-<p>需要停下来思考：</p>
-<ol>
-<li>让自己成长；</li>
-<li>把事情做好；</li>
-<li>拿到一个确定性（可衡量）的结果；</li>
-</ol>
-<p>做双十一，我们的成长在哪里？</p>
-<p>稳定性体系；</p>
-<p>技术创新在双十一进行验证；</p>
-<p>作为技术人员，需要主动去寻找机会；</p>
-<p>今年与去年的不同，变化；</p>
-<p>那些东西做的不好，我们能做什么，最好提前一年去思考和建设；</p>
-<p>看业界有什么，我们处于什么位置，我们可以模仿，更重要的是结合自身业务；</p>
-<p>把当前产品做出新花样，新高度；</p>
-<p>提出视野，需要跟各个专业的人达成沟通；</p>
-<p>技术人，走出去；</p>
-<p>坐在家里永远找不到机会；</p>
-<p>关系网络；</p>
-<p>主动找机会，主动承担责任；</p>
-<p>做双十一，如果不能做好，就可能导致混不下去，因为自己的名誉坏掉了。</p>
-<p>需要做创新，无论新老系统；</p>
-<p>系统化： 找到方法把自己做的事情做没；能够更大体系进行协同；</p>
-<p>人的事情，渐渐的交给机器去做；</p>
-<p>智能决策；</p>
-<p>把我的作用变大，并把它自动化；</p>
-<p>不断证明自己，并拿到结果；</p>
-<p>这个事情非你莫属；形成个人的品牌、口碑；</p>
-<p>主动性和责任心，不要等待领导去问；</p>
-<p>能不能做，给出理由；</p>
-<p>找到一个点，做事情能带来成就感；</p>
-<p>如果事情没有贡献，可有可无，就需要反思；</p>
-<p>现在做的事情如果跟三年前一样，自己就得不到成长；</p>
-<p>信任很重要；</p>
-<p>双十一的体系化；</p>
-<p>把各个独立的模块串起来，减少成本；</p>
-<p>双十一很多变量，很多东西都在人的脑子里，需要固化下来；</p>
-<p>系统化，把人的能力撤出来，体系化；</p>
-<p>产品化；</p>
-<p>更高效、更快速的大促；</p>
-<p>山不过来，我过去；</p>
-<p>做一个产品，每人会告诉你改怎么发展，你的老板都没有你专业；</p>
-<p>如果我们的产品在进行review的时候，发现没有大的发展，那一定是我们自己的问题；</p>
-<p>主要是自己能把事情想清楚；</p>
-<p>做事情，推不动，想一想是不是执行路径不对；</p>
-<p>应该考虑如何把事情做成，而不是看到很多困难认为事情做不成；</p>
-<p>先成长，再去做更难的事情。</p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Think//" class="article-tag-list-link color1">Think</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2017/09/12/Think/2017-09-12-person-grouth/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-Mysql/2017-09-02-mysql-datetime-fsp" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/09/02/Mysql/2017-09-02-mysql-datetime-fsp/">Mysql时间精度丢失，导致秒被四舍五入</a>
-    </h1>
-  
-
-        
-        <a href="/2017/09/02/Mysql/2017-09-02-mysql-datetime-fsp/" class="archive-article-date">
-  	<time datetime="2017-09-01T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2017-09-02</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h3 id="问题描述："><a href="#问题描述：" class="headerlink" title="问题描述："></a>问题描述：</h3><p>Mysql中一张表时间类型采用的是dateTime格式，当后端通过Mybatis将new Date() 传递给数据库进行存储是，发现存入时间是<strong>2016-12-23 16:41:55</strong>，但是数据库中插入的时间却是*<em>2016-12-23 16:41:5_6_</em>,导致采用同样的时间进行数据查询，却查不到数据。</p>
-<h3 id="问题排查："><a href="#问题排查：" class="headerlink" title="问题排查："></a>问题排查：</h3><ol>
-<li><p>进行codeReview，未发现bug；</p>
-</li>
-<li><p>本地将Mybatis的DEBUG日志打开，进行单步调试<br><img src="/images/posts/20170902/14824834942593.jpg"><br><img src="/images/posts/20170902/14824835188662.jpg"></p>
-</li>
-<li><p>日志输出如下：<br><img src="/images/posts/20170902/14824828832109.jpg"></p>
- <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">2016</span>-<span class="number">12</span>-<span class="number">23</span> <span class="number">16</span>:<span class="number">43</span>:<span class="number">26.960</span> [DEBUG]xxx.update [debug:<span class="number">145</span>] ==&gt;  Preparing: update xxx <span class="type">SET</span> <span class="variable">gmt_modified</span> <span class="operator">=</span> now(), status = ?, collect_time = ? <span class="type">where</span> <span class="variable">id</span> <span class="operator">=</span> ? </span><br><span class="line"><span class="number">2016</span>-<span class="number">12</span>-<span class="number">23</span> <span class="number">16</span>:<span class="number">43</span>:<span class="number">26.964</span> [DEBUG][debug:<span class="number">145</span>] ==&gt; Parameters: SLEEPING(String), <span class="number">2016</span>-<span class="number">12</span>-<span class="number">23</span> <span class="number">16</span>:<span class="number">41</span>:<span class="number">55.972</span>(Timestamp), <span class="number">9</span>(Long)</span><br></pre></td></tr></table></figure></li>
-<li><p>发现传入mybatis的date参数为携带毫秒数的时间，到服务端之后多了一秒，但是有时候又是相等的，初步怀疑是毫秒数会被四舍五入了，多次执行后，正式了这个观点；这也能解释为什么我们再以同样的Date参数为什么偶尔查不到数据的问题了。</p>
-</li>
-</ol>
-<h3 id="根因定位："><a href="#根因定位：" class="headerlink" title="根因定位："></a>根因定位：</h3><ol>
-<li><p>确认Mysql Server的版本信息：<br><img src="/images/posts/20170902/14826733264139.jpg"></p>
-</li>
-<li><p>确认Datetime的格式信息：<br><img src="/images/posts/20170902/14826731196884.jpg"></p>
-</li>
-<li><p>JDBC（JDBC版本5.1.26）中判断是否MysqlServer（Server版本5.6.4）的版本是否支持毫秒：<br>com.mysql.jdbc.PreparedStatement#detectFractionalSecondsSupport:923L<br><img src="/images/posts/20170902/14826735377431.jpg"></p>
-</li>
-<li><p>JDBC（JDBC版本5.1.26）中设置毫秒数函数：<br>com.mysql.jdbc.PreparedStatement#setTimestampInternal<br>首先会判断是否设置了useLegacyDatetimeCode&#x3D;false，如果设置了，那么会走新方法newSetTimestampInternal：<br><img src="/images/posts/20170902/14826767849619.jpg"><br>可以看到，新方法中会不管mysql服务端的版本信息是什么，默认都会把毫秒数携带上发送给服务端，让服务端来判断毫秒数怎么处理。当我们代码中把这部分携带了毫秒的时间发送给服务端时，由于服务端版本为5.6.16，所以不支持毫秒数，所以就被四舍五入进行存储到秒了。</p>
-<p> 在看看如果设置了useLegacyDatetimeCode&#x3D;true的逻辑：</p>
-</li>
-</ol>
-<p><img src="/images/posts/20170902/14826767169568.jpg"><br>那useLegacyDatetimeCode到底是什么？</p>
-<blockquote>
-<p>Note that to get this scenario to work with MySQL (since it doesn’t support per-value timezones), you need to configure your server (or session) to be in UTC, and tell the driver not to use the legacy date&#x2F;time code by setting useLegacyDatetimeCode to “false”. This will cause the driver to always convert to&#x2F;from the server and client timezone consistently.</p>
-</blockquote>
-<ol start="5">
-<li><p>精度问题：<br>Mysql中 DATE, DATETIME, and TIMESTAMP 三种类型的区别，可以参考：<a href="http://dev.mysql.com/doc/refman/5.6/en/datetime.html%E3%80%82">http://dev.mysql.com/doc/refman/5.6/en/datetime.html。</a></p>
-<p> 需要纠正一个错误的观点，那就是有同学认为DATETIME比TIMESTAMP精度低，这个是错误的，他们两个能达到的精度是一致的，只不过，他们可表示的时间范围不同而已；</p>
-</li>
-</ol>
-<p>测试Mysql5.7.14版本下，三种时间类型的数据插入：<br><img src="/images/posts/20170902/14826747022343.jpg"><br>对于一个立志存活102年的企业来说，选择DATETIME比TIMSTAMP是一个更明智的选择，可以表示的范围更大，而且不受系统时区的影响；<br>6. 总结：<br>至此，我们知道了三种时间类型在不同Mysql版本不同的所展示的不同的特点，以及不同Mysql版本对毫秒的支持情况；目前我们服务端由于采用的mysql版本是5.6.16(低于5.6.4)，所以还不支持毫秒数的存储，当客户端提交过来的小数部分超长时（客户端默认配置了useLegacyDatetimeCode&#x3D;false），server会默认做四舍五入，不会出现任何的警告或异常。<br>那么在这种情况下，问题如何解决呢？<br>①客户端在进行时间存储的时候，主动通过一次SimpleDateFormat函数format和parse将毫秒数过滤掉，相当于重置为0；<br>②升级Mysql Server版本到5.6.4及以上；</p>
-<h3 id="扩展：Java中的Date类型："><a href="#扩展：Java中的Date类型：" class="headerlink" title="扩展：Java中的Date类型："></a>扩展：Java中的Date类型：</h3><p>java.util.Date 与 java.sql.Date 的关系？<br>java.util.Date 就是在除了SQL语句的情况下面使用；<br>java.sql.Date 继承自 java.util.Date<br>java.sql.Date 是针对SQL语句使用的，它只包含日期而没有时间部分；</p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Mysql//" class="article-tag-list-link color1">Mysql</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2017/09/02/Mysql/2017-09-02-mysql-datetime-fsp/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-Mysql/2017-09-01-mysql-text-field" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/09/01/Mysql/2017-09-01-mysql-text-field/">How to select text data type for mysql</a>
-    </h1>
-  
-
-        
-        <a href="/2017/09/01/Mysql/2017-09-01-mysql-text-field/" class="archive-article-date">
-  	<time datetime="2017-08-31T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2017-09-01</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>在进行后台页面模块配置化时，需要把前段页面的部分代码保存到db中，之前mysql的数据类型使用的是text，并没有考虑到text的长度限制，认为一般不会超过此限制，但是在运行中发现其中一个复杂的页面模块在保存时报错；</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Caused <span class="keyword">by</span>: com.mysql.jdbc.MysqlDataTruncation: Data truncation: Data too long <span class="keyword">for</span> <span class="keyword">column</span> <span class="string">&#x27;xxx&#x27;</span> <span class="keyword">at</span> <span class="type">row</span> <span class="number">1</span></span><br></pre></td></tr></table></figure>
-
-<p>此时发现 xxx 字段的长度为text类型，需要保存的文本长度为 <code>65581</code>，mysql提供了四种类型的text类型，如下：</p>
-<table>
-<thead>
-<tr>
-<th>Type</th>
-<th>Maximum length</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>TINYTEXT</td>
-<td>255 (2 8−1) bytes</td>
-</tr>
-<tr>
-<td>TEXT</td>
-<td>65,535 (216−1) bytes &#x3D; 64 KiB</td>
-</tr>
-<tr>
-<td>MEDIUMTEXT</td>
-<td>16,777,215 (224−1) bytes &#x3D; 16 MiB</td>
-</tr>
-<tr>
-<td>LONGTEXT</td>
-<td>4,294,967,295 (232−1) bytes &#x3D;  4 GiB</td>
-</tr>
-</tbody></table>
-<p>我们存储的数据超过了text的存储长度（65535），所以修改数据类型为MEDIUMTEXT。</p>
-<p>Mysql 中char、varchar、和text定义的空间大小和实际占用的关系又是怎么样的呢？</p>
-<h5 id="基本知识："><a href="#基本知识：" class="headerlink" title="基本知识："></a>基本知识：</h5><ol>
-<li>char（n）和varchar（n）中括号中n代表字符的个数，并不代表字节个数，所以当使用了中文的时候(UTF8)意味着可以插入m个中文，但是实际会占用m*3个字节。</li>
-<li>同时char和varchar最大的区别就在于char不管实际value都会占用n个字符的空间，而varchar只会占用实际字符应该占用的空间+1，并且实际空间+1&lt;&#x3D;n。</li>
-<li>超过char和varchar的n设置后，字符串会被截断。</li>
-<li>char的上限为255字节，varchar的上限65535字节，text的上限为65535。</li>
-<li>char在存储的时候会截断尾部的空格，varchar和text不会。</li>
-<li>varchar会使用1-3个字节来存储长度，text不会。</li>
-</ol>
-<table>
-<thead>
-<tr>
-<th>Value</th>
-<th>CHAR(4)</th>
-<th>Storage Required</th>
-<th>VARCHAR(4)</th>
-<th>Storage Required</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>‘’</td>
-<td>‘    ‘</td>
-<td>4 bytes</td>
-<td>‘’</td>
-<td>1 bytes</td>
-</tr>
-<tr>
-<td>‘ab’</td>
-<td>‘ab  ‘</td>
-<td>4 bytes</td>
-<td>‘ab’</td>
-<td>3 bytes</td>
-</tr>
-<tr>
-<td>‘abcd’</td>
-<td>‘abcd’</td>
-<td>4 bytes</td>
-<td>‘abcd’</td>
-<td>5 bytes</td>
-</tr>
-<tr>
-<td>‘abcdefgh’</td>
-<td>‘abcd’</td>
-<td>4 bytes</td>
-<td>‘abcd’</td>
-<td>5 bytes</td>
-</tr>
-</tbody></table>
-<h4 id="总体来说："><a href="#总体来说：" class="headerlink" title="总体来说："></a>总体来说：</h4><ol>
-<li>char，存定长，速度快，存在空间浪费的可能，会处理尾部空格，上限255。</li>
-<li>varchar，存变长，速度慢，不存在空间浪费，不处理尾部空格，上限65535，但是有存储长度实际65532最大可用。</li>
-<li>text，存变长大数据，速度慢，不存在空间浪费，不处理尾部空格，上限65535，会用额外空间存放数据长度，顾可以全部使用65535。</li>
-<li>当字符长度超过255的长度之后，使用varchar和text没有本质区别，只需要考虑一下两个类型的特性即可。</li>
-</ol>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Mysql//" class="article-tag-list-link color1">Mysql</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2017/09/01/Mysql/2017-09-01-mysql-text-field/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
   
     <nav id="page-nav">
       <a class="extend prev" rel="prev" href="/page/2/">&laquo; Prev</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span><a class="page-number" href="/page/4/">4</a><a class="page-number" href="/page/5/">5</a><span class="space">&hellip;</span><a class="page-number" href="/page/10/">10</a><a class="extend next" rel="next" href="/page/4/">Next &raquo;</a>
@@ -1531,6 +1611,10 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">书信</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">青春</a>
               </li>
             
             <div class="clearfix"></div>

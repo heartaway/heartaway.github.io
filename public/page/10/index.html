@@ -149,6 +149,351 @@
           <div id="js-content" class="content-ll">
             
   
+    <article id="post-Basic/2013-05-02-websocket" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2013/05/02/Basic/2013-05-02-websocket/">Websocket 探究</a>
+    </h1>
+  
+
+        
+        <a href="/2013/05/02/Basic/2013-05-02-websocket/" class="archive-article-date">
+  	<time datetime="2013-05-01T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2013-05-02</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><strong>WebSocket：</strong> 基于 HTML5 的一种浏览器与服务器之间的即时通讯解决方案(基于 TCP 连接的双向通道)；</p>
+<p><strong>Java容器支持：</strong>目前只支持 jetty 和 tomcat。</p>
+<p><strong>应用场景：</strong>即时通讯（网页游戏[双向异步消息模式]，网页聊天，微博等）</p>
+<h2 id="一、概念区分："><a href="#一、概念区分：" class="headerlink" title="一、概念区分："></a>一、概念区分：</h2><h3 id="HTTP-协议-与-TCP-协议区别："><a href="#HTTP-协议-与-TCP-协议区别：" class="headerlink" title="HTTP 协议 与 TCP 协议区别："></a>HTTP 协议 与 TCP 协议区别：</h3><p>HTTP协议是应用层协议，是用于www浏览的一个协，应用层协议包括HTTP协议，TELNET协议，WebSocket协议等。Http 协议是请求&#x2F;响应范式的, 每一个 http 响应都是由一个对应的 http 请求产生的; http 协议是无状态的, 多个 http 请求之间是没有关系的.<br>TCP协议是传输层协议,是机器之间建立连接用的到的一个协议,传输层协议包括TCP协议，UDP协议。</p>
+<h3 id="长轮询-、短轮询-、长连接区别"><a href="#长轮询-、短轮询-、长连接区别" class="headerlink" title="长轮询 、短轮询 、长连接区别:"></a>长轮询 、短轮询 、长连接区别:</h3><p>长轮询：首先长轮询并不等于长连接，长轮询还是采用的http短连接，只是服务器端把请求hold。<br>长连接：是多个 http 请求共用一个 tcp 连接; 这样可以减少多次临近 http 请求导致 tcp 建立关闭所产生的时间消耗。<br>短轮询：服务器收到请求不管是否有数据都直接响应 http 请求; 浏览器受到 http 响应隔一段时间在发送同样的 http 请求查询是否有数据;</p>
+<h3 id="Http协议-与-webSocket协议关系："><a href="#Http协议-与-webSocket协议关系：" class="headerlink" title="Http协议 与 webSocket协议关系："></a>Http协议 与 webSocket协议关系：</h3><p>WebSocket和Http协议一样都属于应用层的协议，webSocket在第一步进行握手时采用的是Http请求，第二步进行数据流传输是在TCP协议上操作，所以webSocket长连接 跟 Http长连接之间基本没有关系。本质上来说，WebSocket是不限于HTTP协议的，但是由于现存大量的HTTP基础设施，代理，过滤，身份认证等等，WebSocket借用HTTP和HTTPS的端口。由于使用HTTP的端口，因此TCP连接建立后的握手消息是基于HTTP的，由服务器判断这是一个HTTP协议，还是WebSocket协议。 WebSocket连接除了建立和关闭时的握手，数据传输和HTTP没丁点关系了。</p>
+<p><img src="https://yanmingming.files.wordpress.com/2013/05/2a213e4d-2cd6-4d8a-8be2-3bf50d8d7b64.png"></p>
+<h2 id="二、之前即时通讯的折衷方案："><a href="#二、之前即时通讯的折衷方案：" class="headerlink" title="二、之前即时通讯的折衷方案："></a>二、之前即时通讯的折衷方案：</h2><ol>
+<li>短轮询(Polling)：定时轮询，一定时间间隔浏览器向服务器发送请求。</li>
+<li>长轮询(Long Polling)：浏览器向服务器发送请求，有数据更新时反馈数据，如果服务器端没有新的数据需要发送，这里与Polling方法不同的是，服务器不是立即发送回应给浏览器，而是把这个请求保持住，等待有新的数据到来时，再来响应这个请求；当然了，如果服务器的数据长期没有更新，一段时间后，这个Get请求就会超时，浏览器收到超时消息后，再立即发送一个新的Get请求给服务器。然后依次循环这个过程。</li>
+<li>流：流技术方案通常就是在客户端的页面使用一个隐藏的窗口向服务端发出一个长连接的请求。服务器端接到这个请求后作出回应并不断更新连接状态以保证客户端和服务器端的连接不过期。</li>
+</ol>
+<h3 id="折衷方案的缺点："><a href="#折衷方案的缺点：" class="headerlink" title="折衷方案的缺点："></a>折衷方案的缺点：</h3><ol>
+<li>两次HTTP请求模拟双向通道，增加了编程复杂度。</li>
+<li>增加了服务器压力。</li>
+<li>制约应用的扩展性。</li>
+</ol>
+<h2 id="三、WebSocket原理："><a href="#三、WebSocket原理：" class="headerlink" title="三、WebSocket原理："></a>三、WebSocket原理：</h2><p><img src="https://gw.alipayobjects.com/zos/skylark/17625c30-c987-4090-9926-36a5fc709990/2018/png/07c0e5f9-d550-4bb5-9586-86554bbcdcc2.png"></p>
+<ol>
+<li>浏览器与服务器建立握手：<br><img src="https://gw.alipayobjects.com/zos/skylark/9183678b-5633-493a-9b9f-512631ba8a6a/2018/png/cc7b882b-3327-4d99-9dfb-3d385572aaff.png"></li>
+<li>浏览器与服务器之间进行双向数据传输;</li>
+</ol>
+<h3 id="Java中使用方法："><a href="#Java中使用方法：" class="headerlink" title="Java中使用方法："></a>Java中使用方法：</h3><ul>
+<li>依赖 jetty 服务包：</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&lt;dependency&gt;</span><br><span class="line">   &lt;groupId&gt;org.eclipse.jetty.aggregate&lt;/groupId&gt;</span><br><span class="line">   &lt;artifactId&gt;jetty-all-server&lt;/artifactId&gt;</span><br><span class="line">   &lt;version&gt;<span class="number">8.1</span><span class="number">.9</span>.v20130131&lt;/version&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>IdeWebSocketServlet 继承 WebSocketServlet 抽象类：必须实现抽象接口方法 doWebSocketConnect()创建websocket的入口.定义 WebSocket连接缓存-new ConcurrentHashMap&lt;String, WebSocket&gt;()；用来管理所有webSocket连接，每次新建连接都会写入map，断开连接也会从map中移除这个元素。</p>
+<ul>
+<li>建立WebSocket连接的过程：<br><img src="https://yanmingming.files.wordpress.com/2013/05/c8affbd4-5659-41c6-aba7-6613d44715fc-1.png"></li>
+</ul>
+</li>
+<li><p>定义自己的WebSocket对象,实现 WebSocket.OnTextMessage 接口,比如 SessionWebSocket：实现onOpen、onClose、onMessage 方法。当事件类型较多时，定义一组事件列表， onMessage 中根据事件类型执行相应事件的具体方法。</p>
+</li>
+<li><p>客户端中Js的写法：</p>
+</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">function <span class="title function_">connect</span><span class="params">()</span> &#123;</span><br><span class="line">            <span class="type">var</span> <span class="variable">target</span> <span class="operator">=</span> document.getElementById(<span class="string">&#x27;target&#x27;</span>).value;</span><br><span class="line">            <span class="keyword">if</span> (target == <span class="string">&#x27;&#x27;</span>) &#123;</span><br><span class="line">                alert(<span class="string">&#x27;Please select server side connection implementation.&#x27;</span>);</span><br><span class="line">                <span class="keyword">return</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (<span class="string">&#x27;WebSocket&#x27;</span> in window) &#123;</span><br><span class="line">                ws = <span class="keyword">new</span> <span class="title class_">WebSocket</span>(target);</span><br><span class="line">            &#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="string">&#x27;MozWebSocket&#x27;</span> in window) &#123;</span><br><span class="line">                ws = <span class="keyword">new</span> <span class="title class_">MozWebSocket</span>(target);</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                alert(<span class="string">&#x27;WebSocket is not supported by this browser.&#x27;</span>);</span><br><span class="line">                <span class="keyword">return</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            ws.onopen = function () &#123;</span><br><span class="line">                setConnected(<span class="literal">true</span>);</span><br><span class="line">                log(<span class="string">&#x27;Info: WebSocket connection opened.&#x27;</span>);</span><br><span class="line">            &#125;;</span><br><span class="line">            ws.onmessage = function (event) &#123;</span><br><span class="line">                log(<span class="string">&#x27;Received: &#x27;</span> + event.data);</span><br><span class="line">            &#125;;</span><br><span class="line">            ws.onclose = function () &#123;</span><br><span class="line">                setConnected(<span class="literal">false</span>);</span><br><span class="line">                log(<span class="string">&#x27;Info: WebSocket connection closed.&#x27;</span>);</span><br><span class="line">            &#125;;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        function <span class="title function_">updateTarget</span><span class="params">(target)</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (window.location.protocol == <span class="string">&#x27;http:&#x27;</span>) &#123;</span><br><span class="line">                document.getElementById(<span class="string">&#x27;target&#x27;</span>).value = <span class="string">&#x27;ws://&#x27;</span> + window.location.host + target;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                document.getElementById(<span class="string">&#x27;target&#x27;</span>).value = <span class="string">&#x27;wss://&#x27;</span> + window.location.host + target;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="WebSocket优势："><a href="#WebSocket优势：" class="headerlink" title="WebSocket优势："></a>WebSocket优势：</h3><ul>
+<li>从服务器上主动给客户端推送信息；</li>
+<li>比Http协议传输效率高；</li>
+</ul>
+<h3 id="WebSocket劣势："><a href="#WebSocket劣势：" class="headerlink" title="WebSocket劣势："></a>WebSocket劣势：</h3><ul>
+<li>浏览器支持的兼容性不好，对于IE，支持IE10；</li>
+</ul>
+<h3 id="WebSocket为什么要把message分成frame："><a href="#WebSocket为什么要把message分成frame：" class="headerlink" title="WebSocket为什么要把message分成frame："></a>WebSocket为什么要把message分成frame：</h3><p>因为HTTP协议有chunk功能，可以让服务器一边生数据，一边发。而websocket协议也考虑到了这点。如果没有framing功能，那么我必须知道整个message的长度之后，才能开始发送message的data。</p>
+<h3 id="长连接误解："><a href="#长连接误解：" class="headerlink" title="长连接误解："></a>长连接误解：</h3><p>关于 http 长连接一个误解就是服务器主动推送数据, 这个在 http 协议下是无法实现的, 因为 http 请求&#x2F;响应范式决定的, http 中服务器返回数据必须要有一个浏览器端的请求对应, 服务器无法主动推送给浏览器数据.</p>
+<h3 id="长短轮询策略："><a href="#长短轮询策略：" class="headerlink" title="长短轮询策略："></a>长短轮询策略：</h3><p>不管 http 长轮询还是 http 短轮询 保证同一个用户在多 tab 下只存在一个定时查询是有好处的, 这可以通过在浏览器端缓存数据解决, 在 http 响应后在浏览器端缓存数据, 并设置一个有效期, 然后在每次发送 http 请求时检查是否有有效数据, 没有则发送请求获取。</p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Basic//" class="article-tag-list-link color1">Basic</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2013/05/02/Basic/2013-05-02-websocket/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-Java/2013-04-30-java-final-static" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2013/04/30/Java/2013-04-30-java-final-static/">Java基础 之 final 和 static</a>
+    </h1>
+  
+
+        
+        <a href="/2013/04/30/Java/2013-04-30-java-final-static/" class="archive-article-date">
+  	<time datetime="2013-04-29T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2013-04-30</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h3 id="final"><a href="#final" class="headerlink" title="final"></a>final</h3><h4 id="1-final变量："><a href="#1-final变量：" class="headerlink" title="1.final变量："></a>1.final变量：</h4><p>当你在类中定义变量时，在其前面加上final关键字，那便是说，这个变量一旦被初始化便不可改变，这里不可改变的意思对基本类型来说是其值不可变，而对于对象变量来说其引用不可再变。其初始化可以在两个地方，一是其定义处，也就是说在final变量定义时直接给其赋值，二是在构造函数中。这两个地方只能选其一，要么在定义时给值，要么在构造函数中给值，不能同时既在定义时给了值，又在构造函数中给另外的值。对象变量不可变是指向对象的地址引用不变，对象内部还是可以变化的。</p>
+<p>当函数参数为final类型时，你可以读取使用该参数，但是无法改变该参数的值。</p>
+<p>另外方法中的内部类在用到方法中的参变量时，此参变也必须声明为final才可使用</p>
+<h4 id="2-final方法"><a href="#2-final方法" class="headerlink" title="2.final方法"></a>2.final方法</h4><p>如果一个类不允许其子类覆盖某个方法，则可以把这个方法声明为final方法。<br>使用final方法的原因有二：<br>第一、把方法锁定，防止任何继承类修改它的意义和实现。<br>第二、高效。编译器在遇到调用final方法时候会转入内嵌机制，大大提高执行效率。</p>
+<h4 id="3-final类"><a href="#3-final类" class="headerlink" title="3.final类"></a>3.final类</h4><p>final类不能被继承，因此final类的成员方法没有机会被覆盖，默认都是final的。在设计类时候，如果这个类不需要有子类，类的实现细节不允许改变，并且确信这个类不会载被扩展，那么就设计为final类。</p>
+<h4 id="4-final-方法变量"><a href="#4-final-方法变量" class="headerlink" title="4.final 方法变量"></a>4.final 方法变量</h4><p>为什么需要在方法变量前添加final，使用场景是什么？参考：《Java基础 之 方法参数传递》</p>
+<h3 id="static"><a href="#static" class="headerlink" title="static"></a>static</h3><p>被static修饰的成员变量和成员方法独立于该类的任何对象。也就是说，它不依赖类特定的实例，被类的所有实例共享。只要这个类被加载，Java虚拟机就能根据类名在运行时数据区的方法区内找到他们。因此，static对象可以在它的任何对象创建之前访问，无需引用任何对象。<br>static变量前可以有private修饰，表示这个变量可以在类的静态代码块中，或者类的其他静态成员方法中使用（当然也可以在非静态成员方法中使用–废话），但是不能在其他类中通过类名来直接引用，这一点很重要。实际上你需要搞明白，private是访问权限限定，static表示不要实例化就可以使用</p>
+<p>用static修饰的代码块表示静态代码块，当Java虚拟机（JVM）加载类时，就会执行该代码块</p>
+<h4 id="1-static变量"><a href="#1-static变量" class="headerlink" title="1.static变量"></a>1.static变量</h4><p>按照是否静态的对类成员变量进行分类可分两种：一种是被static修饰的变量，叫静态变量或类变量；另一种是没有被static修饰的变量，叫实例变量。两者的区别是：<br>对于静态变量在内存中只有一个拷贝（节省内存），JVM只为静态分配一次内存，在加载类的过程中完成静态变量的内存分配，可用类名直接访问（方便），当然也可以通过对象来访问（但是这是不推荐的）。对于实例变量，没创建一个实例，就会为实例变量分配一次内存，实例变量可以在内存中有多个拷贝，互不影响（灵活）。</p>
+<h4 id="2-static方法"><a href="#2-static方法" class="headerlink" title="2.static方法"></a>2.static方法</h4><p>静态方法可以直接通过类名调用，任何的实例也都可以调用，因此静态方法中不能用this和super关键字，不能直接访问所属类的实例变量和实例方法(就是不带static的成员变量和成员成员方法)，只能访问所属类的静态成员变量和成员方法。因为static方法独立于任何实例，因此static方法必须被实现，而不能是抽象的abstract。</p>
+<h4 id="3-static代码块"><a href="#3-static代码块" class="headerlink" title="3.static代码块"></a>3.static代码块</h4><p>static代码块也叫静态代码块，是在类中独立于类成员的static语句块，可以有多个，位置可以随便放，它不在任何的方法体内，JVM加载类时会执行这些静态的代码块，如果static代码块有多个，JVM将按照它们在类中出现的先后顺序依次执行它们，每个代码块只会被执行一次。</p>
+<h4 id="4、static和final一块用表示什么"><a href="#4、static和final一块用表示什么" class="headerlink" title="4、static和final一块用表示什么"></a>4、static和final一块用表示什么</h4><p>static final用来修饰成员变量和成员方法，可简单理解为“全局常量”！<br>对于变量，表示一旦给值就不可修改，并且通过类名可以访问。<br>对于方法，表示不可覆盖，并且可以通过类名直接访问。</p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2013/04/30/Java/2013-04-30-java-final-static/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-Java/2013-04-29-java-seriailze-and-un" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2013/04/29/Java/2013-04-29-java-seriailze-and-un/">Java基础 之 序列化与反序列化</a>
+    </h1>
+  
+
+        
+        <a href="/2013/04/29/Java/2013-04-29-java-seriailze-and-un/" class="archive-article-date">
+  	<time datetime="2013-04-28T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2013-04-29</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h4 id="为什么需要对象序列化："><a href="#为什么需要对象序列化：" class="headerlink" title="为什么需要对象序列化："></a>为什么需要对象序列化：</h4><p>解决Java对象在网络上传输和Java对象持久化的问题。序列化将对象转换为二进制流，然后在网络上传输，当抵打目的后在反序列化为Java对象。</p>
+<h4 id="什么是Java对象序列化"><a href="#什么是Java对象序列化" class="headerlink" title="什么是Java对象序列化"></a>什么是Java对象序列化</h4><p>　　Java平台允许我们在内存中创建可复用的Java对象，但一般情况下，只有当JVM处于运行时，这些对象才可能存在，即，这些对象的生命周期不会比JVM的生命周期更长。但在现实应用中，就可能要求在JVM停止运行之后能够保存（持久化）指定的对象，并在将来重新读取被保存的对象。Java对象序列化就能够帮助我们实现该功能。<br>　　<br>　　使用Java对象序列化，在保存对象时，会把其状态保存为一组字节，在未来，再将这些字节组装成对象。必须注意地是，对象序列化保存的是对象的”状态”，即它的成员变量。由此可知，对象序列化不会关注类中的静态变量。<br>　　除了在持久化对象时会用到对象序列化之外，当使用RMI（远程方法调用），或在网络中传递对象时，都会用到对象序列化。Java序列化API为处理对象序列化提供了一个标准机制，该API简单易用，在本文的后续章节中将会陆续讲到。
+　　</p>
+<h4 id="Java对象的序列化和反序列化实践"><a href="#Java对象的序列化和反序列化实践" class="headerlink" title="Java对象的序列化和反序列化实践"></a>Java对象的序列化和反序列化实践</h4><p>当两个进程在进行远程通信时，彼此可以发送各种类型的数据。无论是何种类型的数据，都会以二进制序列的形式在网络上传送。发送方需要把这个 Java 对象转换为字节序列，才能在网络上传送；接收方则需要把字节序列再恢复为 Java 对象。</p>
+<p>把 Java 对象转换为字节序列的过程称为对象的序列化。<br>把字节序列恢复为 Java 对象的过程称为对象的反序列化。</p>
+<h5 id="对象的序列化主要有两种用途："><a href="#对象的序列化主要有两种用途：" class="headerlink" title="对象的序列化主要有两种用途："></a>对象的序列化主要有两种用途：</h5><ol>
+<li>把对象的字节序列永久地保存到硬盘上，通常存放在一个文件中；</li>
+<li>在网络上传送对象的字节序列。</li>
+</ol>
+<p>只有实现了 Serializable 和 Externalizable 接口的类的对象才能被序列化。 Externalizable 接口继承自 Serializable 接口，实现Externalizable 接口的类完全由自身来控制序列化的行为，而仅实现Serializable 接口的类可以采用默认的序列化方式 。</p>
+<h5 id="对象序列化包括如下步骤："><a href="#对象序列化包括如下步骤：" class="headerlink" title="对象序列化包括如下步骤："></a>对象序列化包括如下步骤：</h5><ol>
+<li>创建一个对象输出流，它可以包装一个其他类型的目标输出流，如文件输出流；</li>
+<li>通过对象输出流的 writeObject() 方法写对象。</li>
+</ol>
+<h5 id="对象反序列化的步骤如下："><a href="#对象反序列化的步骤如下：" class="headerlink" title="对象反序列化的步骤如下："></a>对象反序列化的步骤如下：</h5><ol>
+<li>创建一个对象输入流，它可以包装一个其他类型的源输入流，如文件输入流；</li>
+<li>通过对象输入流的 readObject() 方法读取对象。<br>下面让我们来看一个对应的例子，类的内容如下：</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.io.FileInputStream;</span><br><span class="line"><span class="keyword">import</span> java.io.FileOutputStream;</span><br><span class="line"><span class="keyword">import</span> java.io.ObjectInputStream;</span><br><span class="line"><span class="keyword">import</span> java.io.ObjectOutputStream;</span><br><span class="line"><span class="keyword">import</span> java.io.Serializable;</span><br><span class="line"><span class="keyword">import</span> java.util.Date;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ObjectSaver</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception &#123;</span><br><span class="line">        <span class="type">ObjectOutputStream</span> <span class="variable">out</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ObjectOutputStream</span></span><br><span class="line">            (<span class="keyword">new</span> <span class="title class_">FileOutputStream</span>(<span class="string">&quot;D:&quot;</span><span class="string">&quot;objectFile.obj&quot;</span>));</span><br><span class="line">        <span class="comment">// 序列化对象</span></span><br><span class="line">        <span class="type">Customer</span> <span class="variable">customer</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Customer</span>(<span class="string">&quot; 阿蜜果 &quot;</span>, <span class="number">24</span>);</span><br><span class="line">        out.writeObject(<span class="string">&quot; 你好 !&quot;</span>);</span><br><span class="line">        out.writeObject(<span class="keyword">new</span> <span class="title class_">Date</span>());</span><br><span class="line">        out.writeObject(customer);</span><br><span class="line">        out.writeInt(<span class="number">123</span>); <span class="comment">// 写入基本类型数据</span></span><br><span class="line">        out.close();</span><br><span class="line">        <span class="comment">// 反序列化对象</span></span><br><span class="line">        <span class="type">ObjectInputStream</span> <span class="variable">in</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ObjectInputStream</span></span><br><span class="line">            (<span class="keyword">new</span> <span class="title class_">FileInputStream</span>(<span class="string">&quot;D:&quot;</span><span class="string">&quot;objectFile.obj&quot;</span>));</span><br><span class="line">        System.out.println(<span class="string">&quot;obj1=&quot;</span> + (String)in.readObject());</span><br><span class="line">        System.out.println(<span class="string">&quot;obj2=&quot;</span> + (Date)in.readObject());</span><br><span class="line">        <span class="type">Customer</span> <span class="variable">obj3</span> <span class="operator">=</span> (Customer)in.readObject();</span><br><span class="line">        System.out.println(<span class="string">&quot;obj3=&quot;</span> + obj3);</span><br><span class="line">        <span class="type">int</span> <span class="variable">obj4</span> <span class="operator">=</span> in.readInt();</span><br><span class="line">        System.out.println(<span class="string">&quot;obj4=&quot;</span> + obj4);</span><br><span class="line">        in.close();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Customer</span> <span class="keyword">implements</span> <span class="title class_">Serializable</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> String name;</span><br><span class="line">    <span class="keyword">private</span> <span class="type">int</span> age;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">Customer</span><span class="params">(String name, <span class="type">int</span> age)</span> &#123;</span><br><span class="line">        <span class="built_in">this</span>.name = name;</span><br><span class="line">        <span class="built_in">this</span>.age = age;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> String <span class="title function_">toString</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;name=&quot;</span> + name + <span class="string">&quot;, age=&quot;</span> + age;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>输出结果如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">obj1= 你好 !</span><br><span class="line">obj2=Sat Sep 15 22:02:21 CST 2007</span><br><span class="line">obj3=name= 阿蜜果 , age=24</span><br><span class="line">obj4=123</span><br></pre></td></tr></table></figure>
+
+<p>因此例比较简单，在此不再详述。</p>
+<h5 id="实现-Serializable-接口"><a href="#实现-Serializable-接口" class="headerlink" title="实现 Serializable 接口"></a>实现 Serializable 接口</h5><p>ObjectOutputStream 只能对 Serializable 接口的类的对象进行序列化。默认情况下，ObjectOutputStream 按照默认方式序列化，这种序列化方式仅仅对对象的非 transient 的实例变量进行序列化，而不会序列化对象的 transient 的实例变量，也不会序列化静态变量。</p>
+<p>当 ObjectOutputStream 按照默认方式反序列化时，具有如下特点：</p>
+<ol>
+<li>如果在内存中对象所属的类还没有被加载，那么会先加载并初始化这个类。如果在 classpath 中不存在相应的类文件，那么会抛出 ClassNotFoundException ；</li>
+<li>在反序列化时不会调用类的任何构造方法。<br>如果用户希望控制类的序列化方式，可以在可序列化类中提供以下形式的 writeObject() 和 readObject() 方法。</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">writeObject</span><span class="params">(java.io.ObjectOutputStream out)</span> <span class="keyword">throws</span> IOException</span><br><span class="line"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">readObject</span><span class="params">(java.io.ObjectInputStream in)</span> <span class="keyword">throws</span> IOException, ClassNotFoundException;</span><br></pre></td></tr></table></figure>
+
+<p>当 ObjectOutputStream 对一个 Customer 对象进行序列化时，如果该对象具有 writeObject() 方法，那么就会执行这一方法，否则就按默认方式序列化。在该对象的 writeObjectt() 方法中，可以先调用ObjectOutputStream 的 defaultWriteObject() 方法，使得对象输出流先执行默认的序列化操作。同理可得出反序列化的情况，不过这次是 defaultReadObject() 方法。</p>
+<p>有些对象中包含一些敏感信息，这些信息不宜对外公开。如果按照默认方式对它们序列化，那么它们的序列化数据在网络上传输时，可能会被不法份子窃取。</p>
+<p>对于这类信息，可以对它们进行加密后再序列化，在反序列化时则需要解密，再恢复为原来的信息。</p>
+<p>默认的序列化方式会序列化整个对象图，这需要递归遍历对象图。如果对象图很复杂，递归遍历操作需要消耗很多的空间和时间，它的内部数据结构为双向列表。</p>
+<p>在应用时，如果对某些成员变量都改为 transient 类型，将节省空间和时间，提高序列化的性能。</p>
+<h5 id="实现-Externalizable-接口"><a href="#实现-Externalizable-接口" class="headerlink" title="实现 Externalizable 接口"></a>实现 Externalizable 接口</h5><p>Externalizable 接口继承自 Serializable 接口，如果一个类实现了Externalizable 接口，那么将完全由这个类控制自身的序列化行为。</p>
+<p>Externalizable 接口声明了两个方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">writeExternal</span><span class="params">(ObjectOutput out)</span> <span class="keyword">throws</span> IOException</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">readExternal</span><span class="params">(ObjectInput in)</span> <span class="keyword">throws</span> IOException , ClassNotFoundException</span><br></pre></td></tr></table></figure>
+
+<p>前者负责序列化操作，后者负责反序列化操作。</p>
+<p>在对实现了 Externalizable 接口的类的对象进行反序列化时，会先调用类的不带参数的构造方法，这是有别于默认反序列方式的。</p>
+<p>如果把类的不带参数的构造方法删除，或者把该构造方法的访问权限设置为 private 、默认或 protected 级别，<br>会抛出 java.io.InvalidException: no valid constructor 异常。</p>
+<h5 id="可序列化类的不同版本的序列化兼容性"><a href="#可序列化类的不同版本的序列化兼容性" class="headerlink" title="可序列化类的不同版本的序列化兼容性"></a>可序列化类的不同版本的序列化兼容性</h5><p>凡是实现 Serializable 接口的类都有一个表示序列化版本标识符的静态变量：<br>private static final long serialVersionUID;<br>以上 serialVersionUID 的取值是 Java 运行时环境根据类的内部细节自动生成的。如果对类的 源代码 作了修改，再重新编译，新生成的类文件的serialVersionUID 的取值有可能也会发生变化。</p>
+<p>类的 serialVersionUID 的默认值完全依赖于 Java 编译器的实现，对于同一个类，用不同的 Java 编译器编译，有可能会导致不同的serialVersionUID ，也有可能相同。为了提高哦啊 serialVersionUID 的独立性和确定性，强烈建议在一个可序列化类中显示的定义serialVersionUID ，为它赋予明确的值。显式地定义 serialVersionUID 有</p>
+<h5 id="两种用途："><a href="#两种用途：" class="headerlink" title="两种用途："></a>两种用途：</h5><ol>
+<li>在某些场合，希望类的不同版本对序列化兼容，因此需要确保类的不同版本具有相同的 serialVersionUID ；</li>
+<li>在某些场合，不希望类的不同版本对序列化兼容，因此需要确保类的不同版本具有不同的 serialVersionUID 。</li>
+</ol>
+<h5 id="“transient”——“瞬态"><a href="#“transient”——“瞬态" class="headerlink" title="“transient”——“瞬态"></a>“transient”——“瞬态</h5><h6 id="适用场景："><a href="#适用场景：" class="headerlink" title="适用场景："></a>适用场景：</h6><ol>
+<li>不打算序列化某字段的值，节省空间</li>
+<li>传递序列化流的时候，不传递该值等<br>一个实现了serializable的单例类，必须有一个readResolve方法，用以返回他的唯一实例。</li>
+</ol>
+<p>有可能由于对于一个实现了Serializable的类进行了扩展，或者由于实现了一个扩展自Serializable的接口，使得我们在无意中实现了Serializable。</p>
+<h3 id="复杂对象序列化"><a href="#复杂对象序列化" class="headerlink" title="复杂对象序列化"></a>复杂对象序列化</h3><ul>
+<li>当父类继承Serializable接口，所有子类都可以被序列化</li>
+<li>子类实现了Serializable接口，父类没有，父类中的属性不能序列化（不报错，数据会丢失），但是子类中属性人能正确序列化</li>
+<li>如果序列化的属性是对象，这个对象也必须实现Serializable接口，否则会报错</li>
+<li>在反序列化时，如果对象的属性有修改或删减，修改的部分属性会丢失，但不会报错</li>
+<li>在反序列化时，如果serialVersionUID被修改，那么反序列化时会失败</li>
+<li>如果一个父类没有实现Serializable接口，他的内部类如果不是static的，即使实现了序列化接口，也会序列失败。因为非静态<br>内部类会保存一个指向父类的类型this变量，而序列化类的所有属性必须实现序列化接口，所以要将内部类设置成静态类</li>
+<li>List或者Map容器中包含的泛型类型也必须实现Serializable接口，否则也会报java.io.NotSerializableException</li>
+</ul>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2013/04/29/Java/2013-04-29-java-seriailze-and-un/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
     <article id="post-Java/2013-04-28-java-collection" class="article article-type-post  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
     
@@ -1101,6 +1446,10 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">书信</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">青春</a>
               </li>
             
             <div class="clearfix"></div>
