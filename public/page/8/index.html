@@ -149,6 +149,102 @@
           <div id="js-content" class="content-ll">
             
   
+    <article id="post-Program/2016-05-09-user-login-and-regist" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2016/05/09/Program/2016-05-09-user-login-and-regist/">怎么编写用户注册/登录服务</a>
+    </h1>
+  
+
+        
+        <a href="/2016/05/09/Program/2016-05-09-user-login-and-regist/" class="archive-article-date">
+  	<time datetime="2016-05-08T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2016-05-09</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>看似简单的注册登录功能，如果想考虑完善，并且做到极致体验和良好的安全性，并不是一件容易的事情。本篇文章就结合我们公司的登录体系来分析一下怎么去做好一个用户注册与登录功能。</p>
+<h4 id="密码设置与传输："><a href="#密码设置与传输：" class="headerlink" title="密码设置与传输："></a>密码设置与传输：</h4><p>用户在注册的时候最好对密码的强度做验证，防止弱密码。其次切记不能将密码明文传输，一般的做法是前对对密码做一次Md5加密，后端再做一次Md5加密然后出到DB中。</p>
+<h4 id="请求参数签名与验签："><a href="#请求参数签名与验签：" class="headerlink" title="请求参数签名与验签："></a>请求参数签名与验签：</h4><p>现在主流的开发模式是前后端分离，那么前端再对参数加密的时候，怎么管理盐值？盐值怎么在请求中传递？服务端怎么在不侵入业务的方式下做到验签？<br>接下来主要讲讲Token(CrsfToken&#x2F;UserToken)在请求加解密中的使用方式：</p>
+<ul>
+<li>UserToken是通过用户基本信息和CrsfToken进行AES加密生成，并存储到用户的Cookie中，每次请求的时候浏览器自动会携带Cookie进行数据请求，这样服务端就可以从request中获取到Cookie对象。UserToken的主要作用是进行验签。</li>
+<li>CrsfToken的作用是防止<a href="https://zh.wikipedia.org/wiki/%E8%B7%A8%E7%AB%99%E8%AF%B7%E6%B1%82%E4%BC%AA%E9%80%A0">CRSF攻击</a>，传统的做法是在form表单中加入此参数，后端验证crsfToken的有效性，但是这种方式对业务有侵入性，比较好的做法是无业务侵入就完成预防Crsf的功能。我们采用的方式是用户登录成功后将CrsfToken存储在浏览器的localStorage中，每次请求的时候使用CrsfToken作为盐值对参数进行Md5签名，网关从请求的Cookie中取出userToken并AES解密出CrsfToken，再进行验签。用户退出或者userToken时效的时候都会主动从LocalStorage中清除CrsfToken,从cookie中清除Token和用户信息，任何需要访问用户登录态的数据因为都需要加密，所以首先会判断CrsfToken是否存在，不存在直接跳登录页了。</li>
+</ul>
+<p>下图为JS方式使用CrsfToken对请求参数进行加密处理：</p>
+<p><img src="/images/posts/20160509/js-url-param-sign.png"></p>
+<p>下图为页面服务请求时Request中Cookie携带的userToken信息：</p>
+<p><img src="/images/posts/20160509/user-token-cookie.png"></p>
+<h4 id="总结："><a href="#总结：" class="headerlink" title="总结："></a>总结：</h4><p>这就相当于把加密使用的盐值超出在用户的浏览器中，盐值并不会在每次请求中传递，只用来加密使用，每次在请求中传递的是使用盐值+用户的基本信息进行AES加密生成的秘钥Token，网关系统从此秘钥Token中反解密出CrsfToken来验证请求的合法性。这种实现方式在攻击者未拿到localStorage中的CrsfToken时是无法生成正确的签名值的，所以就在一定程度上解决了CRSF攻击问题。假设攻击者劫持了用户登录请求，就可以拿到CrsfToken，就有可能被CRSF攻击，所以在Web端简单处理办法是用户每次重新登录都会更新CrsfToken和userToken。当然，如果网站上了HTTPS的话，攻击者就无法获取到CrsfToken了。</p>
+<p>其次，通过自主管理Cookie的生命周期，也可以完成用户登录态的维护。</p>
+<p>那你肯定会问App端如何存储CrsfToken，如何通过Cookie传递用户登录态，如何在多设备上同时登录？</p>
+<h4 id="图片-短信验证码："><a href="#图片-短信验证码：" class="headerlink" title="图片&#x2F;短信验证码："></a>图片&#x2F;短信验证码：</h4><p>现在大部分的网站注册基本都使用的是手机号注册的方式，那手机号注册为了验证手机号的正确性，一般都会使用手机验证码，考虑到短信成本，在下发手机验证码前为了防止机器攻击，会加上图片验证码。<br>那怎么选择有效的图片验证码服务？如果你随便从网上找一段生成验证码的代码，很不幸告诉你，你找的很可能会被破解，现在<a href="https://www.zhihu.com/question/22479139">图片验证码识别</a>的技术还是也算比较成熟，回想一下12306的图片验证码吧。如果图片验证码做的太复杂，干扰元素太多，那么又会降低用户体验，直接影响是用户注册率。怎么寻找一个体验好的图片验证码方案呢？</p>
+<p>目前我认为有两种选择，第一，自主编写一套服务，在用户体验和安全性上寻求一个平衡，我们目前使用的是Captcha,体验还不错。第二，采用三方图片验证服务，比如类似于极验的厂商。</p>
+<p><img src="/images/posts/20160509/fqht-regist.png"></p>
+<p><img src="/images/posts/20160509/geetest-captcha.png"></p>
+<p>目前图片验证码的服务实现一般分为两部分，一部分是通过sessionId生成图片验证码，一部分是使用sessionId校验用户输入的验证码的正确性，验证完毕后就会从服务端清楚缓存的sessionId对应的图片验证码。</p>
+<h5 id="短信验证码："><a href="#短信验证码：" class="headerlink" title="短信验证码："></a>短信验证码：</h5><p>短信验证由于一定的延迟性，基本会考虑60s下发一次，服务端也要控制一下同一来源短信下发的次数，做好一定的风控防范。短信下发中好的用户体验的几项考核指标是短信下发送达率、送达时效、多网支持度等，试想，你兴致傲然的注册一家网站，结果半天收不到短信，试了N次未果，这是怎么样的糟糕体验，所以选择一家优质的短信提供商很有必要。</p>
+<h5 id="短信验证业务实现原理："><a href="#短信验证业务实现原理：" class="headerlink" title="短信验证业务实现原理："></a>短信验证业务实现原理：</h5><p>上面讲到了图片验证码，在下发短信钱强制图片验证码必填，这个时候用户点击获取短信验证码的时候首先验证图片验证码的有效性，如果图片验证码有效，在验证用户是否符合下发短信的限制条件，为什么要这部分呢，因为在一些恶意攻击情况下，防止短信成本增加，是需要对恶意攻击进行风控的，其次，就算不是恶意攻击，也需要配合前段做60s限制，最后生成随机数缓存Redis，并调用短信服务商的短信发送接口。</p>
+<h4 id="多域登录："><a href="#多域登录：" class="headerlink" title="多域登录："></a>多域登录：</h4><p>其实我们这里阐述的方式是通过自主管理Cookie的生命周期来达到多系统共享登录态的，如果我们有fengqu.com 和 fengxiang.com两个域名，想公用登录体系，能否还利用Cookie的实现方式实现呢？答案是可以但稍微麻烦。因为对于Cookie，处于安全性考虑，它有一个作用域问题，这个作用域由属性Domain和Path共同决定的。也就是说，如果浏览器发送的请求不在此Cookie的作用域范围内，请求是不会带上此Cookie的。我们的网关就无法拿到Cookie中的userToken，也就无法做验签；怎么办呢，我们需要一个SSO，来做Cookie的中转操作，这部分晨悟同学在阿里做了不少SSO的工作，经验丰富。</p>
+<p>扩展阅读：<a href="http://coolshell.cn/articles/5353.html">你会做Web上的用户登录功能吗？</a></p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Program//" class="article-tag-list-link color3">Program</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2016/05/09/Program/2016-05-09-user-login-and-regist/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
     <article id="post-Think/2016-05-09-choice-is-important" class="article article-type-post  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
     
@@ -1079,147 +1175,9 @@
 
 
   
-    <article id="post-Middleware/2015-12-20-diamond-study" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2015/12/20/Middleware/2015-12-20-diamond-study/">动态配置中心学习笔记</a>
-    </h1>
-  
-
-        
-        <a href="/2015/12/20/Middleware/2015-12-20-diamond-study/" class="archive-article-date">
-  	<time datetime="2015-12-19T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2015-12-20</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h4 id="客户端使用："><a href="#客户端使用：" class="headerlink" title="客户端使用："></a>客户端使用：</h4><ol>
-<li>首先需要绑定HOST：<br>xx.xx.xx.xx  diamond.configserver.net<br>前面的IP地址为Diamond-server的部署IP。</li>
-<li>应用Diamond-clien二方库并开始使用；</li>
-</ol>
-<h4 id="Diamond的核心原理："><a href="#Diamond的核心原理：" class="headerlink" title="Diamond的核心原理："></a>Diamond的核心原理：</h4><p>主要范围4个部分：</p>
-<ol>
-<li>Diamond-server的集群同步；</li>
-<li>Client获取Server的地址；</li>
-<li>Client从Server获取数据；</li>
-<li>Client运行时感知Server的数据变化；</li>
-</ol>
-<p>使用前必读的四篇文章：</p>
-<ul>
-<li>Diamond的核心原理：<a href="http://jm-blog.aliapp.com/?p=1592">http://jm-blog.aliapp.com/?p=1592</a></li>
-<li>Diamond的架构：<a href="http://jm-blog.aliapp.com/?p=1606">http://jm-blog.aliapp.com/?p=1606</a></li>
-<li>Diamond的容灾：<a href="http://jm-blog.aliapp.com/?p=1617">http://jm-blog.aliapp.com/?p=1617</a></li>
-<li>Diamond与ZK的区别：<a href="http://jm-blog.aliapp.com/?p=2561">http://jm-blog.aliapp.com/?p=2561</a></li>
-</ul>
-<p>此时我们对Diamond大致上有了一定的了解，那Diamond到底是怎么实现的嗯？只有仔细研读源码才能了解的更清楚。</p>
-<p>工程目录结构：</p>
-<p><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/92a78ada25e538858dbcc2482c0d92b2.png?zoom=2"></p>
-<h4 id="Server的实现："><a href="#Server的实现：" class="headerlink" title="Server的实现："></a>Server的实现：</h4><ol>
-<li>配置管理服务（ConfigService）：<br> 此服务用户配置信息的增删改查，内部为了了一个所有配置信息的ConcurrentHashMap，用于记录数据key和对应的数据的Md5值，由于只是记录数据的MD5值，所以在内存开销上也并不算大；<br>查询配置信息：是直接查询的数据库；<br>添加配置信息：先将配置信息保存到数据库中，然后更新缓存中的Md5值，再将配置信息保存到本地磁盘中，最后通知其他server节点更新配置信息；<br>更新配置信息：与保存配置信息流程基本类似；<br>删除配置信息：首先删除本地磁盘数据，再删除环境中的key，然后删除数据库中的配置，最后通知其他server节点；</li>
-<li>Server之间的通知服务（NotifyService）：<br> 此服务在启动时首先会从本地文件node.properties中将所有的server访问IP地址加载到Properties中，当调用notifyConfigInfoChange时，会遍历所有的节点信息逐个通过httpGet请求发送指定的dataId和Group的数据变更请求；当其他Server接收到Notify请求时，会调用ConfigService的loadConfigInfoToDisk方法，将数据库中的配置信息加载到磁盘中（包含cache中的Md5值的变更）；<br>备注：这里的疑惑点是，当server水平扩展的时候，如何动态配置server的节点数据？Server的列表是从另外一台Http Server中获取，并一段时间更新一次；当然Diamond的这个版本没实现这个功能，默认的实现是静态加载node的方式；</li>
-<li>磁盘操作服务（DiskService）：<br> 此服务就是将配置信息写入本地磁盘，唯一需要注意的点是，并发写的控制，这里使用的是ConcurrentHashMap的putIfAbsent方法，当正在写的时候将key设人map，写完后，remove掉。</li>
-<li>定时任务服务（TimerTaskService）：<br> 服务启动的时候就起了一个scheduledExecutorService，将DumpConfigInfoTask加入其中，使用配置中的间隔时间，默认是600秒（10分钟）；DumpConfigInfoTask做的事情就是分页查询数据库里面的配置信息，然后批量更新到本地磁盘文件中，并修改ConfigService缓存中的数据Md5值；</li>
-</ol>
-<h5 id="总结："><a href="#总结：" class="headerlink" title="总结："></a>总结：</h5><p>从server的实现上，我们可以学习到以下几点</p>
-<ul>
-<li>使用MD5来比较文件内容是否发生变化；</li>
-<li>多服务节点之间怎么做数据同步；</li>
-<li>使用乐观锁来做文件的并发写操作；</li>
-</ul>
-<h4 id="Client的实现："><a href="#Client的实现：" class="headerlink" title="Client的实现："></a>Client的实现：</h4><ol>
-<li>监听器：<ul>
-<li>DefaultSubscriberListener 为默认的业务监听器集合，管理了所有注册进来的DataId监听器，当DefaultSubscriberListener收到配置信息时，会从所有dataId的监听器中找到关心此diataid的监听器集（Map的Key），然后逐个做异步的事件通知；ManagerListener 是针对一个dataId的配置信息进行监听的监听器接口，需要用户自己实现接收到数据的处理方式；</li>
-</ul>
-</li>
-<li>订阅者：<ul>
-<li>通过工程类DiamondClientFactory实现单例订阅者DefaultDiamondSubscriber，DefaultDiamondSubscriber 管理业务监听器聚集、Diamond的基本配置、本地配置处理器、Snapshot配置处理器、服务地址处理器等；DefaultDiamondSubscriber 实现了DiamondClientSub，拥有启动和终止’定时获取配置信息‘的方法：start()、stop(); start()方法中会间隔一段时间轮询一次配置信息的变更；</li>
-<li>轮询配置信息的变更分为三部分：<ol>
-<li>检查本地文件的配置信息LocalConfigInfoProcessor；</li>
-<li>检查远程DiamondServer上的配置信息变更，DiamondServer那么多配置信息，如何知道那些更新了呢？原因很简单，远程DiamondServer上配置信息多，但是应用里面使用的配置信息是一定的，找出缓存里面的所有配置信息，然后排除掉那些指定使用本地文件配置信息的DataId后把所有的DataId:Group:Md5拼接成一个文本（每行一条数据），通过http请求DiamondServer，查看这批配置里面那些dataId的Md5发生了变更，对发生了变更的dataId等信息拼接起来作为响应内容，客户端拿到这些变化了的dataid后，逐条向DiamondServer请求具体的内容数据，然后将数据发送给监听了此dataId的监听器，并保存数据到SNAPSHOT中；</li>
-<li>检查SNAPSHOT中配置文件；对没有获取本地配置，也没有成功从diamond server获取到配置的DataId，加载上一次的SNAPSHOT信息；</li>
-</ol>
-</li>
-</ul>
-</li>
-<li>数据处理器：<ul>
-<li>Diamond提供了三种数据处理器，本地配置文件处理器LocalConfigInfoProcessor（配置文件存放于<del>&#x2F;diamond&#x2F;data&#x2F;config-data&#x2F;组名&#x2F;dataId名）、Diamond远程服务配置文件处理器ServerAddressProcessor（从DiamondServer上获取配置信息）、快照配置文件处理器SnapshotConfigInfoProcessor（配置文件存放于</del>&#x2F;diamond&#x2F;snapshot&#x2F;组名&#x2F;dataId名）</li>
-<li>当我们在~&#x2F;diamond&#x2F;data&#x2F;config-data下放置了配置信息时，优先使用本地配置文件（如果存在此配置，则此配置会被标识为使用本地），如果本地文件与内存中的配置有差异时会触发内存数据更新，即popConfigInfo给此dataId的监听器发信息；如果没差异则跳过；被标识使用本地配置的dataId，在进行远程DiamondServer配置检查的时候，是被跳过的；</li>
-<li>无论使用本地配置还是远程配置，都会将配置信息保存到本地快照中（popConfigInfo中实现），用户当Diamond不可用的时候，可以从SNAPSHOT中进行加载；</li>
-<li>从实现上我们了解到Diamond的配置信息是异步获取到的，那我们在使用时，如何保证第一次读取一定能拿到配置信息呢？</li>
-<li>原因：自己在实现ManagerListener的时候，构造函数中可以使用默认的DefaultDiamondManager，然后主动调用defaultDiamondManager.getAvailableConfigureInfomation(5000)来获取配置信息；</li>
-<li>DefaultDiamondManager中getConfigureInfomation 和 getAvailableConfigureInfomation 方法的区别：getConfigureInfomation只从本地和远程DiamondServer上获取配置信息；<br>getAvailableConfigureInfomation 首先会从本地和远程DiamondServer上获取配置信息，如果都没有则从SNAPSHOT中加载配置信息；</li>
-</ul>
-</li>
-</ol>
-<h5 id="总结：-1"><a href="#总结：-1" class="headerlink" title="总结："></a>总结：</h5><p>从Client的实现上，我们学习到以下几点</p>
-<ul>
-<li>如何做多级容灾策略（强制指定配置、从DiamondServer上拉取配置 或 使用SNAPSHOT中的配置）；</li>
-<li>订阅者模式的应用；</li>
-<li>接口设计上的巧妙，给用户留了很多可以自由选择的地方，比如接收到数据内容后的格式处理、初始化获取配置的方式等；</li>
-<li>合理的使用cache；</li>
-</ul>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Middleware//" class="article-tag-list-link color1">Middleware</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2015/12/20/Middleware/2015-12-20-diamond-study/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
   
     <nav id="page-nav">
-      <a class="extend prev" rel="prev" href="/page/7/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/6/">6</a><a class="page-number" href="/page/7/">7</a><span class="page-number current">8</span><a class="page-number" href="/page/9/">9</a><a class="page-number" href="/page/10/">10</a><a class="extend next" rel="next" href="/page/9/">Next &raquo;</a>
+      <a class="extend prev" rel="prev" href="/page/7/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/6/">6</a><a class="page-number" href="/page/7/">7</a><span class="page-number current">8</span><a class="page-number" href="/page/9/">9</a><a class="page-number" href="/page/10/">10</a><a class="page-number" href="/page/11/">11</a><a class="extend next" rel="next" href="/page/9/">Next &raquo;</a>
     </nav>
   
 
@@ -1326,6 +1284,22 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">成长</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">书信</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">青春</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">人生</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">共享变量</a>
               </li>
              
@@ -1362,23 +1336,7 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">人生</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">感悟</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">成长</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">书信</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">青春</a>
               </li>
             
             <div class="clearfix"></div>

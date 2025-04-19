@@ -149,6 +149,144 @@
           <div id="js-content" class="content-ll">
             
   
+    <article id="post-Middleware/2015-12-20-diamond-study" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2015/12/20/Middleware/2015-12-20-diamond-study/">动态配置中心学习笔记</a>
+    </h1>
+  
+
+        
+        <a href="/2015/12/20/Middleware/2015-12-20-diamond-study/" class="archive-article-date">
+  	<time datetime="2015-12-19T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2015-12-20</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h4 id="客户端使用："><a href="#客户端使用：" class="headerlink" title="客户端使用："></a>客户端使用：</h4><ol>
+<li>首先需要绑定HOST：<br>xx.xx.xx.xx  diamond.configserver.net<br>前面的IP地址为Diamond-server的部署IP。</li>
+<li>应用Diamond-clien二方库并开始使用；</li>
+</ol>
+<h4 id="Diamond的核心原理："><a href="#Diamond的核心原理：" class="headerlink" title="Diamond的核心原理："></a>Diamond的核心原理：</h4><p>主要范围4个部分：</p>
+<ol>
+<li>Diamond-server的集群同步；</li>
+<li>Client获取Server的地址；</li>
+<li>Client从Server获取数据；</li>
+<li>Client运行时感知Server的数据变化；</li>
+</ol>
+<p>使用前必读的四篇文章：</p>
+<ul>
+<li>Diamond的核心原理：<a href="http://jm-blog.aliapp.com/?p=1592">http://jm-blog.aliapp.com/?p=1592</a></li>
+<li>Diamond的架构：<a href="http://jm-blog.aliapp.com/?p=1606">http://jm-blog.aliapp.com/?p=1606</a></li>
+<li>Diamond的容灾：<a href="http://jm-blog.aliapp.com/?p=1617">http://jm-blog.aliapp.com/?p=1617</a></li>
+<li>Diamond与ZK的区别：<a href="http://jm-blog.aliapp.com/?p=2561">http://jm-blog.aliapp.com/?p=2561</a></li>
+</ul>
+<p>此时我们对Diamond大致上有了一定的了解，那Diamond到底是怎么实现的嗯？只有仔细研读源码才能了解的更清楚。</p>
+<p>工程目录结构：</p>
+<p><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/92a78ada25e538858dbcc2482c0d92b2.png?zoom=2"></p>
+<h4 id="Server的实现："><a href="#Server的实现：" class="headerlink" title="Server的实现："></a>Server的实现：</h4><ol>
+<li>配置管理服务（ConfigService）：<br> 此服务用户配置信息的增删改查，内部为了了一个所有配置信息的ConcurrentHashMap，用于记录数据key和对应的数据的Md5值，由于只是记录数据的MD5值，所以在内存开销上也并不算大；<br>查询配置信息：是直接查询的数据库；<br>添加配置信息：先将配置信息保存到数据库中，然后更新缓存中的Md5值，再将配置信息保存到本地磁盘中，最后通知其他server节点更新配置信息；<br>更新配置信息：与保存配置信息流程基本类似；<br>删除配置信息：首先删除本地磁盘数据，再删除环境中的key，然后删除数据库中的配置，最后通知其他server节点；</li>
+<li>Server之间的通知服务（NotifyService）：<br> 此服务在启动时首先会从本地文件node.properties中将所有的server访问IP地址加载到Properties中，当调用notifyConfigInfoChange时，会遍历所有的节点信息逐个通过httpGet请求发送指定的dataId和Group的数据变更请求；当其他Server接收到Notify请求时，会调用ConfigService的loadConfigInfoToDisk方法，将数据库中的配置信息加载到磁盘中（包含cache中的Md5值的变更）；<br>备注：这里的疑惑点是，当server水平扩展的时候，如何动态配置server的节点数据？Server的列表是从另外一台Http Server中获取，并一段时间更新一次；当然Diamond的这个版本没实现这个功能，默认的实现是静态加载node的方式；</li>
+<li>磁盘操作服务（DiskService）：<br> 此服务就是将配置信息写入本地磁盘，唯一需要注意的点是，并发写的控制，这里使用的是ConcurrentHashMap的putIfAbsent方法，当正在写的时候将key设人map，写完后，remove掉。</li>
+<li>定时任务服务（TimerTaskService）：<br> 服务启动的时候就起了一个scheduledExecutorService，将DumpConfigInfoTask加入其中，使用配置中的间隔时间，默认是600秒（10分钟）；DumpConfigInfoTask做的事情就是分页查询数据库里面的配置信息，然后批量更新到本地磁盘文件中，并修改ConfigService缓存中的数据Md5值；</li>
+</ol>
+<h5 id="总结："><a href="#总结：" class="headerlink" title="总结："></a>总结：</h5><p>从server的实现上，我们可以学习到以下几点</p>
+<ul>
+<li>使用MD5来比较文件内容是否发生变化；</li>
+<li>多服务节点之间怎么做数据同步；</li>
+<li>使用乐观锁来做文件的并发写操作；</li>
+</ul>
+<h4 id="Client的实现："><a href="#Client的实现：" class="headerlink" title="Client的实现："></a>Client的实现：</h4><ol>
+<li>监听器：<ul>
+<li>DefaultSubscriberListener 为默认的业务监听器集合，管理了所有注册进来的DataId监听器，当DefaultSubscriberListener收到配置信息时，会从所有dataId的监听器中找到关心此diataid的监听器集（Map的Key），然后逐个做异步的事件通知；ManagerListener 是针对一个dataId的配置信息进行监听的监听器接口，需要用户自己实现接收到数据的处理方式；</li>
+</ul>
+</li>
+<li>订阅者：<ul>
+<li>通过工程类DiamondClientFactory实现单例订阅者DefaultDiamondSubscriber，DefaultDiamondSubscriber 管理业务监听器聚集、Diamond的基本配置、本地配置处理器、Snapshot配置处理器、服务地址处理器等；DefaultDiamondSubscriber 实现了DiamondClientSub，拥有启动和终止’定时获取配置信息‘的方法：start()、stop(); start()方法中会间隔一段时间轮询一次配置信息的变更；</li>
+<li>轮询配置信息的变更分为三部分：<ol>
+<li>检查本地文件的配置信息LocalConfigInfoProcessor；</li>
+<li>检查远程DiamondServer上的配置信息变更，DiamondServer那么多配置信息，如何知道那些更新了呢？原因很简单，远程DiamondServer上配置信息多，但是应用里面使用的配置信息是一定的，找出缓存里面的所有配置信息，然后排除掉那些指定使用本地文件配置信息的DataId后把所有的DataId:Group:Md5拼接成一个文本（每行一条数据），通过http请求DiamondServer，查看这批配置里面那些dataId的Md5发生了变更，对发生了变更的dataId等信息拼接起来作为响应内容，客户端拿到这些变化了的dataid后，逐条向DiamondServer请求具体的内容数据，然后将数据发送给监听了此dataId的监听器，并保存数据到SNAPSHOT中；</li>
+<li>检查SNAPSHOT中配置文件；对没有获取本地配置，也没有成功从diamond server获取到配置的DataId，加载上一次的SNAPSHOT信息；</li>
+</ol>
+</li>
+</ul>
+</li>
+<li>数据处理器：<ul>
+<li>Diamond提供了三种数据处理器，本地配置文件处理器LocalConfigInfoProcessor（配置文件存放于<del>&#x2F;diamond&#x2F;data&#x2F;config-data&#x2F;组名&#x2F;dataId名）、Diamond远程服务配置文件处理器ServerAddressProcessor（从DiamondServer上获取配置信息）、快照配置文件处理器SnapshotConfigInfoProcessor（配置文件存放于</del>&#x2F;diamond&#x2F;snapshot&#x2F;组名&#x2F;dataId名）</li>
+<li>当我们在~&#x2F;diamond&#x2F;data&#x2F;config-data下放置了配置信息时，优先使用本地配置文件（如果存在此配置，则此配置会被标识为使用本地），如果本地文件与内存中的配置有差异时会触发内存数据更新，即popConfigInfo给此dataId的监听器发信息；如果没差异则跳过；被标识使用本地配置的dataId，在进行远程DiamondServer配置检查的时候，是被跳过的；</li>
+<li>无论使用本地配置还是远程配置，都会将配置信息保存到本地快照中（popConfigInfo中实现），用户当Diamond不可用的时候，可以从SNAPSHOT中进行加载；</li>
+<li>从实现上我们了解到Diamond的配置信息是异步获取到的，那我们在使用时，如何保证第一次读取一定能拿到配置信息呢？</li>
+<li>原因：自己在实现ManagerListener的时候，构造函数中可以使用默认的DefaultDiamondManager，然后主动调用defaultDiamondManager.getAvailableConfigureInfomation(5000)来获取配置信息；</li>
+<li>DefaultDiamondManager中getConfigureInfomation 和 getAvailableConfigureInfomation 方法的区别：getConfigureInfomation只从本地和远程DiamondServer上获取配置信息；<br>getAvailableConfigureInfomation 首先会从本地和远程DiamondServer上获取配置信息，如果都没有则从SNAPSHOT中加载配置信息；</li>
+</ul>
+</li>
+</ol>
+<h5 id="总结：-1"><a href="#总结：-1" class="headerlink" title="总结："></a>总结：</h5><p>从Client的实现上，我们学习到以下几点</p>
+<ul>
+<li>如何做多级容灾策略（强制指定配置、从DiamondServer上拉取配置 或 使用SNAPSHOT中的配置）；</li>
+<li>订阅者模式的应用；</li>
+<li>接口设计上的巧妙，给用户留了很多可以自由选择的地方，比如接收到数据内容后的格式处理、初始化获取配置的方式等；</li>
+<li>合理的使用cache；</li>
+</ul>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Middleware//" class="article-tag-list-link color1">Middleware</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2015/12/20/Middleware/2015-12-20-diamond-study/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
     <article id="post-Think/2015-06-25-be-myself" class="article article-type-post  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
     
@@ -1104,104 +1242,9 @@
 
 
   
-    <article id="post-Java/2013-07-03-http" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2013/07/03/Java/2013-07-03-http/">HTTP学习笔记（一）之初探</a>
-    </h1>
-  
-
-        
-        <a href="/2013/07/03/Java/2013-07-03-http/" class="archive-article-date">
-  	<time datetime="2013-07-02T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2013-07-03</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h4 id="http概览"><a href="#http概览" class="headerlink" title="http概览"></a>http概览</h4><p>HTTP协议（HyperText Transfer Protocol，超文本传输协议）是用于从WWW服务器传输超文本到本地浏览器的传送协议。它可以使浏览器更加高效，使网络传输减少。它不仅保证计算机正确快速地传输超文本文档，还确定传输文档中的哪一部分，以及哪部分内容首先显示(如文本先于图形)等。</p>
-<h4 id="http特征"><a href="#http特征" class="headerlink" title="http特征"></a>http特征</h4><p>http是应用层协议，由请求和响应构成，支持客户&#x2F;服务器模式。</p>
-<p>http是一个无状态的协议（每次发出的请求都是独立的，和上次的请求是没有关系的，所以如果需要通过http进行模拟登陆，就需要传递登录cookie）。</p>
-<p>无连接协议（每次连接只处理一个请求。服务器处理完客户的请求，并收到客户的应答后，即断开连接）。</p>
-<h4 id="http服务器"><a href="#http服务器" class="headerlink" title="http服务器"></a>http服务器</h4><p>Web服务器使用的基本都是http协议，所以web服务器也被称为是http服务器。</p>
-<h4 id="http服务器-与-app-服务器-的区别："><a href="#http服务器-与-app-服务器-的区别：" class="headerlink" title="http服务器 与 app 服务器 的区别："></a>http服务器 与 app 服务器 的区别：</h4><p>Web服务器的基本功能就是提供Web信息浏览服务。它只需支持HTTP协议、HTML文档格式及URL。与客户端的网络浏览器配合。</p>
-<p>应用程序服务器(简称应用服务器)，我们先看一下微软对它的定义：”我们把应用程序服务器定义为“作为服务器执行共享业务应用程序的底层的系统软件”。</p>
-<p>通俗的讲，Web服务器传送(serves)页面使浏览器可以浏览，然而应用程序服务器提供的是客户端应用程序可以调用(call)的方法(methods)。确切一点，你可以说:Web服务器专门处理HTTP请求(request)，但是应用程序服务器是通过很多协议来为应用程序提供(serves)商业逻辑 (business logic)。</p>
-<p>Apache是纯粹的web服务器，而Tomcat和IIS因为具有了解释执行服务器端代码的能力，可以称作为轻量级应用服务器或带有服务器功能的Web服务器。</p>
-<p>详细可参考：<a href="http://blog.csdn.net/gideal_wang/article/details/4442525">http://blog.csdn.net/gideal_wang&#x2F;article&#x2F;details&#x2F;4442525</a></p>
-<h4 id="一个http请求过程："><a href="#一个http请求过程：" class="headerlink" title="一个http请求过程："></a>一个http请求过程：</h4><blockquote>
-<p>用户在浏览器中输入一个URL，浏览器首先回去查host文件，如果此域名有对应的ip，如果没有就会根据网络连接里面的DNS地址去查选此URL对于的IP地址，再根据这个IP地址和默认80端口与远程服务器建立socket连接，然后浏览器根据这个URL组装成一个get类型的HTTP请求头，通过outputStream.write 发送到目标服务器，服务器等待inputStream.read返回数据，最后断开连接。</p>
-</blockquote>
-<p>一张HTTP请求过程图示：</p>
-<p>http 请求头 和 相应头的组成：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">Request Header:</span><br><span class="line">Request URL:http://www.taobao.com/</span><br><span class="line">Request Method:GET</span><br><span class="line">Status Code:200 OK200 OK</span><br><span class="line">Request Headersview source</span><br><span class="line">Accept:text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8</span><br><span class="line">Accept-Encoding:gzip,deflate,sdch</span><br><span class="line">Accept-Language:zh-CN,zh;q=0.8</span><br><span class="line">Cache-Control:max-age=0</span><br><span class="line">Connection:keep-alive</span><br><span class="line">Cookie:miid=.....</span><br><span class="line">Host:www.taobao.com</span><br><span class="line">User-Agent:Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/28.0.1469.0 Safari/537.36</span><br><span class="line"></span><br><span class="line">Respone Header:</span><br><span class="line">Cache-Control:max-age=3600</span><br><span class="line">Connection:keep-alive</span><br><span class="line">Content-Encoding:gzip</span><br><span class="line">Content-Type:text/html; charset=gbk</span><br><span class="line">Date:Wed, 03 Jul 2013 02:03:28 GMT</span><br><span class="line">Expires:Wed, 03 Jul 2013 03:03:28 GMT</span><br><span class="line">Server:Tengine</span><br><span class="line">Transfer-Encoding:chunked</span><br><span class="line">Vary:Accept-Encoding</span><br></pre></td></tr></table></figure>
-
-<h4 id="http-与-TCP-关系："><a href="#http-与-TCP-关系：" class="headerlink" title="http  与 TCP 关系："></a>http  与 TCP 关系：</h4><p>参考之前写的一片文章<a href="http://heartaway.cn/2013/05/02/websocket/">《Websocket 探究》</a></p>
-<h4 id="http-与socket关系："><a href="#http-与socket关系：" class="headerlink" title="http 与socket关系："></a>http 与socket关系：</h4><p>首先说一下什么是socket，Socket是应用层与TCP&#x2F;IP协议族通信的中间软件抽象层，它是一组接口，而不是协议。在设计模式中，Socket其实就是一个门面模式，它把复杂的TCP&#x2F;IP协议族隐藏在Socket接口后面，对用户来说，一组简单的接口就是全部，让Socket去组织数据，以符合指定的协议。Socket 可以支持不同的传输层协议（TCP 或UDP ）。</p>
-<p>http连接：是基于TCP协议之上的协议，是短连接；</p>
-<p>socket连接：socket连接就是所谓的长连接，理论上客户端和服务器端一旦建立起连接将不会主动断掉，但会由于网络因素断开，所以经常使用轮询心跳来保持连接；</p>
-<p>HTTP 是基于Socket 通信的子协议, Socket 收发信息自由, 协议都可由使用者定义。 HTTP 在Socket 基础上做了协议规范, 通信只能按照特定的格式去做, 用户可在HTTP 上做自己的子协议, 如网页浏览,webservice 等.</p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2013/07/03/Java/2013-07-03-http/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
   
     <nav id="page-nav">
-      <a class="extend prev" rel="prev" href="/page/8/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/7/">7</a><a class="page-number" href="/page/8/">8</a><span class="page-number current">9</span><a class="page-number" href="/page/10/">10</a><a class="extend next" rel="next" href="/page/10/">Next &raquo;</a>
+      <a class="extend prev" rel="prev" href="/page/8/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/7/">7</a><a class="page-number" href="/page/8/">8</a><span class="page-number current">9</span><a class="page-number" href="/page/10/">10</a><a class="page-number" href="/page/11/">11</a><a class="extend next" rel="next" href="/page/10/">Next &raquo;</a>
     </nav>
   
 
@@ -1308,6 +1351,22 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">成长</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">书信</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">青春</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">人生</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">共享变量</a>
               </li>
              
@@ -1344,23 +1403,7 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">人生</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">感悟</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">成长</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">书信</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">青春</a>
               </li>
             
             <div class="clearfix"></div>

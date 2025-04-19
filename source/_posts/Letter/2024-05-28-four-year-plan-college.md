@@ -1,8 +1,7 @@
 ---
-
 layout: post
-title: 爸爸大学时的四年规划
-categories: Think
+title: 亲子书信：爸爸大学时的四年规划
+categories: Letter
 description:
 tags: [成长,书信]
 date: 2024-05-28
@@ -78,5 +77,3 @@ date: 2024-05-28
 ![](https://pic4.zhimg.com/v2-ed8b09137d6f3ebd584ea49a09fe94a5_1440w.jpg)
 
 ![](https://pic4.zhimg.com/v2-f44b3d2f851ff236245626f487231635_1440w.jpg)
-
-

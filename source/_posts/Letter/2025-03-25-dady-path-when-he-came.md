@@ -1,7 +1,7 @@
 ---
 layout: post
-title: 爸爸来时的路
-categories: Think
+title: 亲子书信：爸爸来时的路
+categories: Letter
 description:
 tags: [成长,书信]
 date: 2025-03-25

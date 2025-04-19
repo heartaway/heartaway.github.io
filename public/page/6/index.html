@@ -149,6 +149,95 @@
           <div id="js-content" class="content-ll">
             
   
+    <article id="post-Java/2016-08-17-task-threadpool" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2016/08/17/Java/2016-08-17-task-threadpool/">Task混用ThreadPool导致无限等待</a>
+    </h1>
+  
+
+        
+        <a href="/2016/08/17/Java/2016-08-17-task-threadpool/" class="archive-article-date">
+  	<time datetime="2016-08-16T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2016-08-17</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h3 id="现象："><a href="#现象：" class="headerlink" title="现象："></a>现象：</h3><p>生产环境商品打标异步任务提交任务后，任务没有被执行；查看日志，没有异常日志抛出。</p>
+<h3 id="初步猜测："><a href="#初步猜测：" class="headerlink" title="初步猜测："></a>初步猜测：</h3><p>可能是队列出现了饱和或者死锁，但是如果出现了饱和，我们设置的线程池设置的饱和策略是通过主线程去执行，为什么主线程也没有执行呢？</p>
+<h3 id="具体分析："><a href="#具体分析：" class="headerlink" title="具体分析："></a>具体分析：</h3><p>我定义了一个线程池Pool-Z，core_size&#x3D;5,max_size&#x3D;20,queue_size&#x3D;1000，第一个任务A提交后，占用一个线程，那么这个任务A又会被分解成多个异步任务去执行，比如分解为A1、A2、A3（这些子任务为耗时任务），这些异步任务使用了同一个线程池Pool-Z提供线程，但是任务A内部做了一个事情，通过CountDownLatch.await实现了当所有A的子任务都执行完毕后，才执行后续的一个扫尾工作，也就是说线程A会等待同一个线程池中的A1、A2、A3执行完毕后才能释放出线程A的资源；如果没有其它的主任务B或者C加进来，这些任务总会被执行完毕；但是如果主任务提交非常频繁，比如连续提交了几个包含非常多子任务的B、C、D进来，此时这样的不敢具体子任务只是等待子任务完成的主任务就占用了4个主要线程，只有一个子任务在执行工作，由于不会分配新的线程来处理子任务，所以B、C、D的子任务都会被扔到队列里面，知道队列满掉，当队列慢了后，会开辟新的线程来处理任务，但是我们知道由于很多主任务提交进来都处于等待子任务释放而处于等待状态，如果当某一刻20个核心线程都成为了主任务且都在等子任务执行完毕的时候，子任务就得不到线程，锁等待就可能发生了，因为当时配置的任务队列比较大，为3000，所以当时加入的任务都被加入到了队列中，由于总数没有达到3000个，所以没有触发线程池的饱和策略。</p>
+<h3 id="解决方案："><a href="#解决方案：" class="headerlink" title="解决方案："></a>解决方案：</h3><ul>
+<li>方案一是去掉锁的使用，且需要保证相同业务含义；实现较困难；</li>
+<li>方案二把两个线程池拆开，不共用队列，避免了相互等待而产生死循环；</li>
+</ul>
+<h3 id="总结："><a href="#总结：" class="headerlink" title="总结："></a>总结：</h3><ul>
+<li>尽量避免线程之间的依赖；处理“当子任务都完成后再执行主任务”的场景最容易产生这样的线程依赖问题；</li>
+<li>尽量避免使用wait、lock等操作；如果必须使用也切记加入超时时间；</li>
+<li>对线程池的使用时最好自定义线程池的名称，方便拍错和定位问题；</li>
+<li>如果需要使用内部类且内部类不需要应用外部类的属性，尽可能把内部类设置为static形态；</li>
+</ul>
+<h3 id="实践："><a href="#实践：" class="headerlink" title="实践："></a>实践：</h3><p>自定义线程工厂实现给线程重命名的实践：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span>  <span class="keyword">class</span> <span class="title class_">NamedThreadFactory</span> <span class="keyword">implements</span> <span class="title class_">ThreadFactory</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">AtomicInteger</span> <span class="variable">poolNumber</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">AtomicInteger</span>(<span class="number">1</span>);</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> ThreadGroup group;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">AtomicInteger</span> <span class="variable">threadNumber</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">AtomicInteger</span>(<span class="number">1</span>);</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String namePrefix;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">boolean</span> threadDeamon;</span><br><span class="line"></span><br><span class="line">    NamedThreadFactory(String name) &#123;</span><br><span class="line">        <span class="type">SecurityManager</span> <span class="variable">s</span> <span class="operator">=</span> System.getSecurityManager();</span><br><span class="line">        group = (s != <span class="literal">null</span>) ? s.getThreadGroup() : Thread.currentThread().getThreadGroup();</span><br><span class="line">        <span class="type">String</span> <span class="variable">newname</span> <span class="operator">=</span> name != <span class="literal">null</span> ? name + <span class="string">&quot;-thread&quot;</span> : <span class="string">&quot;thread&quot;</span>;</span><br><span class="line">        namePrefix = <span class="string">&quot;pool-&quot;</span> + poolNumber.getAndIncrement() + <span class="string">&quot;-&quot;</span> + newname + <span class="string">&quot;-&quot;</span>;</span><br><span class="line">        threadDeamon = <span class="literal">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    NamedThreadFactory(String name, <span class="type">boolean</span> deamon) &#123;</span><br><span class="line">        <span class="type">SecurityManager</span> <span class="variable">s</span> <span class="operator">=</span> System.getSecurityManager();</span><br><span class="line">        group = (s != <span class="literal">null</span>) ? s.getThreadGroup() : Thread.currentThread().getThreadGroup();</span><br><span class="line">        <span class="type">String</span> <span class="variable">newname</span> <span class="operator">=</span> name != <span class="literal">null</span> ? name : <span class="string">&quot;thread&quot;</span>;</span><br><span class="line">        namePrefix = <span class="string">&quot;pool-&quot;</span> + poolNumber.getAndIncrement() + <span class="string">&quot;-&quot;</span> + newname + <span class="string">&quot;-&quot;</span>;</span><br><span class="line">        threadDeamon = deamon;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> Thread <span class="title function_">newThread</span><span class="params">(Runnable runnable)</span> &#123;</span><br><span class="line">        <span class="type">Thread</span> <span class="variable">thread</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Thread</span>(group, runnable, namePrefix + threadNumber.getAndIncrement(), <span class="number">0</span>);</span><br><span class="line">        thread.setDaemon(threadDeamon);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (thread.getPriority() != Thread.NORM_PRIORITY) &#123;</span><br><span class="line">            thread.setPriority(Thread.NORM_PRIORITY);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        thread.setUncaughtExceptionHandler(<span class="keyword">new</span> <span class="title class_">Thread</span>.UncaughtExceptionHandler() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">uncaughtException</span><span class="params">(Thread thread, Throwable ex)</span> &#123;</span><br><span class="line">                LOGGER.error(<span class="string">&quot;tagTask.&quot;</span>, thread.getName() + <span class="string">&quot; thrown an exception : &quot;</span>, ex);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> thread;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2016/08/17/Java/2016-08-17-task-threadpool/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
     <article id="post-Think/2016-08-14-our-generation-time" class="article article-type-post  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
     
@@ -966,92 +1055,9 @@
 
 
   
-    <article id="post-Java/2016-06-26-distributed-id-generator" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2016/06/26/Java/2016-06-26-distributed-id-generator/">分布式系统高效唯一ID生成方案</a>
-    </h1>
-  
-
-        
-        <a href="/2016/06/26/Java/2016-06-26-distributed-id-generator/" class="archive-article-date">
-  	<time datetime="2016-06-25T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2016-06-26</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <blockquote>
-<p>背景：在分布式系统中，对于订单ID如何保证全局唯一地高效的生成，并对性能影响不大的情况下，利于建立索引和业务使用？</p>
-</blockquote>
-<h4 id="方案一：使用数据库主键ID"><a href="#方案一：使用数据库主键ID" class="headerlink" title="方案一：使用数据库主键ID"></a>方案一：使用数据库主键ID</h4><p>优势：实现简单；<br>弊端：使用数据库增加写库的压力，生成订单的上限受限于数据库的写性能上限；扩展性差；</p>
-<h4 id="方案二：单点批量生成订单号的服务；"><a href="#方案二：单点批量生成订单号的服务；" class="headerlink" title="方案二：单点批量生成订单号的服务；"></a>方案二：单点批量生成订单号的服务；</h4><p>优势：批量降低了数据库的读写压力<br>弊端：服务单点风险；</p>
-<h4 id="方案三：使用UUID"><a href="#方案三：使用UUID" class="headerlink" title="方案三：使用UUID"></a>方案三：使用UUID</h4><p>优势：本地生成ID，不进行远程调用，延迟低；<br>弊端：无法保证趋势增长；uuid过长且建立索引效率低下；64位太长；</p>
-<h4 id="方案四：使用毫秒数"><a href="#方案四：使用毫秒数" class="headerlink" title="方案四：使用毫秒数"></a>方案四：使用毫秒数</h4><p>优势：本地生成ID，不进行远程调用，延迟低；ID为整数利于建立索引；<br>弊端：并发超过1000，可能会重复；<br>优化方案：使用LRU Cache存储最近生成的100Key，去除后先判断是否重复；进一步降低重复的可能性；但是无法根本上解决高并发下的重复；</p>
-<h4 id="方案五：订单号分段表示具体含义"><a href="#方案五：订单号分段表示具体含义" class="headerlink" title="方案五：订单号分段表示具体含义"></a>方案五：订单号分段表示具体含义</h4><p>方案描述：使用39bit表示毫秒数、4bit表示业务线、7bit表示机器等<br>优势：实现简单，且重复可能性很低；<br>弊端：订单长度过长，不利于业务使用；</p>
-<h4 id="方案六：使用Redis服务-毫秒数双重方案"><a href="#方案六：使用Redis服务-毫秒数双重方案" class="headerlink" title="方案六：使用Redis服务+毫秒数双重方案"></a>方案六：使用Redis服务+毫秒数双重方案</h4><p>优势：使用redis的自增序列特性，每次获取一定数量的数据（1000个），降低了每次调用Redis的开销；当Redis挂了，使用基于毫秒数的本地生成ID优化方案；<br>弊端：redis挂了后，订单号的重复性不可避免；</p>
-<h4 id="总结："><a href="#总结：" class="headerlink" title="总结："></a>总结：</h4><p>我们在设计分布式全局唯一单号的时候，不仅需要考虑生成单号的是否重复性，还要考虑生成时的性能开销、是否有容灾方案、是否便于建立索引、是否利于业务使用等。基于这些点的考虑，我们采用了方案六作为线上的唯一生成方案，并把此方案作为一个业务隔离的二方库，可以提供给不同业务方式用；</p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2016/06/26/Java/2016-06-26-distributed-id-generator/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
   
     <nav id="page-nav">
-      <a class="extend prev" rel="prev" href="/page/5/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/4/">4</a><a class="page-number" href="/page/5/">5</a><span class="page-number current">6</span><a class="page-number" href="/page/7/">7</a><a class="page-number" href="/page/8/">8</a><span class="space">&hellip;</span><a class="page-number" href="/page/10/">10</a><a class="extend next" rel="next" href="/page/7/">Next &raquo;</a>
+      <a class="extend prev" rel="prev" href="/page/5/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/4/">4</a><a class="page-number" href="/page/5/">5</a><span class="page-number current">6</span><a class="page-number" href="/page/7/">7</a><a class="page-number" href="/page/8/">8</a><span class="space">&hellip;</span><a class="page-number" href="/page/11/">11</a><a class="extend next" rel="next" href="/page/7/">Next &raquo;</a>
     </nav>
   
 
@@ -1158,6 +1164,22 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">成长</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">书信</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">青春</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">人生</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">共享变量</a>
               </li>
              
@@ -1194,23 +1216,7 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">人生</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">感悟</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">成长</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">书信</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">青春</a>
               </li>
             
             <div class="clearfix"></div>

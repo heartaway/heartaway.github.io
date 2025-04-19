@@ -15,7 +15,7 @@ subnav:
   #segmentfault: "#"
   #bilibili: "#"
   #acfun: "#"
-  #mail: "mailto:litten225@qq.com"
+  mail: "mailto:317949568@qq.com"
   #facebook: "#"
   #google: "#"
   #twitter: "#"
@@ -57,7 +57,9 @@ baidu_analytics: ''
 google_analytics: ''
 favicon: /favicon.ico
 #你的头像url
-avatar: https://avatars3.githubusercontent.com/u/5878884
+# avatar: https://avatars3.githubusercontent.com/u/5878884
+avatar: /avatar.JPG 
+
 #是否开启分享
 share_jia: true
 #评论：1、多说；2、网易云跟帖；3、畅言；4、Disqus；5、Gitment

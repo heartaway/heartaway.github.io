@@ -149,6 +149,131 @@
           <div id="js-content" class="content-ll">
             
   
+    <article id="post-Program/2018-01-04-permission-system-degisn" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/01/04/Program/2018-01-04-permission-system-degisn/">系统权限控制体系</a>
+    </h1>
+  
+
+        
+        <a href="/2018/01/04/Program/2018-01-04-permission-system-degisn/" class="archive-article-date">
+  	<time datetime="2018-01-03T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-01-04</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>在 Web 应用开发中，安全一直是非常重要的一个方面。安全虽然属于应用的非功能性需求，但是应该在应用开发的初期就考虑进来。比如我们开放的功能页面需要登录授权之后才能访问，一些功能需要具备特定权限的人才能操作；再比如我们开放了数据API接口，如果不做访问控制，那么任何人都可以调用，当被不法分子操作时将给我们带来巨大的麻烦。那么在Java 整个体系中访问控制是否有一套理论技术支撑呢，我们是否可以做一个通用性的访问控制系统来完成分布式系统架构下的复杂的权限控制？接下来会一一介绍。</p>
+<h3 id="访问控制的本质："><a href="#访问控制的本质：" class="headerlink" title="访问控制的本质："></a>访问控制的本质：</h3><p>系统权限控制 本质上是访问控制（Access Control），那访问控制的本质又是什么呢？其实就是合法的访问受保护的资源，通俗的解释就是“【谁】是否有可以对某个【资源】进行某种【操作】”；可以看出访问控制的三个基本要素：主体（请求实体）、客体（资源实体）、控制策略（属性集合）；</p>
+<h3 id="访问控制需要完成的两个任务："><a href="#访问控制需要完成的两个任务：" class="headerlink" title="访问控制需要完成的两个任务："></a>访问控制需要完成的两个任务：</h3><p>识别和确认访问系统的用户；<br>决定该用户可以对某一系统资源进行何种类型的访问；</p>
+<h3 id="访问控制理论模型："><a href="#访问控制理论模型：" class="headerlink" title="访问控制理论模型："></a>访问控制理论模型：</h3><ul>
+<li>DAC&amp;MAC模型<ul>
+<li>DAC：自主访问控制；</li>
+<li>MAC：强制访问控制，一般用于多级安全军事系统；</li>
+</ul>
+</li>
+<li>IBAC模型：<ul>
+<li>基于身份的访问控制模型</li>
+<li>举例：登录验证</li>
+<li>比如Java中使用cookie、session存储回话标识；</li>
+</ul>
+</li>
+<li>RBAC模型：<ul>
+<li>基于角色的访问控制（Role-Based Access Control）</li>
+<li>用户、角色、权限</li>
+<li>RBAC是ABAC的一种单属性特例；</li>
+<li>1992年David F.Ferraiolo &amp; D.Richard Kuhn在第十五届国家计算机安全会议上提出；</li>
+<li>论文：<a href="https://csrc.nist.gov/projects/role-based-access-control">https://csrc.nist.gov/projects/role-based-access-control</a></li>
+<li>举例：丰趣-小二后台的认证授权模型设计；</li>
+<li>Spring Security、Apache Shiro、Ali ACL</li>
+</ul>
+</li>
+<li>ABAC模型：<ul>
+<li>基于属性的访问控制模型 (Attribute Based Access Control)</li>
+<li>举例：阿里云、AWS；</li>
+<li>论文：<ul>
+<li><a href="https://csrc.nist.gov/projects/attribute-based-access-control">https://csrc.nist.gov/projects/attribute-based-access-control</a></li>
+<li><a href="https://link.springer.com/chapter/10.1007/978-3-319-25645-0_14">https://link.springer.com/chapter/10.1007/978-3-319-25645-0_14</a></li>
+<li><a href="http://profsandhu.com/dissert/xin_slides.pdf">http://profsandhu.com/dissert/xin_slides.pdf</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>示意图：<br><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/068d3b155b6538ee6f4651d7febe19cd.png"><br>基于RBAC权限模型的常见数据库模型设计：<br><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/af745d65be9e6922518ff6402e805464.png"><br>设计的核心主题: 用户、权限、角色、用户角色、角色权限、用户组、用户组角色、操作审计<br>阿里巴巴登录鉴权与审计的三驾马车：BUC、ACL、OpLog；</p>
+<h3 id="Java常用访问控制框架："><a href="#Java常用访问控制框架：" class="headerlink" title="Java常用访问控制框架："></a>Java常用访问控制框架：</h3><ul>
+<li>JAAS框架：<ul>
+<li>Authentication（鉴别），    Authorization（授权），Accounting（计费）；</li>
+<li>Java认证和授权服务（Java Authentication and Authorization Service，简称JAAS）</li>
+<li>支持的框架：LDAP</li>
+<li>特点：面世时间早，使用受限，不建议使用；</li>
+</ul>
+</li>
+<li>Spring Security框架</li>
+<li>Apache Shiro框架</li>
+</ul>
+<h3 id="权限系统的演变历史："><a href="#权限系统的演变历史：" class="headerlink" title="权限系统的演变历史："></a>权限系统的演变历史：</h3><h4 id="1：-标准的JAAS-时代；"><a href="#1：-标准的JAAS-时代；" class="headerlink" title="1： 标准的JAAS 时代；"></a>1： 标准的JAAS 时代；</h4><p>J2ee时代，Java提出了标准的鉴权服务，即jaas；通过简单的容器配置和文件配置，通过一个LDAP（可以用数据库，只是效率不高），就可以提供一个极为高效便捷的权限管控服务。这个模式不仅支持页面管控，还支持ejb服务接口管控。其鉴权因为ldap的数倍于数据库的查询效率而无需任何缓存，速度很快。但是伴随着分布式服务化进程，应用的数量无限度增长，这种散落在各个容器的配置给容灾和修改，都带来了极大的挑战，ldap的可读化差，修改和编辑极为不便，当需求一旦个性化超过了树能够表达的模型便很难在适应。并且当ldap的数据爆炸式增长，且呈现28规律时（数据冷热不均），或者如果需要频繁的写ldap，查询效率会陡然下降。虽然这种方式目前并不流行的，但是由于历史原因，还存留着使用这种方式的管控方式，所以我们在Spring Security或者阿里的ACL中都还能看到对JAAS的支持。</p>
+<h4 id="2：-单点登录-SSO-接口鉴权时代；"><a href="#2：-单点登录-SSO-接口鉴权时代；" class="headerlink" title="2： 单点登录(SSO)+接口鉴权时代；"></a>2： 单点登录(SSO)+接口鉴权时代；</h4><p>把分散在各个系统的登录认证服务统一到一个系统中来，统一管控登录授权业务，用户只要在一个系统中登录了，在其它系统中就没必要再次登录了，这就是SSO。简单的实现是登录授权系统部署在一台机器上，不涉登录系统的多机部署，此架构具有单点风险；任何具备高可用思维的架构师都不会允许此风险存在，原因有二：1. 统一登录中心后，SSO成为极为核心的应用，如果SSO系统挂了，那么需要登录的任何服务器都无法正常提供服务；2. 单台机器不具备抵抗登录风暴的能力； 所以SSO系统必须成为集群部署模式。其次，在访问控制模型上，也必须放弃JAAS方式，转而使用RBAC模型；</p>
+<h4 id="3：-统一登录（分布式Session）-接口鉴权时代；"><a href="#3：-统一登录（分布式Session）-接口鉴权时代；" class="headerlink" title="3： 统一登录（分布式Session） + 接口鉴权时代；"></a>3： 统一登录（分布式Session） + 接口鉴权时代；</h4><p>SSO系统集群部署后，面临的首要问题就是Session的共享问题，比如用户在sso-1 机器上登录了，下次访问sso-2机器时，也必须是登录态的。分布式Session使用较多的方案为：Session集中管理；比如阿里巴巴基于Tair 缓存体系的共享session体系tbsession。如果采用了session + cookie的方案，并且服务端集群是多域名共享登录的话，那么还需要提供cookie跨域同步的能力（解决cookie不能跨域的问题）。</p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Program//" class="article-tag-list-link color3">Program</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2018/01/04/Program/2018-01-04-permission-system-degisn/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
     <article id="post-Program/2018-01-04-taobao-sso" class="article article-type-post  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
     
@@ -1355,107 +1480,9 @@
 
 
   
-    <article id="post-Java/2017-09-21-phantomjs-use" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/09/21/Java/2017-09-21-phantomjs-use/">Capture Html Content After Render</a>
-    </h1>
-  
-
-        
-        <a href="/2017/09/21/Java/2017-09-21-phantomjs-use/" class="archive-article-date">
-  	<time datetime="2017-09-20T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2017-09-21</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>在前端技术越来越注重用户体验的潮流下，异步数据渲染组件成为主流，但是异步渲染给爬虫和相关需要使用页面异步渲染后Dom结构的需求来说，变得很麻烦。要想获取渲染后的页面内容，常见的方法有：</p>
-<ol>
-<li>使用类似于PhantomJS的Headless浏览器，模拟页面渲染，获取页面HTML；</li>
-<li>分析Ajax请求，获取请求后的数据。</li>
-</ol>
-<p>对于千变万化的页面结构来说，第一种方法更具备通用性，首选需要安装PhantomJS，然后编写js脚本，最后就是运行脚本获取结果啦。</p>
-<p>比如我编写了一个loadPage.js,用于支持页面截图或者页面渲染后的HTML结构获取：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">var</span> <span class="variable">args</span> <span class="operator">=</span> require(<span class="string">&#x27;system&#x27;</span>).args;</span><br><span class="line"><span class="type">var</span> <span class="variable">page</span> <span class="operator">=</span> require(<span class="string">&#x27;webpage&#x27;</span>).create();</span><br><span class="line"><span class="type">var</span> <span class="variable">fs</span> <span class="operator">=</span> require(<span class="string">&#x27;fs&#x27;</span>);</span><br><span class="line"><span class="keyword">var</span> url;</span><br><span class="line"><span class="type">var</span> <span class="variable">fileName</span> <span class="operator">=</span> <span class="string">&quot;&quot;</span>;</span><br><span class="line"><span class="type">var</span> <span class="variable">cookieJson</span> <span class="operator">=</span> <span class="string">&quot;&quot;</span>;</span><br><span class="line"><span class="type">var</span> <span class="variable">type</span> <span class="operator">=</span> <span class="string">&quot;html&quot;</span>;</span><br><span class="line"><span class="type">var</span> <span class="variable">viewWidth</span> <span class="operator">=</span> <span class="number">1024</span>;</span><br><span class="line"><span class="type">var</span> <span class="variable">viewHeight</span> <span class="operator">=</span> <span class="number">768</span>;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">args.forEach(function(arg, i) &#123;</span><br><span class="line">    <span class="keyword">if</span>(i === <span class="number">1</span>)&#123;</span><br><span class="line">      url = arg;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>(i === <span class="number">2</span>)&#123;</span><br><span class="line">      type = arg;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">     <span class="keyword">if</span>(i === <span class="number">3</span>)&#123;</span><br><span class="line">      fileName = arg;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>(i === <span class="number">4</span>)&#123;</span><br><span class="line">      cookieJson = arg;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>(i === <span class="number">5</span>)&#123;</span><br><span class="line">      viewWidth = arg;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>(i === <span class="number">6</span>)&#123;</span><br><span class="line">      viewHeight = arg;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">page.viewportSize = &#123; width: viewWidth, height:viewHeight &#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span>(cookieJson != <span class="literal">null</span> &amp;&amp; cookieJson != <span class="string">&quot;&quot;</span>)&#123;</span><br><span class="line">    <span class="type">var</span> <span class="variable">cookieArray</span> <span class="operator">=</span>  JSON.parse(cookieJson);</span><br><span class="line">      <span class="keyword">for</span> (<span class="type">var</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; cookieArray.length; i++) &#123;</span><br><span class="line">          <span class="type">var</span> <span class="variable">cookieObj</span> <span class="operator">=</span> cookieArray[i];</span><br><span class="line">          <span class="type">var</span> <span class="variable">cookie</span> <span class="operator">=</span> &#123;</span><br><span class="line">            <span class="string">&#x27;name&#x27;</span>     : cookieObj.name,</span><br><span class="line">            <span class="string">&#x27;value&#x27;</span>    : cookieObj.value,</span><br><span class="line">            <span class="string">&#x27;path&#x27;</span>     : cookieObj.path,</span><br><span class="line">            <span class="string">&#x27;domain&#x27;</span>   : cookieObj.domain,</span><br><span class="line">            <span class="string">&#x27;expires&#x27;</span>  : cookieObj.expires</span><br><span class="line">          &#125;;</span><br><span class="line">        phantom.addCookie(cookie);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">page.onError = function(msg, trace) &#123;</span><br><span class="line">    console.log(<span class="string">&quot;[Warning]This is page.onError&quot;</span>);</span><br><span class="line">    <span class="type">var</span> <span class="variable">msgStack</span> <span class="operator">=</span> [<span class="string">&#x27;ERROR: &#x27;</span> + msg];</span><br><span class="line">    <span class="keyword">if</span> (trace &amp;&amp; trace.length) &#123;</span><br><span class="line">        msgStack.push(<span class="string">&#x27;TRACE:&#x27;</span>);</span><br><span class="line">        trace.forEach(function(t) &#123;</span><br><span class="line">          msgStack.push(<span class="string">&#x27; -&gt; &#x27;</span> + t.file + <span class="string">&#x27;: &#x27;</span> + t.line + (t.function ? <span class="string">&#x27; (in function &quot;&#x27;</span> + t.function +<span class="string">&#x27;&quot;)&#x27;</span> : <span class="string">&#x27;&#x27;</span>));</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// console.error(msgStack.join(&#x27;\n&#x27;));</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">phantom.onError = function(msg, trace) &#123;</span><br><span class="line">    console.log(<span class="string">&quot;[Warning]This is phantom.onError&quot;</span>);</span><br><span class="line">    <span class="type">var</span> <span class="variable">msgStack</span> <span class="operator">=</span> [<span class="string">&#x27;PHANTOM ERROR: &#x27;</span> + msg];</span><br><span class="line">    <span class="keyword">if</span> (trace &amp;&amp; trace.length) &#123;</span><br><span class="line">      msgStack.push(<span class="string">&#x27;TRACE:&#x27;</span>);</span><br><span class="line">      trace.forEach(function(t) &#123;</span><br><span class="line">        msgStack.push(<span class="string">&#x27; -&gt; &#x27;</span> + (t.file || t.sourceURL) + <span class="string">&#x27;: &#x27;</span> + t.line + (t.function ? <span class="string">&#x27; (in function &#x27;</span> + t.function +<span class="string">&#x27;)&#x27;</span> : <span class="string">&#x27;&#x27;</span>));</span><br><span class="line">      &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">      console.error(msgStack.join(<span class="string">&#x27;\n&#x27;</span>));</span><br><span class="line">      phantom.exit(<span class="number">1</span>);</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">page.onLoadFinished = function() &#123;</span><br><span class="line">   setTimeout(function()&#123;</span><br><span class="line">      <span class="keyword">if</span>(type == <span class="string">&quot;image&quot;</span>)&#123;</span><br><span class="line">        page.render(fileName,&#123;format: <span class="string">&#x27;jpg&#x27;</span>, quality: <span class="string">&#x27;100&#x27;</span>&#125;);</span><br><span class="line">        console.log(<span class="string">&quot;render page finished: &quot;</span> + url);</span><br><span class="line">      &#125;</span><br><span class="line">       </span><br><span class="line">      <span class="keyword">if</span>(type == <span class="string">&quot;html&quot;</span>)&#123;</span><br><span class="line">         fs.write(fileName, page.content, <span class="string">&#x27;w&#x27;</span>);</span><br><span class="line">         console.log(<span class="string">&quot;page html gen success: &quot;</span> + url);</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      phantom.exit();         </span><br><span class="line">   &#125;,<span class="number">5000</span>);</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">page.open(url, function (status) &#123;</span><br><span class="line">    <span class="keyword">if</span> (status === <span class="string">&quot;success&quot;</span>) &#123;</span><br><span class="line">        console.log(<span class="string">&quot;load status: &quot;</span> + status);</span><br><span class="line">    &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">        phantom.exit();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
-
-<p>服务端通过Process类调用Linux中的shell脚本，运行截图或者页面渲染服务，然后把获取到的结果存储到文件存储系统中，返回文件存储的地址URL给业务方，业务方通过URL访问原始数据，减少网络数据传输。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">String</span> <span class="variable">type</span> <span class="operator">=</span> <span class="string">&quot;html&quot;</span>;</span><br><span class="line">String[] params =</span><br><span class="line">                    <span class="keyword">new</span> <span class="title class_">String</span>[] &#123;DiamondUtil.getPhantomJsPath(), DiamondUtil.getCaptureJsPath(), url,type , htmlName,</span><br><span class="line">                        cookieJson&#125;;</span><br><span class="line">                ShellUtil.executeShell(params, <span class="string">&quot; capture url &quot;</span> + url);</span><br><span class="line">                <span class="type">File</span> <span class="variable">htmlFile</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">File</span>(defaultFilePath(htmlName));</span><br><span class="line">                <span class="keyword">if</span> (checkFileEixst(htmlFile)) &#123;</span><br><span class="line">                    <span class="type">String</span> <span class="variable">htmlOssUrl</span> <span class="operator">=</span> fileService.updateObjectToOss(htmlName, htmlFile);</span><br><span class="line">                &#125;</span><br></pre></td></tr></table></figure>
-
-<p>ShellUtil中的运行代码：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">executeShell</span><span class="params">(String[] params, String message)</span> <span class="keyword">throws</span> Exception &#123;</span><br><span class="line">        <span class="type">Process</span> <span class="variable">process</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line">        <span class="type">BufferedReader</span> <span class="variable">stdBufferedReader</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line">        <span class="type">BufferedReader</span> <span class="variable">errorBufferedReader</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="type">ProcessBuilder</span> <span class="variable">pb</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ProcessBuilder</span>(params);</span><br><span class="line">            pb.directory(<span class="keyword">new</span> <span class="title class_">File</span>(DiamondUtil.getCaptureImagePath()));</span><br><span class="line">            pb.redirectErrorStream(<span class="literal">true</span>);</span><br><span class="line">            process = pb.start();</span><br><span class="line">            stdBufferedReader = <span class="keyword">new</span> <span class="title class_">BufferedReader</span>(<span class="keyword">new</span> <span class="title class_">InputStreamReader</span>(process.getInputStream()));</span><br><span class="line">            errorBufferedReader = <span class="keyword">new</span> <span class="title class_">BufferedReader</span>(<span class="keyword">new</span> <span class="title class_">InputStreamReader</span>(process.getErrorStream()));</span><br><span class="line">            String line;</span><br><span class="line">            <span class="keyword">while</span> ((line = stdBufferedReader.readLine()) != <span class="literal">null</span>) &#123;</span><br><span class="line">                logger.info(message + <span class="string">&quot;:&quot;</span> + line);</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">while</span> ((line = errorBufferedReader.readLine()) != <span class="literal">null</span>) &#123;</span><br><span class="line">                logger.error(message + <span class="string">&quot;:&quot;</span> + line);</span><br><span class="line">            &#125;</span><br><span class="line">            process.waitFor();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            logger.error(message, e);</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (stdBufferedReader != <span class="literal">null</span>) &#123;</span><br><span class="line">                stdBufferedReader.close();</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (errorBufferedReader != <span class="literal">null</span>) &#123;</span><br><span class="line">                stdBufferedReader.close();</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (process != <span class="literal">null</span>) &#123;</span><br><span class="line">                process.destroy();</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
-
-<p>在截图服务中，首次出现了中文乱码，网上有同学说安装bitmap-fonts，但是并不好使，建议删除：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo yum remove bitmap-fonts bitmap-fonts-cjk</span><br></pre></td></tr></table></figure>
-
-<p>网页查看我们使用的字体内容：</p>
-<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">...&#123;  ...  font-family: Helvetica, arial, &quot;microsoft yahei&quot;, Monaco, sans-serif;  ...&#125;</span><br></pre></td></tr></table></figure>
-
-<p>可以看到有 多种字体，最后的 sans-serif 默认对应是黑体，需要把这5种字体装到截图的 Linux 服务器，分别从osx和windows上copy出来，注意一下，osx 中的字体是 .ttc 和 .dfont 格式的，我们 可以借助 <a href="http://transfonter.org/ttc-unpack%E6%9D%A5%E8%BD%AC%E6%8D%A2%E4%B8%BA">http://transfonter.org/ttc-unpack来转换为</a> Linux 支持的 .ttf 的格式。</p>
-<p>把这些文件拷到 Linux 服务器上，然后调用 fc-cache 更新一下</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo mkdir /usr/share/fonts/customsudo cp *.ttf  /usr/share/fonts/customfc-cache -fv</span><br></pre></td></tr></table></figure>
-
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2017/09/21/Java/2017-09-21-phantomjs-use/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
   
     <nav id="page-nav">
-      <a class="extend prev" rel="prev" href="/page/2/">&laquo; Prev</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span><a class="page-number" href="/page/4/">4</a><a class="page-number" href="/page/5/">5</a><span class="space">&hellip;</span><a class="page-number" href="/page/10/">10</a><a class="extend next" rel="next" href="/page/4/">Next &raquo;</a>
+      <a class="extend prev" rel="prev" href="/page/2/">&laquo; Prev</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span><a class="page-number" href="/page/4/">4</a><a class="page-number" href="/page/5/">5</a><span class="space">&hellip;</span><a class="page-number" href="/page/11/">11</a><a class="extend next" rel="next" href="/page/4/">Next &raquo;</a>
     </nav>
   
 
@@ -1562,6 +1589,22 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">成长</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">书信</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">青春</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">人生</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">共享变量</a>
               </li>
              
@@ -1598,23 +1641,7 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">人生</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">感悟</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">成长</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">书信</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">青春</a>
               </li>
             
             <div class="clearfix"></div>
