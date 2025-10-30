@@ -16,7 +16,7 @@
 <meta property="og:description" content="分布式系统高效唯一ID生成方案 背景：在分布式系统中，对于订单ID如何保证全局唯一地高效的生成，并对性能影响不大的情况下，利于建立索引和业务使用？  方案一：使用数据库主键ID优势：实现简单；弊端：使用数据库增加写库的压力，生成订单的上限受限于数据库的写性能上限；扩展性差； 方案二：使用数据库的列+1主键采用业务编码，普通列current_value标识id当前值，通过数据库的行锁来保障唯一的；优">
 <meta property="og:locale">
 <meta property="article:published_time" content="2017-07-30T16:00:00.000Z">
-<meta property="article:modified_time" content="2025-04-16T04:00:31.933Z">
+<meta property="article:modified_time" content="2025-10-29T12:50:13.313Z">
 <meta property="article:author" content="心静思远">
 <meta property="article:tag" content="心静思远, xinjinsiyuan, heartaway, mingming">
 <meta name="twitter:card" content="summary">
@@ -454,22 +454,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">成长</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">书信</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">青春</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">人生</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">共享变量</a>
               </li>
              
@@ -483,6 +467,22 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">稳定性</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">青春</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">书信</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">成长</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">人生</a>
               </li>
              
               <li class="article-tag-list-item">
