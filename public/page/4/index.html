@@ -149,6 +149,520 @@
           <div id="js-content" class="content-ll">
             
   
+    <article id="post-Program/2017-12-07-architecture-design-rule" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/12/07/Program/2017-12-07-architecture-design-rule/">应用架构设计原则</a>
+    </h1>
+  
+
+        
+        <a href="/2017/12/07/Program/2017-12-07-architecture-design-rule/" class="archive-article-date">
+  	<time datetime="2017-12-06T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2017-12-07</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>软件系统架构设计原则就是把我们在各种场景下的架构设计进行抽选化提取公共特征形成过一定的方法论，这些方法论是经过严格推敲并具备移植性的，我们在设计系统时遵从这些设计规则可以为我们的体统提供更高的扩展性、稳定性。</p>
+<h2 id="抽象原则"><a href="#抽象原则" class="headerlink" title="抽象原则"></a>抽象原则</h2><p>各平台(含基础设施、中间件技术服务、各层业务服务等)需要通过合理地抽象，将内部信息、处理与扩展能力聚合成标准的服务于扩展接口，并通过统一的形式提供给使用者，屏蔽内部的实现与运行细节。</p>
+<p>以下是一些符合抽象原则的架构规范或模式：<br>架构分层(layer)&#x2F;级(tier)，层、级间提供标准服务与数据接口<br>根据业务模型，统一服务标准与数据标准<br>使用服务目录屏蔽服务位置等实现细节<br>使用“逻辑库”屏蔽数据库物理细节<br>通过SLA，标准化服务的质量水平<br>提供标准插件架构支持扩展<br>使用标准数据库特性，保持厂商无关性<br>使用逻辑的网络与系统名称<br>使用商品化硬件单元</p>
+<h2 id="共享原则"><a href="#共享原则" class="headerlink" title="共享原则"></a>共享原则</h2><p>最大化重用数据、计算资源、业务组件等资产，防止数据、逻辑与技术实现不一致性带来的管理复杂性，避免重复建设成本与管理成本，通过安全机制保证共享资产的合法使用，通过业务分级保障共享资源效益最大化。<br>以下是一些符合共享原则的架构规范或模式：</p>
+<ul>
+<li>同一业务服务有唯一提供者</li>
+<li>同一技术服务有唯一提供者</li>
+<li>同一数据有唯一可信源</li>
+<li>控制技术多样性 (但需要同时防止厂商绑定)</li>
+<li>服务具备互操作性</li>
+<li>服务具备易用性</li>
+<li>统一的身份、访问控制与加解密机制</li>
+<li>为共享服务提供多租户能力 (Multi-tenancy)</li>
+<li>提供访问计量与控制能力</li>
+<li>提供业务分级能力，对不同级别的业务提供区分服务</li>
+</ul>
+<h2 id="自治原则"><a href="#自治原则" class="headerlink" title="自治原则"></a>自治原则</h2><p>每一个组件（计算资源、业务组件、信息实体等）具备最大可能的自我完备性，可独立运行、监控、部署、配置与禁用，具备确定的SLA，并与其它组件之间以松散耦合的方式进行协作。当依赖的组件不存在或者无法正常提供服务时，能够以良好的方式降级，且在故障解除后自动恢复。<br>以下是一些符合自治原则的架构规范或模式：</p>
+<ul>
+<li>基于开-闭原则(OCP)设计组件</li>
+<li>应用无启动依赖</li>
+<li>最小化运行依赖集</li>
+<li>根据运行依赖关系合理安排组件物理colocation</li>
+<li>能够隔离依赖组件的故障</li>
+<li>异步调用 (提升异常流量的承载能力，简化故障隔离的实现)</li>
+<li>具备自我健康检查能力</li>
+<li>具备自我恢复能力</li>
+<li>无状态设计</li>
+</ul>
+<h2 id="冗余原则"><a href="#冗余原则" class="headerlink" title="冗余原则"></a>冗余原则</h2><p>各组件（计算资源、业务组件、数据等）都必须有充分、合理的冗余实例，保证单一组件实例失效不影响业务正常运行（多活&#x2F;热备），或可以通过切换备份实例快速恢复（温备&#x2F;冷备），不会丢失不可恢复的数据。针对不同类型的组件，需要明确定义冗余量与冗余类型。<br>以下是一些符合冗余原则的架构规范或模式：</p>
+<ul>
+<li>高可用水平扩展服务器集群（负载均衡、健康检查与自动切换）</li>
+<li>无单点设计 (含逻辑单点)</li>
+<li>采用“随机写”策略的数据库水平拆分</li>
+<li>Failover数据库</li>
+<li>N+1或N+x设计</li>
+<li>“多活”数据中心</li>
+<li>数据复制</li>
+<li>灾难备份</li>
+</ul>
+<h2 id="分布原则"><a href="#分布原则" class="headerlink" title="分布原则"></a>分布原则</h2><p>整个系统拆分成职责清晰、粒度恰当、便于管理的组件，各组件（计算资源、业务组件、数据等）可分布部署运行。组件的拆分与分布可以采取复制、根据功能垂直拆分、或根据用户与访问模式水平拆分等形式。<br>以下是一些符合分布原则的架构规范或模式：</p>
+<ul>
+<li>读写分离设计</li>
+<li>垂直分拆</li>
+<li>水平分拆</li>
+<li>柔性的分布事务</li>
+</ul>
+<h2 id="自动原则"><a href="#自动原则" class="headerlink" title="自动原则"></a>自动原则</h2><p>系统设计了具备自监控、自管理、自适应与自优化能力，可以随着业务量与访问模式的变化、以及其它内、外部因素的改变，自动地对资源进行调度、调整服务策略，保障自身的稳定与服务的质量。<br>以下是一些符合自动原则的架构规范或模式：</p>
+<ul>
+<li>监控每一个服务的质量与资源的状态与报警</li>
+<li>从客户视角监控最终服务的质量</li>
+<li>统一、自动的错误报告、管理与响应</li>
+<li>提供完备的配置能力</li>
+<li>自动化系统安装</li>
+<li>自动化应用部署</li>
+<li>自动化资源分配</li>
+<li>可以mark up&#x2F;mark down服务</li>
+<li>支持优雅降级</li>
+<li>自动拒绝超出SLA之外异常流量</li>
+</ul>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Program//" class="article-tag-list-link color3">Program</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2017/12/07/Program/2017-12-07-architecture-design-rule/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-Think/2017-11-24-how-to-study" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/11/24/Think/2017-11-24-how-to-study/">如何进行高效学习</a>
+    </h1>
+  
+
+        
+        <a href="/2017/11/24/Think/2017-11-24-how-to-study/" class="archive-article-date">
+  	<time datetime="2017-11-23T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2017-11-24</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <ul>
+<li><img src="/slides/how-to-study/01.jpg"></li>
+<li><img src="/slides/how-to-study/02.jpg"></li>
+<li><img src="/slides/how-to-study/03.jpg"></li>
+<li><img src="/slides/how-to-study/04.jpg"></li>
+<li><img src="/slides/how-to-study/05.jpg"></li>
+<li><img src="/slides/how-to-study/06.jpg"></li>
+<li><img src="/slides/how-to-study/07.jpg"></li>
+<li><img src="/slides/how-to-study/08.jpg"></li>
+<li><img src="/slides/how-to-study/09.jpg"></li>
+<li><img src="/slides/how-to-study/10.jpg"></li>
+<li><img src="/slides/how-to-study/11.jpg"></li>
+<li><img src="/slides/how-to-study/12.jpg"></li>
+<li><img src="/slides/how-to-study/13.jpg"></li>
+<li><img src="/slides/how-to-study/14.jpg"></li>
+<li><img src="/slides/how-to-study/15.jpg"></li>
+<li><img src="/slides/how-to-study/16.jpg"></li>
+<li><img src="/slides/how-to-study/17.jpg"></li>
+<li><img src="/slides/how-to-study/18.jpg"></li>
+<li><img src="/slides/how-to-study/19.jpg"></li>
+<li><img src="/slides/how-to-study/20.jpg"></li>
+</ul>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Think//" class="article-tag-list-link color1">Think</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2017/11/24/Think/2017-11-24-how-to-study/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-Java/2017-10-20-message-string-byte" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/10/20/Java/2017-10-20-message-string-byte/">消息收发中的中文乱码</a>
+    </h1>
+  
+
+        
+        <a href="/2017/10/20/Java/2017-10-20-message-string-byte/" class="archive-article-date">
+  	<time datetime="2017-10-19T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2017-10-20</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <blockquote>
+<p>背景：<br>A发消息给B系统，A、B应用的编码均为UTF-8，但是B收到的消息出现中文乱码。</p>
+</blockquote>
+<p>A发送消息的方式：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">new</span> <span class="title class_">Message</span>(TOPIC, TAG, <span class="literal">null</span>,          (messageContent.toString()).getBytes())</span><br></pre></td></tr></table></figure>
+
+<p>这里消息接受二进制byte数据，我们把消息string转换为byte的时候，默认使用了getBytes()，未指定编码方式，getBytes()方法的注释如下：</p>
+<p>Encodes this {@code String} into a sequence of bytes using the<br> platform’s default charset, storing the result into a new byte array.</p>
+<p>也就是会使用平台默认编码，查看StringCoding.encode方法中的Charset.defaultCharset().name()方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">  * Returns the default charset of this Java virtual machine.</span></span><br><span class="line"><span class="comment">  *</span></span><br><span class="line"><span class="comment">  * &lt;p&gt; The default charset is determined during virtual-machine startup and</span></span><br><span class="line"><span class="comment">  * typically depends upon the locale and charset of the underlying</span></span><br><span class="line"><span class="comment">  * operating system.</span></span><br><span class="line"><span class="comment">  *</span></span><br><span class="line"><span class="comment">  * <span class="doctag">@return</span>  A charset object for the default charset</span></span><br><span class="line"><span class="comment">  *</span></span><br><span class="line"><span class="comment">  * <span class="doctag">@since</span> 1.5</span></span><br><span class="line"><span class="comment">  */</span></span><br><span class="line"> <span class="keyword">public</span> <span class="keyword">static</span> Charset <span class="title function_">defaultCharset</span><span class="params">()</span> &#123;</span><br><span class="line">     <span class="keyword">if</span> (defaultCharset == <span class="literal">null</span>) &#123;</span><br><span class="line">         <span class="keyword">synchronized</span> (Charset.class) &#123;</span><br><span class="line">             <span class="type">String</span> <span class="variable">csn</span> <span class="operator">=</span> AccessController.doPrivileged(</span><br><span class="line">                 <span class="keyword">new</span> <span class="title class_">GetPropertyAction</span>(<span class="string">&quot;file.encoding&quot;</span>));</span><br><span class="line">             <span class="type">Charset</span> <span class="variable">cs</span> <span class="operator">=</span> lookup(csn);</span><br><span class="line">             <span class="keyword">if</span> (cs != <span class="literal">null</span>)</span><br><span class="line">                 defaultCharset = cs;</span><br><span class="line">             <span class="keyword">else</span></span><br><span class="line">                 defaultCharset = forName(<span class="string">&quot;UTF-8&quot;</span>);</span><br><span class="line">         &#125;</span><br><span class="line">     &#125;</span><br><span class="line">     <span class="keyword">return</span> defaultCharset;</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+
+<p>注释的很清楚了，返回JVM默认的字符编码，如果在jvm启动参数中指定了-Dfile.encoding 编码，则优先使用此编码，如果未指定，则使用UTF-8编码；</p>
+<p>登录服务器查看启动参数，发现A应用进程中指定了-Dfile.encoding&#x3D;GB18030</p>
+<p><img src="/images/posts/20171020/15084809508975.jpg"></p>
+<p>示意图如下：<br><img src="/images/posts/20171020/15084807485727.jpg"></p>
+<p>总结：<br>在进行string与byte转换的时候，最好使用getBytes(String charsetName)方法，明确指定字符编码方式，最好编写一个编码转换的工具类，统一类型转换时的编码方式。</p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2017/10/20/Java/2017-10-20-message-string-byte/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-Java/2017-09-21-phantomjs-install" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/09/21/Java/2017-09-21-phantomjs-install/">Linux phantomJs install course</a>
+    </h1>
+  
+
+        
+        <a href="/2017/09/21/Java/2017-09-21-phantomjs-install/" class="archive-article-date">
+  	<time datetime="2017-09-20T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2017-09-21</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <blockquote>
+<p>背景：<br>我们在进行系统报告研发时，需要对报告结果进行定时邮件，所以需要把HTML内容自动转换为邮件内容，通常我们在发送邮件内容的时候内容是模板化的，模板基本不怎么改变，然而我们的报告却是由无数个子模块组成，这些子模块可以只有组合成为任意报告，每一个模块中的内容均为用户自定义，如果我们要实现通用化报告邮件化，那就需要把渲染后的报告转换为图片或者HTML格式，headless方案中常用的有phantomJS和Headless Chrome，phantomJS提供了截图等功能，所以称为我们的首选。</p>
+</blockquote>
+<h4 id="遇到的问题："><a href="#遇到的问题：" class="headerlink" title="遇到的问题："></a>遇到的问题：</h4><p>我们生产环境大部分机器操作系统为5u，默认的glibc版本最高到2.5。然而 PhantomJS官网中明确指出Linux 64-bit操作系统下，需要依赖GLIBCXX_3.4.9 和 GLIBC_2.7&#x2F;GLIBC_2.9&#x2F;GLIBC_2.10。<br><img src="/images/posts/20170921/15059814992587.jpg"></p>
+<p>但是在我们生产环境中：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">strings /lib64/libc.so.6 |grep GLIBC</span><br><span class="line">strings /usr/lib64/libstdc++.so.6 |grep GLIBCXX</span><br></pre></td></tr></table></figure>
+
+<p><img src="/images/posts/20170921/15059815133485.jpg"></p>
+<p>所以需要安装：GLIBCXX_3.4.9  GLIBC_2.7</p>
+<h3 id="一、安装phantoomjs"><a href="#一、安装phantoomjs" class="headerlink" title="一、安装phantoomjs"></a>一、安装phantoomjs</h3><h4 id="1-安装node："><a href="#1-安装node：" class="headerlink" title="1. 安装node："></a>1. 安装node：</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">sudo wget  http:<span class="comment">//xxxxx/node-v6.11.2-linux-x64.tar.xz</span></span><br><span class="line">sudo xz -d node-v6<span class="number">.11</span><span class="number">.2</span>-linux-x64.tar.xz</span><br><span class="line">sudo tar xvf node-v6<span class="number">.11</span><span class="number">.2</span>-linux-x64.tar</span><br><span class="line"></span><br><span class="line">sudo ln -s /home/admin/phantomjs/node-v6<span class="number">.11</span><span class="number">.2</span>-linux-x64/bin/node /usr/local/bin/node</span><br><span class="line">sudo ln -s /home/admin/phantomjs/node-v6<span class="number">.11</span><span class="number">.2</span>-linux-x64/bin/npm /usr/local/bin/npm</span><br><span class="line"></span><br><span class="line">sudo vi /etc/profile</span><br><span class="line">PATH=$PATH:/home/admin/phantomjs/node-v6<span class="number">.11</span><span class="number">.2</span>-linux-x64/bin</span><br><span class="line"></span><br><span class="line">node -v</span><br></pre></td></tr></table></figure>
+
+
+<h4 id="2-安装npm："><a href="#2-安装npm：" class="headerlink" title="2. 安装npm："></a>2. 安装npm：</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -vvvL https://npmjs.com/install.sh &gt;/dev/null</span><br></pre></td></tr></table></figure>
+
+<h4 id="3-安装phantomJS："><a href="#3-安装phantomJS：" class="headerlink" title="3. 安装phantomJS："></a>3. 安装phantomJS：</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">sudo wget http://xxxx/phantomjs-2.1.1-linux-x86_64.tar.bz2</span><br><span class="line">sudo tar -jxvf phantomjs-2.1.1-linux-x86_64.tar.bz2</span><br><span class="line">sudo ln -s /home/admin/phantomjs/phantomjs-2.1.1-linux-x86_64/bin/phantomjs /usr/local/bin/phantomjs</span><br><span class="line"></span><br><span class="line">phantomjs --version</span><br></pre></td></tr></table></figure>
+<p><img src="/images/posts/20170921/15059819937015.jpg"><br>我们的系统中没有这些动态库，有联两种办法，第一自己安装这些版本，第二升级操作系统到7u，我们先尝试使用第一种方法。</p>
+<h3 id="二、安装GCC"><a href="#二、安装GCC" class="headerlink" title="二、安装GCC"></a>二、安装GCC</h3><p>因为部分版本的Glibc的安装需要高版本的GCC，默认的GCC版本为4.1.2，导致不能编译glibc的2.10以上版本，所以必须升级，gcc&gt;&#x3D;4.3.3。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">cd  /home/admin/gcc/gcc-build</span><br><span class="line">sudo yum install libstdc++-devel.i686</span><br><span class="line">sudo yum install  libstdc++-devel.x86_64</span><br><span class="line">sudo ../gcc-4.8.2/configure --prefix=/usr/local/gcc-4.8.2  --with-gmp=/usr/local/gmp-6.0.0 --with-mpfr=/usr/local/mpfr-3.1.2 --with-mpc=/usr/local/mpc-1.0.1  --with-java-home=/opt/taobao/java --disable-multilib  --disable-shared --enable-threads=posix --disable-checking  --enable-languages=all  --enable-static --enable-shared=libstdc++,libgcc_eh</span><br></pre></td></tr></table></figure>
+
+<p>或者：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">sudo ../gcc-4.8.2/configure --prefix=/usr/local/gcc-4.8.2 --enable-threads=posix  --with-gmp=/usr/local/gmp-6.0.0 --with-mpfr=/usr/local/mpfr-3.1.2 --with-mpc=/usr/local/mpc-1.0.1  --mandir=/usr/share/man --infodir=/usr/share/info --enable-shared --disable-multilib --enable-checking=release --with-system-zlib --enable-__cxa_atexit --disable-libunwind-exceptions --enable-libgcj-multifile --enable-languages=c,c++,objc,obj-c++,java --disable-dssi --disable-plugin --with-java-home=/opt/taobao/java/jre --with-cpu=generic</span><br><span class="line"></span><br><span class="line">sudo make</span><br><span class="line">sudo make install </span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">配置环境变量：</span></span><br><span class="line">sudo vi /etc/profile</span><br><span class="line">export PATH=$PATH:/usr/local/gcc-4.8.2</span><br><span class="line">source /etc/profile</span><br><span class="line"></span><br><span class="line">sudo rm /usr/bin/gcc    //删除旧的软连接  </span><br><span class="line">sudo ln -s /usr/local/gcc-4.8.2/bin/gcc /usr/bin/gcc //使新版本建立软连接 </span><br></pre></td></tr></table></figure>
+
+<p>安装完毕后，查看GCC版本：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_">$</span><span class="language-bash">gcc -v</span></span><br><span class="line">Using built-in specs.</span><br><span class="line">COLLECT_GCC=gcc</span><br><span class="line">COLLECT_LTO_WRAPPER=/usr/local/gcc-4.8.2/libexec/gcc/x86_64-unknown-linux-gnu/4.8.2/lto-wrapper</span><br><span class="line">Target: x86_64-unknown-linux-gnu</span><br><span class="line">Configured with: ../gcc-4.8.2/configure --prefix=/usr/local/gcc-4.8.2 --with-gmp=/usr/local/gmp-6.0.0 --with-mpfr=/usr/local/mpfr-3.1.2 --with-mpc=/usr/local/mpc-1.0.1 --with-java-home=/opt/taobao/java --disable-multilib --disable-shared --enable-threads=posix --disable-checking --enable-static --enable-shared=libstdc++</span><br><span class="line">Thread model: posix</span><br><span class="line">gcc version 4.8.2 (GCC)</span><br></pre></td></tr></table></figure>
+
+<h5 id="出现错误1："><a href="#出现错误1：" class="headerlink" title="出现错误1："></a>出现错误1：</h5><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">configure: error: cannot compute suffix of object files: cannot compile See `config.log&#x27; for more details</span><br></pre></td></tr></table></figure>
+<p>查看config.log，发现错误：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/home/admin/gcc/gcc-build/./gcc/cc1: error while loading shared libraries: libmpc.so.3: cannot open shared object file: No such file or directory</span><br></pre></td></tr></table></figure>
+<p>说明是环境变量设置未生效，检查环境变量&amp;ldconfig相关设置。</p>
+<h5 id="出现错误2："><a href="#出现错误2：" class="headerlink" title="出现错误2："></a>出现错误2：</h5><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">/usr/local/include/gnu/stubs.h:7:27: fatal error: gnu/stubs-32.h: No such file or directory</span><br><span class="line">compilation terminated.</span><br></pre></td></tr></table></figure>
+<p>安装：<br>查看可用的版本：yum list available glibc-devel<br>sudo yum install glibc-devel<br>sudo yum install libstdc++-devel.i686</p>
+<h5 id="出现错误3："><a href="#出现错误3：" class="headerlink" title="出现错误3："></a>出现错误3：</h5><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">/usr/lib/gcc/x86_64-redhat-linux/4.1.2/../../../../include/c++/4.1.2/iosfwd:44:28: error: bits/c++config.h: No such file or directory</span><br><span class="line">/usr/lib/gcc/x86_64-redhat-linux/4.1.2/../../../../include/c++/4.1.2/iosfwd:45:29: error: bits/c++locale.h: No such file or directory</span><br><span class="line">/usr/lib/gcc/x86_64-redhat-linux/4.1.2/../../../../include/c++/4.1.2/iosfwd:46:25: error: bits/c++io.h: No such file or directory</span><br></pre></td></tr></table></figure>
+<p>解决方案：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo yum install  libstdc++-devel.x86_64</span><br></pre></td></tr></table></figure>
+
+<h5 id="出现错误4："><a href="#出现错误4：" class="headerlink" title="出现错误4："></a>出现错误4：</h5><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">lib/libgmp.so: could not read symbols: File in wrong format collect2: error: ld returned 1 exit status</span><br><span class="line">/home/admin/gcc/gcc-build/x86_64-unknown-linux-gnu/32/libjava/classpath/native/jni/java-math&#x27;</span><br></pre></td></tr></table></figure>
+<p>解决方案：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo ../gcc-4.8.2/configure --prefix=/usr/local/gcc-4.8.2 --enable-threads=posix --disable-checking --with-gmp=/usr/local/gmp-6.0.0 --with-mpfr=/usr/local/mpfr-3.1.2 --with-mpc=/usr/local/mpc-1.0.1 --enable-shared --enable-languages=all  --enable-libgomp --enable-lto --enable-tls --with-fpmath=sse --disable-multilib --build=x86_64-redhat-linux    --with-java-home=/opt/taobao/java</span><br></pre></td></tr></table></figure>
+
+<h5 id="出现错误5："><a href="#出现错误5：" class="headerlink" title="出现错误5："></a>出现错误5：</h5><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Error: unrecognized symbol type &quot;gnu_unique_object&quot;</span><br></pre></td></tr></table></figure>
+<p>解决方案：移除 configure参数中的 gnu_unique_object 配置；</p>
+<h5 id="出现错误6："><a href="#出现错误6：" class="headerlink" title="出现错误6："></a>出现错误6：</h5><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">configure: error: libXtst not found, required by java.awt.Robot</span><br></pre></td></tr></table></figure>
+
+<p>解决方案：移除 configure参数中的 java.awt 配置；</p>
+<h5 id="出现错误7："><a href="#出现错误7：" class="headerlink" title="出现错误7："></a>出现错误7：</h5><p>libtool: compile: not configured to build any kind of library<br>解决方案：<br>sudo ..&#x2F;gcc-4.8.2&#x2F;configure –prefix&#x3D;&#x2F;usr&#x2F;local&#x2F;gcc-4.8.2  –with-gmp&#x3D;&#x2F;usr&#x2F;local&#x2F;gmp-6.0.0 –with-mpfr&#x3D;&#x2F;usr&#x2F;local&#x2F;mpfr-3.1.2 –with-mpc&#x3D;&#x2F;usr&#x2F;local&#x2F;mpc-1.0.1  –with-java-home&#x3D;&#x2F;opt&#x2F;taobao&#x2F;java –disable-multilib –disable-shared –enable-threads&#x3D;posix –disable-checking  –enable-languages&#x3D;all  –enable-static –enable-shared&#x3D;libstdc++,libgcc_eh</p>
+<h5 id="出现错误8："><a href="#出现错误8：" class="headerlink" title="出现错误8："></a>出现错误8：</h5><p>cc1plus: error: unrecognized command line option “-Wno-narrowing”<br>解决方案：目前没有查询到好的解决方案；</p>
+<h5 id="出现错误9："><a href="#出现错误9：" class="headerlink" title="出现错误9："></a>出现错误9：</h5><p>&#x2F;usr&#x2F;include&#x2F;string.h:550:18: error: unknown type name ‘__locale_t’<br>解决方案：暂无</p>
+<h5 id="出现错误10："><a href="#出现错误10：" class="headerlink" title="出现错误10："></a>出现错误10：</h5><p>&#x2F;usr&#x2F;lib64&#x2F;libstdc++.so.6: undefined symbol: _ZNSt7num_getIcSt19istreambuf_iteratorIcSt11char_traitsIcEEE2idE, version GLIBCXX_3.4</p>
+<h3 id="三、安装GlibC"><a href="#三、安装GlibC" class="headerlink" title="三、安装GlibC"></a>三、安装GlibC</h3><p>查看当前系统Glibc的版本：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">strings /lib64/libc.so.6 |grep GLIBC</span><br></pre></td></tr></table></figure>
+
+<p>编译glibc：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">sudo mkdir glic</span><br><span class="line">cd glic</span><br><span class="line">sudo wget http://ftp.gnu.org/pub/gnu/glibc/glibc-2.7.tar.gz</span><br><span class="line">sudo wget http://ftp.gnu.org/pub/gnu/glibc/glibc-2.9.tar.gz</span><br><span class="line">//sudo wget http://ftp.gnu.org/pub/gnu/glibc/glibc-2.10.1.tar.gz</span><br><span class="line">sudo wget http://ftp.gnu.org/pub/gnu/glibc/glibc-2.14.tar.gz</span><br><span class="line"></span><br><span class="line">sudo tar zxvf glibc-2.7.tar.gz</span><br><span class="line">sudo tar zxvf glibc-2.9.tar.gz</span><br><span class="line">sudo tar zxvf glibc-2.10.1.tar.gz</span><br><span class="line">sudo tar zxvf glibc-2.14.tar.gz</span><br><span class="line"></span><br><span class="line">sudo mkdir glibc-build-2.7</span><br><span class="line">sudo mkdir glibc-build-2.9</span><br><span class="line">sudo mkdir glibc-build-2.10.1</span><br><span class="line">sudo mkdir glibc-build-2.14</span><br><span class="line"></span><br><span class="line">cd glibc-build-2.7</span><br><span class="line"></span><br><span class="line">sudo ../glibc-2.7/configure</span><br></pre></td></tr></table></figure>
+
+<p>遇到错误：<br>configure: error: no acceptable C compiler found in $PATH<br>安装gcc套件(rpm -qa |grep gcc  可以看到目前的版本时4.1.2，注意此版本太老，导致不能编译glibc的2.10以上版本，所以必须升级，gcc&gt;&#x3D;4.3.3)：</p>
+<p>遇到错误：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">*** On GNU/Linux systems the GNU C Library should not be installed into</span><br><span class="line">*** /usr/local since this might make your system totally unusable.</span><br><span class="line">*** We strongly advise to use a different prefix.  For details read the FAQ.</span><br></pre></td></tr></table></figure>
+
+<p>INSTALL文件摘录如下：</p>
+<blockquote>
+<p><code>configure&#39; takes many options, but the only one that is usually mandatory is </code>–prefix’.  This option tells <code>configure&#39; where you want glibc installed.  This defaults to </code>&#x2F;usr&#x2F;local’, but the normal setting<br>to install as the standard system library is <code>--prefix=/usr&#39; for GNU/linux systems and </code>–prefix&#x3D;’ (an empty prefix) for GNU&#x2F;Hurd<br>systems.</p>
+</blockquote>
+<p>关于安装目录的选择:</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">--prefix=PREFIX</span><br></pre></td></tr></table></figure>
+
+<p>安装目录，默认为 &#x2F;usr&#x2F;local<br>Linux文件系统标准要求基本库必须位于 &#x2F;lib 目录并且必须与根目录在同一个分区上，但是 &#x2F;usr 可以在其他分区甚至是其他磁盘上。因此，如果指定 –prefix&#x3D;&#x2F;usr ，那么基本库部分将自动安装到 &#x2F;lib 目录下，而非基本库部分则会自动安装到 &#x2F;usr&#x2F;lib 目录中。但是如果保持默认值或指定其他目录，那么所有组件都间被安装到PREFIX目录下。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sudo ../glibc-2.7/configure --prefix=/usr --disable-multi-arch</span><br><span class="line">sudo ../glibc-2.9/configure --prefix=/usr --disable-multi-arch</span><br><span class="line">sudo ../glibc-2.14/configure --prefix=/usr --disable-multi-arch</span><br></pre></td></tr></table></figure>
+
+
+<p>在每个build目录下，执行glibc的配置：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sudo ../glibc-2.7/configure --prefix=/usr --disable-multi-arch</span><br><span class="line">sudo ../glibc-2.9/configure --prefix=/usr --disable-multi-arch</span><br><span class="line">sudo ../glibc-2.10.1/configure --prefix=/usr --disable-multi-arch</span><br></pre></td></tr></table></figure>
+
+<p>分别进入每个build目录，执行命令(在 glibc-build-xx 目录下)：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo make all &amp;&amp; make install</span><br></pre></td></tr></table></figure>
+
+<p>如果直接执行（sudo make install）出现错误提示：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">make[2]: *** No rule to make target `/home/admin/glibc-build/dlfcn/libdl.so.2&#x27;, needed by `/home/admin/glibc-build/elf/sprof&#x27;.  Stop.</span><br><span class="line">make[2]: Leaving directory `/home/admin/glibc-2.7/elf&#x27;</span><br><span class="line">make[1]: *** [elf/subdir_install] Error 2</span><br><span class="line">make[1]: Leaving directory `/home/admin/glibc-2.7&#x27;</span><br><span class="line">make: *** [install] Error 2</span><br></pre></td></tr></table></figure>
+
+<p>解决方案(先执行make all， 再执行 make install);</p>
+<p>安装完毕后，出现提示：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Your new glibc installation seems to be ok.</span><br><span class="line">make[1]: Leaving directory `/home/admin/glibc-2.7&#x27;</span><br></pre></td></tr></table></figure>
+
+
+<h5 id="常见错误信息1："><a href="#常见错误信息1：" class="headerlink" title="常见错误信息1："></a>常见错误信息1：</h5><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">/lib/modules/2.6.32-220.23.2.ali927.el5.x86_64/build/include/linux/swab.h:6:22: fatal error: asm/swab.h: No such file or directory</span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">include &lt;asm/swab.h&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>解决办法：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo touch /lib/modules/2.6.32-220.23.2.ali927.el5.x86_64/build/include/asm-x86/swab.h</span><br></pre></td></tr></table></figure>
+
+<p>参考：<a href="https://bbs.archlinux.org/viewtopic.php?id=70488">https://bbs.archlinux.org/viewtopic.php?id=70488</a></p>
+<h5 id="常见错误信息2："><a href="#常见错误信息2：" class="headerlink" title="常见错误信息2："></a>常见错误信息2：</h5><p>configure: error: assembler too old, .cfi_personality support missing<br>解决办法：google说gcc版本太老。</p>
+<h5 id="常见错误信息3："><a href="#常见错误信息3：" class="headerlink" title="常见错误信息3："></a>常见错误信息3：</h5><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/usr/bin/ld: cannot find -lgcc_eh</span><br></pre></td></tr></table></figure>
+
+<p>原因是： glibc在安装的时候，需要使用gcc_eh（–enable-shared），但是我们在安装gcc时，添加了–disable-shared，禁用了shared功能，所以导致此库找不到；<br>测试gcc_eh是否安装：sudo gcc -lgcc_eh –verbose</p>
+<p>解决办法：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sudo find / -name libgcc.a</span><br><span class="line">sudo cp libgcc.a libgcc_eh.a</span><br></pre></td></tr></table></figure>
+
+<p>参考：<br><a href="http://www.linuxfromscratch.org/clfs/view/clfs-2.0/arm/cross-tools/glibc.html">http://www.linuxfromscratch.org/clfs/view/clfs-2.0/arm/cross-tools/glibc.html</a><br><a href="https://gcc.gnu.org/ml/gcc-patches/2005-02/msg00532.html">https://gcc.gnu.org/ml/gcc-patches/2005-02/msg00532.html</a><br><a href="http://lists.linuxfromscratch.org/pipermail/lfs-support/2012-December/044174.html">http://lists.linuxfromscratch.org/pipermail/lfs-support/2012-December/044174.html</a></p>
+<h5 id="常见错误信息4："><a href="#常见错误信息4：" class="headerlink" title="常见错误信息4："></a>常见错误信息4：</h5><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Can&#x27;t open configuration file /usr/etc/ld.so.conf: No such file or directory</span><br></pre></td></tr></table></figure>
+
+<p>参考：<br><a href="http://www.math.ias.edu/~tarzadon/pages/posts/install-opam-on-springdalerhelcentossl-5.x-111.php">http://www.math.ias.edu/~tarzadon/pages/posts/install-opam-on-springdalerhelcentossl-5.x-111.php</a></p>
+<h5 id="常见错误信息5："><a href="#常见错误信息5：" class="headerlink" title="常见错误信息5："></a>常见错误信息5：</h5><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/build/include/linux/capability.h:73: error: expected specifier-qualifier-list before ‘__le32’</span><br></pre></td></tr></table></figure>
+
+<p>解决方案：<br>参考：<br><a href="https://github.com/spotify/linux/blob/master/include/linux/capability.h">https://github.com/spotify/linux/blob/master/include/linux/capability.h</a><br>sudo yum install openssl-devel gnutls-devel libcap-devel<br>查看版本：<br>strings &#x2F;lib64&#x2F;libc.so.6 |grep GLIBC</p>
+<h3 id="四、安装GLIBCXX"><a href="#四、安装GLIBCXX" class="headerlink" title="四、安装GLIBCXX"></a>四、安装GLIBCXX</h3><p>查看版本：strings &#x2F;usr&#x2F;lib64&#x2F;libstdc++.so.6 |grep GLIBCXX<br>查看：ls -l &#x2F;usr&#x2F;lib64&#x2F;libstdc++.so.6<br>lrwxrwxrwx 1 root root 18 Aug 14  2015 &#x2F;usr&#x2F;lib64&#x2F;libstdc++.so.6 -&gt; libstdc++.so.6.0.8</p>
+<p>自己编译gcc的过程太繁琐，需要依赖非常多的文件，直接下载高版本下的文件进行替换：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">sudo wget http://xxx/libstdc%2B%2B.so.6.0.13</span><br><span class="line">sudo cp libstdc++.so.6.0.13 /usr/lib</span><br><span class="line">sudo cp libstdc++.so.6.0.13 /usr/lib64</span><br><span class="line"></span><br><span class="line">cd /usr/lib</span><br><span class="line">sudo ln -sf libstdc++.so.6.0.13  libstdc++.so.6</span><br><span class="line"></span><br><span class="line">cd /usr/lib64</span><br><span class="line">sudo ln -sf libstdc++.so.6.0.13  libstdc++.so.6</span><br></pre></td></tr></table></figure>
+
+<p>再次执行</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">strings /usr/lib64/libstdc++.so.6 |grep GLIBCXX</span><br></pre></td></tr></table></figure>
+
+<p>发现需要的安装包已经安装完毕；</p>
+<h3 id="五、MAC下安装phantomJS："><a href="#五、MAC下安装phantomJS：" class="headerlink" title="五、MAC下安装phantomJS："></a>五、MAC下安装phantomJS：</h3><p>下载文件到本地目录；<br>添加环境变量：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">vi .bash_profile</span><br><span class="line">export PATH=$PATH:/Users/xinyuan/soft/phantomjs-2.5.0-beta-macos/bin</span><br><span class="line">source  .bash_profile</span><br></pre></td></tr></table></figure>
+
+<p>安装webp：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ruby -e &quot;$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)&quot; &lt; /dev/null 2&gt; /dev/null</span><br><span class="line">brew install webp</span><br></pre></td></tr></table></figure>
+
+<p>建立软连：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ln -s  /usr/local/opt/webp/lib/libwebp.7.dylib /usr/local/opt/webp/lib/libwebp.6.dylib</span><br></pre></td></tr></table></figure>
+
+<p>查看版本：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">phantomjs -v</span><br><span class="line">2.5.0-development</span><br></pre></td></tr></table></figure>
+
+<h3 id="六、总结："><a href="#六、总结：" class="headerlink" title="六、总结："></a>六、总结：</h3><p>整个OS的环境安装由于对linux底层不熟悉，参数配置也没有详细查看文档，导致安装过程出现了非常多的意外，之前使用的操作系统是5u，gcc版本为4.1.2，依赖的glibc、glibxx、gmp、mpfr、mpc库版本都比较低，但是phantomjs（JS截图）需要依赖其高版本库，为了升级响应的库，通过下载源码，make、install ，出现了不下于30个错误，每次解决一个错误后续流程中又出现了新的错误，费劲周折把所有依赖的库都装好后，运行phantomjs还是出错，怀疑是缺少了一些动态库；  后来还是通过升级操作系统，解决了此问题，升级操作系统完成docker化文件配置，总共才花费了不到一天时间。反思：遇到问题，首选需要评估一下解决此问题的最有效手段，而不是闷头上去搞，要看我们从中能得到什么，在linux操作系统上安装一坨软件并不能证明我们有什么能力，所以这件事情就不应该自己去尝试做，投入产出比是做事情非常重要的一个衡量手段。</p>
+<h3 id="七、参考链接："><a href="#七、参考链接：" class="headerlink" title="七、参考链接："></a>七、参考链接：</h3><p><a href="http://blog.csdn.net/tsaiyong_ahnselina/article/details/21552485">http://blog.csdn.net/tsaiyong_ahnselina/article/details/21552485</a><br><a href="http://siliconcali.com/2012/10/glibcxx_3-4-9-not-found-in-red-hatfedoracentos-linux/">http://siliconcali.com/2012/10/glibcxx_3-4-9-not-found-in-red-hatfedoracentos-linux/</a><br><a href="http://blog.csdn.net/tengdazhang770960436/article/details/41348035">http://blog.csdn.net/tengdazhang770960436/article/details/41348035</a><br><a href="http://www.cnblogs.com/LitLeo/p/3534196.html">http://www.cnblogs.com/LitLeo/p/3534196.html</a><br><a href="http://blog.csdn.net/wtfmonking/article/details/17577925">http://blog.csdn.net/wtfmonking/article/details/17577925</a><br><a href="http://www.cnblogs.com/coolulu/p/4124803.html">http://www.cnblogs.com/coolulu/p/4124803.html</a></p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2017/09/21/Java/2017-09-21-phantomjs-install/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
     <article id="post-Java/2017-09-21-phantomjs-use" class="article article-type-post  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
     
@@ -862,348 +1376,6 @@
 
 
   
-    <article id="post-Java/2017-07-04-mysql-max-orderby-limit" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/04/Java/2017-07-04-mysql-max-orderby-limit/">Mysql MAX/MIN vs ORDER BY and LIMIT</a>
-    </h1>
-  
-
-        
-        <a href="/2017/07/04/Java/2017-07-04-mysql-max-orderby-limit/" class="archive-article-date">
-  	<time datetime="2017-07-03T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2017-07-04</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>我们在进行数据库的TOP N 操作时，又两种选择，一种使用内置的函数MAX&#x2F;MIN，另外一种是采用 ORDER BY  和 LIMIT的组合，那么在什么情况下使用那种策略呢，哪种效率会更高一些呢？</p>
-<p>在最坏的情况下，如果你正在寻找在一个无索引的字段，使用min()需要全表扫描。使用order by + limit 要求一个排序后的文件。如果碰到一个大表，性能差异会非常大。在我本机上测试了一个106000行的随机数据表，min()带消耗了0.36s,而order by + limit消耗了0.84s。如果对于一个索引列，两者的差别并不是太大。</p>
-<p><strong>总的来说：</strong><br>似乎min()性能更高，它在最坏的情况下的速度更快，在最好的情况下，没有什么区别；</p>
-<p>通过“show status like ‘last_query_cost’” 查看执行成本；分别测试了在无索引列下使用max 和 order by limit 两种查询条件下的cbo，分别为 228322 和 67359，结果展示使用max的成本要比order by更高,这点还需要进一步探究；</p>
-<p>参考：<br><a href="https://stackoverflow.com/questions/426731/min-max-vs-order-by-and-limit">https://stackoverflow.com/questions/426731/min-max-vs-order-by-and-limit</a></p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2017/07/04/Java/2017-07-04-mysql-max-orderby-limit/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-Java/2017-07-03-string-split" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/03/Java/2017-07-03-string-split/">Java split 引发的坑</a>
-    </h1>
-  
-
-        
-        <a href="/2017/07/03/Java/2017-07-03-string-split/" class="archive-article-date">
-  	<time datetime="2017-07-02T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2017-07-03</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>我们在代码编写中会进程需要使用数据截断处理，比如 30.23 我们期望获取整数部分，按照“.”进行分割；</p>
-<p>可能的代码示例：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">&quot;30.23&quot;</span>.split(<span class="string">&quot;.&quot;</span>)[<span class="number">0</span>]</span><br></pre></td></tr></table></figure>
-<p>如果我们这么写，那结果一定不是我们期望的，查看string 类中的split方法：<br><img src="/images/posts/20170703/14990720990548.jpg"></p>
-<p>我们看到，它接收的参数 <strong>正则表达式</strong>，恰好点是正则表达式的特殊字符，命中 </p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&quot;.$|()[&#123;^?*+\\&quot;.indexOf(ch = regex.charAt(0)) </span><br></pre></td></tr></table></figure>
-<p>条件，所以执行的实际逻辑为：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Pattern.compile(regex).split(<span class="built_in">this</span>, limit)</span><br></pre></td></tr></table></figure>
-<p>“.” 表示匹配任何字符，那么按照任何字符进行分割，将得到””空字符串数组，Pattern.split在构造结果时，由于limit&#x3D;0，会把结尾的空字符串丢弃，结果就返回了一个长度为0的String对象数组 new String[0] ,此时我们使用[0]获取数据中第一个元素时，会抛出数组越界的异常：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Exception in thread <span class="string">&quot;main&quot;</span> java.lang.ArrayIndexOutOfBoundsException: <span class="number">0</span></span><br></pre></td></tr></table></figure>
-<p>如果我们期望使用string.split(regex)方法，对于特殊字符，需要进行转义处理，比如：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">&quot;30.23&quot;</span>.split(<span class="string">&quot;\\.&quot;</span>)[<span class="number">0</span>]</span><br></pre></td></tr></table></figure>
-
-
-<p>常用的字符拆分方案有以下几种：</p>
-<h4 id="方法二：-org-apache-commons-lang-StringUtils-split"><a href="#方法二：-org-apache-commons-lang-StringUtils-split" class="headerlink" title="方法二： org.apache.commons.lang.StringUtils.split"></a>方法二： org.apache.commons.lang.StringUtils.split</h4><p>此方法使用完整的字符串作为参数，而不是regex。底层调用splitWorker方法；</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">String</span> <span class="variable">number</span> <span class="operator">=</span> <span class="string">&quot;30.23&quot;</span>;</span><br><span class="line">String[] split = StringUtils.split(number, <span class="string">&quot;.&quot;</span>);</span><br><span class="line"><span class="keyword">for</span> (String s : split) &#123;</span><br><span class="line">    System.out.println(s);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>输出结果：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">30</span></span><br><span class="line"><span class="number">23</span></span><br></pre></td></tr></table></figure>
-<h3 id="方法三：com-google-common-base-Splitter"><a href="#方法三：com-google-common-base-Splitter" class="headerlink" title="方法三：com.google.common.base.Splitter"></a>方法三：com.google.common.base.Splitter</h3><p>使用Google Guava包中提供的分割器splitter，它提供了更加丰富的分割结果处理的方法，比如对结果前后去除空格，去除空字符串等；</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">String</span> <span class="variable">number</span> <span class="operator">=</span> <span class="string">&quot;30.23&quot;</span>;</span><br><span class="line">Iterable&lt;String&gt; split = Splitter.on(<span class="string">&#x27;.&#x27;</span>).trimResults().omitEmptyStrings().split(number);</span><br><span class="line"><span class="keyword">for</span> (String s : split) &#123;</span><br><span class="line">     System.out.println(s);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2017/07/03/Java/2017-07-03-string-split/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-Java/2017-06-30-study-road-line" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/06/30/Java/2017-06-30-study-road-line/">(转)史上最全的架构师图谱</a>
-    </h1>
-  
-
-        
-        <a href="/2017/06/30/Java/2017-06-30-study-road-line/" class="archive-article-date">
-  	<time datetime="2017-06-29T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2017-06-30</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>本文是笔者多年来积累和收集的知识技能图谱，有的是笔者原创总结的最佳实践，有的是小伙伴们的分享，其中每个秘籍图谱里面的内容都是互联网高并发架构师应该了解和掌握的知识，笔者索性把这些图谱收集在一起，并且归类便于查找和学习，希望能够帮助到每一位想成为架构师或者已经是架构师的小伙伴，这里我们的标题“史上最全的架构师图谱”是本文的目标，作者计划把这篇文章作为一个开放性的文章，如果读者发现更多的图谱，请联系作者本人，我们把更多的图谱、思维导图汇集在其一起，最终一定能成为互联网上“史上最全的架构师图谱”。</p>
-<h3 id="架构师系列"><a href="#架构师系列" class="headerlink" title="架构师系列"></a>架构师系列</h3><p><img src="/images/posts/20170630/4310879-f1ab820576d3d36b.png"></p>
-<p>架构师图谱<br><img src="/images/posts/20170630/4310879-51f9fe182fea724d.png"><br>Java架构师图谱<br><img src="/images/posts/20170630/4310879-4a7c08a813ffa011.png"><br>微服务架构秘籍<br><img src="/images/posts/20170630/4310879-3357bcd3cb02416b.png"><br>一致性图谱<br><img src="/images/posts/20170630/4310879-6ae60b2944c257ef.png"><br>互联网大流量的方法<br><img src="/images/posts/20170630/4310879-dedb20d5be56d989.png"><br>安全秘籍<br><img src="/images/posts/20170630/4310879-678b45d2de320746.png"><br>阿里巴巴常用小框架<br><img src="/images/posts/20170630/4310879-fc19311bc92a811d.png"><br>架构方法论图谱<br><img src="/images/posts/20170630/4310879-bb0b92f26600b59a.png"><br>设计模式秘籍图谱</p>
-<h3 id="Java系列"><a href="#Java系列" class="headerlink" title="Java系列"></a>Java系列</h3><p><img src="/images/posts/20170630/4310879-177756096b76affe.png"></p>
-<p>JVM垃圾回图谱<br><img src="/images/posts/20170630/4310879-cb86b37d1390d7b3.png"><br>Java并发图谱<br><img src="/images/posts/20170630/4310879-25474decc57eca07.png"><br>Java集合图谱<br><img src="/images/posts/20170630/4310879-d41c948490a26b54.png"><br>Java集合类图<br><img src="/images/posts/20170630/4310879-a2c3b631208d255.png"><br>Java List类图<br><img src="/images/posts/20170630/4310879-e088ada92f63d4c1.png"><br>Java Map类图<br><img src="/images/posts/20170630/4310879-4f20d68e1f4bbd33.png"><br>Java Set类图</p>
-<h3 id="大数据系列"><a href="#大数据系列" class="headerlink" title="大数据系列"></a>大数据系列</h3><p><img src="/images/posts/20170630/4310879-ccf6cae90139b1.png"></p>
-<p>Hadoop技能图谱<br><img src="/images/posts/20170630/4310879-23d0bf618f8f6f5a.png"><br>大数据技能图谱</p>
-<h3 id="云计算系列"><a href="#云计算系列" class="headerlink" title="云计算系列"></a>云计算系列</h3><p><img src="/images/posts/20170630/4310879-6d0b680ae67a8c96.png"></p>
-<p>云计算图谱<br><img src="/images/posts/20170630/4310879-4c10e03305a1f2d8.png"><br>云计算技能图谱</p>
-<h3 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h3><p><img src="/images/posts/20170630/4310879-2175f5af9eed7857.png"></p>
-<p>IOS技能图谱<br><img src="/images/posts/20170630/4310879-5ce73b40ffbe076d.png"><br>OpenResty技能图谱<br><img src="/images/posts/20170630/4310879-141e6ba51f8dc54c.png"><br>前端技能图谱<br><img src="/images/posts/20170630/4310879-6d02639ce5ae160f.png"><br>容器技能图谱<br><img src="/images/posts/20170630/4310879-f24ca8d32ad1a384.png"><br>嵌入式开发技能图谱<br><img src="/images/posts/20170630/4310879-d0375b2d590c0c34.png"><br>开发语言宝典<br><img src="/images/posts/20170630/4310879-6395c5da25e3e7fc.png"><br>移动端测试图谱<br><img src="/images/posts/20170630/4310879-350ab02c6030c235.png"><br>运维技能图谱</p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2017/06/30/Java/2017-06-30-study-road-line/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-Java/2017-06-15-while-died" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/06/15/Java/2017-06-15-while-died/">Java Load CPU MEM 飙高的一次排查</a>
-    </h1>
-  
-
-        
-        <a href="/2017/06/15/Java/2017-06-15-while-died/" class="archive-article-date">
-  	<time datetime="2017-06-14T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2017-06-15</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h3 id="问题发现："><a href="#问题发现：" class="headerlink" title="问题发现："></a>问题发现：</h3><p>收到报警提醒：<br><img src="/images/posts/20170615/sys-mail-notice.png"></p>
-<h3 id="问题排查："><a href="#问题排查：" class="headerlink" title="问题排查："></a>问题排查：</h3><p>登录机器查看：<br><img src="/images/posts/20170615/sys-load-top.png"></p>
-<p>CPU 持续高于 80%，8G内存几乎被占满；</p>
-<p>异常报警项为 一个每隔5min执行一次的定时任务每次运行时间超过10分钟；初步判断为任务累加导致系统负载越来越重。</p>
-<p>那为什么定时任务在5min内执行未完成呢？看看线程到底在做什么。</p>
-<p>查看进程中线程的占用CPU时长：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">top -Hp pid </span><br></pre></td></tr></table></figure>
-<p><img src="/images/posts/20170615/top-pid.png"></p>
-<p>可以看到有不少进程占用CPU总计时间超过100分钟，最大的进程257484为564分钟32.32秒；<br><img src="/images/posts/20170615/jstack-top.png"></p>
-<p>查询其它的几个占用时间比较高的进程：<br><img src="/images/posts/20170615/jstack-grep-tid.png"><br>发现都是ChangeFree的进程导致，查看相应代码后，发现最近的一次变更导致了程序在一些场景下出现了死循环：<br><img src="/images/posts/20170615/changefree-while-query.png"><br>从代码可以看出，在while循环中的累加程序放在了最后，这是一种极危险的操作，应该讲累加条件放在程序进入的第一行，保证不受后续代码逻辑的影响；</p>
-<p>问题解决后，通过系统监控发现系统负载恢复正常：<br><img src="/images/posts/20170615/system-monitor-line.png"></p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2017/06/15/Java/2017-06-15-while-died/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
   
     <nav id="page-nav">
       <a class="extend prev" rel="prev" href="/page/3/">&laquo; Prev</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><span class="page-number current">4</span><a class="page-number" href="/page/5/">5</a><a class="page-number" href="/page/6/">6</a><span class="space">&hellip;</span><a class="page-number" href="/page/11/">11</a><a class="extend next" rel="next" href="/page/5/">Next &raquo;</a>
@@ -1321,11 +1493,27 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">青春</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">人生</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">青春</a>
+                <a href="javascript:void(0)" class="js-tag color3">三观</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">社会</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">职业</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">学习</a>
               </li>
              
               <li class="article-tag-list-item">
