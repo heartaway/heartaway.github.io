@@ -149,6 +149,338 @@
           <div id="js-content" class="content-ll">
             
   
+    <article id="post-Paper/2018-03-14-infrastructure-auto-discovery" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/03/14/Paper/2018-03-14-infrastructure-auto-discovery/">《基于中间件的基础设施自动发现》</a>
+    </h1>
+  
+
+        
+        <a href="/2018/03/14/Paper/2018-03-14-infrastructure-auto-discovery/" class="archive-article-date">
+  	<time datetime="2018-03-13T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-03-14</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <blockquote>
+<p>论文地址：<br><a href="https://patents.google.com/patent/US7912749B2/en">https://patents.google.com/patent/US7912749B2/en</a></p>
+</blockquote>
+<h4 id="论文主体内容："><a href="#论文主体内容：" class="headerlink" title="论文主体内容："></a>论文主体内容：</h4><p>通过分析中间件网络数据，建立信息模型；从网络数据中判断组件性能阈值、基础设施组件之间的依赖关系以及业务流程与基础设施的映射关系；</p>
+<p>建议采用分层（图层）模型；（比如Dynatrace中的5层模型）</p>
+<h4 id="架构基线特征"><a href="#架构基线特征" class="headerlink" title="架构基线特征"></a>架构基线特征</h4><ol>
+<li>基于对象的；<ul>
+<li>对象也就是架构实体或者信息模型的组合；</li>
+</ul>
+</li>
+<li>策略驱动的；</li>
+<li>安全的；</li>
+<li>自我管理的；</li>
+<li>自我描述；<ul>
+<li>自我描述有利于新组件加入后的关系挖掘，而不依赖人工的定义与配置；</li>
+</ul>
+</li>
+<li>能够提供信息透明度；</li>
+</ol>
+<p>架构基线是简化系统主要部分的识别和结构化组织的催化剂。</p>
+<p>架构发现本质上是对信息的识别和分类过程，识别和分类过程最好与任何特定的知识库，上下文，协议或平台 无关。</p>
+<h4 id="模型划分"><a href="#模型划分" class="headerlink" title="模型划分"></a>模型划分</h4><p>可以提供元模型来定义用于在业务管理环境中指定模型的语言。元模型可以具有描述动态语义的能力。元模型图层中的一些对象示例包括类，属性，操作，关联，组件等</p>
+<p>可以提根据核心模型来定义抽象类的集合，核心模型是分析师确定如何扩展核心模型以创建领域模型的起点。抽象类的一些例子，比如交易、客户等；</p>
+<p>按照信息的抽象程度划分：<br>元模型 &gt; 信息模型 &gt; 核心模型 &gt; 领域模型；</p>
+<p>信息模型和核心模型通常更稳定，这两个模型是定义域模型的来源，这些模型也提供了跨不同领域的元素视图，可发现有价值的业务相关数据。</p>
+<h4 id="信息过滤"><a href="#信息过滤" class="headerlink" title="信息过滤"></a>信息过滤</h4><p>从多个数据源创建有用的信息非常关键。但是，业务相关性需要适当、一致且相关的信息，而不是分散的数据。<strong>信息透明度服务</strong>可以将离散的实时或历史数据源分离出来，作为有用的信息源。该过程涉及通过使用明确定义的‘聚合’和‘转换规则’以及信息模型作为信息交换的基础来聚合和转换数据源。</p>
+<h4 id="模式"><a href="#模式" class="headerlink" title="模式"></a>模式</h4><p>软件模块存储在数据库中。库中的各个模块称为模式，而库本身称为模式目录。模式可以根据其规模和抽象进一步分类为</p>
+<ul>
+<li>架构模式</li>
+<li>设计模式</li>
+<li>语言模式</li>
+</ul>
+<p>架构模式：表达了软件系统的基本结构组织模式。它提供了一组预定义的子系统，指定了他们的职责，并包括组织它们之间关系的规则和准则。</p>
+<h4 id="扩展功能"><a href="#扩展功能" class="headerlink" title="扩展功能"></a>扩展功能</h4><p>基础设施的自动发现，可衍生出通过诊断分析进行故障定位或影响分析等功能。可以提供自我修复程序，并且可以通过动态资源管理和嵌入式服务意识来解决基础结构优化问题。比如Dynatrace的故障定位；</p>
+<h4 id="扩展产品了解："><a href="#扩展产品了解：" class="headerlink" title="扩展产品了解："></a>扩展产品了解：</h4><p><a href="https://www.dynatrace.com/capabilities/application-topology-discovery/smartscape/">dynatrace</a><br><a href="https://docs.aws.amazon.com/application-discovery/latest/APIReference/discovery-api-queries.html">amazon-application-discovery</a></p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Paper//" class="article-tag-list-link color1">Paper</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2018/03/14/Paper/2018-03-14-infrastructure-auto-discovery/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-Java/2018-03-06-spring-quartz-trigger" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/03/06/Java/2018-03-06-spring-quartz-trigger/">spring quartz 指定trigger的执行机器</a>
+    </h1>
+  
+
+        
+        <a href="/2018/03/06/Java/2018-03-06-spring-quartz-trigger/" class="archive-article-date">
+  	<time datetime="2018-03-05T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-03-06</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>我们在使用spring-quartz的时候，常常会遇到一个场景，那就是任务的调度会随着争取锁的先后顺序而出现不固定机器执行的场景，这在正常业务逻辑中具备了很好的容灾能力，但是在我们排查问题时，却带来了困绕，如果出现问题，我们期望任务调度固定在一台机器上进行执行，方便我们对问题的定位和排查。</p>
+<p>这里就探讨如何扩展spring-quartz来实现任务的固定机器执行。</p>
+<h3 id="整体思路"><a href="#整体思路" class="headerlink" title="整体思路"></a>整体思路</h3><p>要指定机器运行trigger，那首先我们必须清楚spring-quartz cluster模式下，任务的触发时如何进行分布式执行的。<br>spring-quartz cluster 是借助数据锁来实现并发控制的，需要注意的是分布式环境下需要保证各机器系统时间一致性；</p>
+<p>核心处理线程QuartzSchedulerThread决定了扫描那些JOB，以及触发执行和生命周期的维护。<br>QuartzSchedulerThread中run方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//在trigger表中扫描指定SCHED_NAME、状态为WAITING，下次触发时间在30秒内的触发器</span></span><br><span class="line">triggers = qsRsrcs.getJobStore().acquireNextTriggers(</span><br><span class="line">                                now + idleWaitTime, Math.min(availThreadCount, qsRsrcs.getMaxBatchSize()), qsRsrcs.getBatchTimeWindow());</span><br><span class="line">....                  </span><br><span class="line"><span class="comment">//触发器执行</span></span><br><span class="line">List&lt;TriggerFiredResult&gt; res = qsRsrcs.getJobStore().triggersFired(triggers);                                                          </span><br><span class="line">...</span><br><span class="line"><span class="comment">//释放触发器</span></span><br><span class="line">qsRsrcs.getJobStore().releaseAcquiredTrigger(triggers.get(i));</span><br><span class="line">...</span><br><span class="line"><span class="comment">//完成触发器</span></span><br><span class="line">qsRsrcs.getJobStore().triggeredJobComplete(triggers.get(i), bndle.getJobDetail(), CompletedExecutionInstruction.SET_ALL_JOB_TRIGGERS_ERROR);                          </span><br></pre></td></tr></table></figure>
+
+<p>我们就可以在acquireNextTriggers中做扩展，获取全部或者指定了实例ID的trigger。</p>
+<p>延伸思考：acquireNextTriggers获取到trigger列表后，假设机器宕机，这些trigger如何路由到其他机器中正常运行？</p>
+<h3 id="扩展实例ID的生成策略"><a href="#扩展实例ID的生成策略" class="headerlink" title="扩展实例ID的生成策略"></a>扩展实例ID的生成策略</h3><p>spring-quartz一般配置的org.quartz.scheduler.instanceId：AUTO，采用的是SimpleInstanceIdGenerator ID生成策略。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SimpleInstanceIdGenerator</span> <span class="keyword">implements</span> <span class="title class_">InstanceIdGenerator</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> String <span class="title function_">generateInstanceId</span><span class="params">()</span> <span class="keyword">throws</span> SchedulerException &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> InetAddress.getLocalHost().getHostName() + System.currentTimeMillis();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">SchedulerException</span>(<span class="string">&quot;Couldn&#x27;t get host name!&quot;</span>, e);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>SimpleInstanceIdGenerator 采用机器主机名称与当前时间戳作为instanceId,我们期望在开发环境使用hostName，在生产环境(Linux)采用IP作为实例ID。</p>
+<p>实现InstanceIdGenerator接口，实现自己的ID生成策略，QuartzSchedulerInstanceIdGenerator的实现逻辑为：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">QuartzSchedulerInstanceIdGenerator</span> <span class="keyword">implements</span> <span class="title class_">InstanceIdGenerator</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">Logger</span> <span class="variable">log</span> <span class="operator">=</span> LoggerFactory.getLogger(QuartzSchedulerInstanceIdGenerator.class);</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">OS_NAME</span> <span class="operator">=</span> <span class="string">&quot;os.name&quot;</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">WINDOWS</span> <span class="operator">=</span> <span class="string">&quot;Windows&quot;</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">MAC</span> <span class="operator">=</span> <span class="string">&quot;Mac OS&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> String <span class="title function_">generateInstanceId</span><span class="params">()</span> <span class="keyword">throws</span> SchedulerException &#123;</span><br><span class="line">        String id;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (isLocalDev()) &#123;</span><br><span class="line">                id = getHostName();</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                id = IpUtil.getIp();</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (StringUtils.isBlank(id)) &#123;</span><br><span class="line">                id = InetAddress.getLocalHost().getHostName() + System.currentTimeMillis();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">SchedulerException</span>(<span class="string">&quot;Couldn&#x27;t generate instance id!&quot;</span>, e);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> id;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> String <span class="title function_">getHostName</span><span class="params">()</span> <span class="keyword">throws</span> SchedulerException &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> InetAddress.getLocalHost().getHostName();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">SchedulerException</span>(<span class="string">&quot;Couldn&#x27;t get host name!&quot;</span>, e);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="type">boolean</span> <span class="title function_">isLocalDev</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (StringUtils.indexOfIgnoreCase(System.getProperty(OS_NAME), WINDOWS) &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (StringUtils.indexOfIgnoreCase(System.getProperty(OS_NAME), MAC) &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在quartz.properties中配置：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">org.quartz.scheduler.instanceIdGenerator.class=com.xx.ext.QuartzSchedulerInstanceIdGenerator</span><br></pre></td></tr></table></figure>
+
+<h3 id="扩展StdJDBCDelegate"><a href="#扩展StdJDBCDelegate" class="headerlink" title="扩展StdJDBCDelegate"></a>扩展StdJDBCDelegate</h3><p>SchedulerFactoryBean 工厂Bean负责加载配置信息，初始化SchedulerFactory和Scheduler实例，jobStore负责job、trigger等的持久化工作，针对不同的数据库类型，可以配置不同的DriverDelegate。Spring中默认使用LocalDataSourceJobStore作为JobStore的处理类。</p>
+<p>SchedulerFactory中initSchedulerFactory方法:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">     <span class="keyword">if</span> (<span class="built_in">this</span>.configLocation != <span class="literal">null</span>) &#123;</span><br><span class="line">	<span class="keyword">if</span> (logger.isInfoEnabled()) &#123;</span><br><span class="line">		logger.info(<span class="string">&quot;Loading Quartz config from [&quot;</span> + <span class="built_in">this</span>.configLocation + <span class="string">&quot;]&quot;</span>);</span><br><span class="line">	&#125;</span><br><span class="line">	PropertiesLoaderUtils.fillProperties(mergedProps, <span class="built_in">this</span>.configLocation);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">CollectionUtils.mergePropertiesIntoMap(<span class="built_in">this</span>.quartzProperties, mergedProps);</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (<span class="built_in">this</span>.dataSource != <span class="literal">null</span>) &#123;</span><br><span class="line">	mergedProps.put(StdSchedulerFactory.PROP_JOB_STORE_CLASS, LocalDataSourceJobStore.class.getName());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>可以看到SchedulerFactoryBean中设置PROP_JOB_STORE_CLASS属性是在合并用户设置的配置文件之后，也就是PROP_JOB_STORE_CLASS的实现类Spring强制指定为LocalDataSourceJobStore而无法更改，即便是我们在quartz.properties中配置了org.quartz.jobStore.class属性，也会被LocalDataSourceJobStore覆盖掉。</p>
+<p>LocalDataSourceJobStore继承自JobStoreSupport，JobStoreSupport默认配置使用StdJDBCDelegate作为与数据库交互的代理处理类；我们可以通过扩展StdJDBCDelegate类，来实现底层数据库交互的扩展。通过配置org.quartz.jobStore.driverDelegateClass属性，指定driverDelegate为我们扩展后的Delegate。</p>
+<p>在quartz.properties中配置：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">org.quartz.jobStore.driverDelegateClass=com.xx.ext.StdJDBCDelegateExt</span><br></pre></td></tr></table></figure>
+
+<p>针对${table_prefix}_quartz_triggers表新增字段INSTANCE_NAME，此字段为InstanceIdGenerator生成的实例ID，此字段会透传到StdJDBCDelegate中的属性instanceId中，因此我们可以扩展StdJDBCDelegate，通过instanceId字段来指定获取的trigger列表。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">StdJDBCDelegateExt</span> <span class="keyword">extends</span> <span class="title class_">StdJDBCDelegate</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="type">String</span> <span class="variable">INSTANCE_NAME_VALUE</span> <span class="operator">=</span> <span class="string">&quot;&#123;2&#125;&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="type">String</span> <span class="variable">SELECT_NEXT_TRIGGER_TO_ACQUIRE_EXT</span> <span class="operator">=</span> <span class="string">&quot;SELECT &quot;</span></span><br><span class="line">        + COL_TRIGGER_NAME + <span class="string">&quot;, &quot;</span> + COL_TRIGGER_GROUP + <span class="string">&quot;, &quot;</span></span><br><span class="line">        + COL_NEXT_FIRE_TIME + <span class="string">&quot;, &quot;</span> + COL_PRIORITY + <span class="string">&quot; FROM &quot;</span></span><br><span class="line">        + TABLE_PREFIX_SUBST + TABLE_TRIGGERS + <span class="string">&quot; WHERE &quot;</span></span><br><span class="line">        + COL_SCHEDULER_NAME + <span class="string">&quot; = &quot;</span> + SCHED_NAME_SUBST</span><br><span class="line">        + <span class="string">&quot; AND &quot;</span> + COL_TRIGGER_STATE + <span class="string">&quot; = ? AND &quot;</span> + COL_NEXT_FIRE_TIME + <span class="string">&quot; &lt;= ? &quot;</span></span><br><span class="line">        + <span class="string">&quot; AND (&quot;</span> + COL_INSTANCE_NAME + <span class="string">&quot; IS NULL OR &quot;</span> + COL_INSTANCE_NAME + <span class="string">&quot; = &quot;</span> + INSTANCE_NAME_VALUE + <span class="string">&quot;)&quot;</span></span><br><span class="line">        + <span class="string">&quot;AND (&quot;</span> + COL_MISFIRE_INSTRUCTION + <span class="string">&quot; = -1 OR (&quot;</span> + COL_MISFIRE_INSTRUCTION + <span class="string">&quot; != -1 AND &quot;</span></span><br><span class="line">        + COL_NEXT_FIRE_TIME + <span class="string">&quot; &gt;= ?)) &quot;</span></span><br><span class="line">        + <span class="string">&quot;ORDER BY &quot;</span> + COL_NEXT_FIRE_TIME + <span class="string">&quot; ASC, &quot;</span> + COL_PRIORITY + <span class="string">&quot; DESC&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 允许设置trigger 指定一台机器进行任务调度执行；</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> conn</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> noLaterThan</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> noEarlierThan</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> maxCount</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">     * <span class="doctag">@throws</span> SQLException</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> List&lt;TriggerKey&gt; <span class="title function_">selectTriggerToAcquire</span><span class="params">(Connection conn, <span class="type">long</span> noLaterThan, <span class="type">long</span> noEarlierThan, <span class="type">int</span> maxCount)</span></span><br><span class="line">        <span class="keyword">throws</span> SQLException &#123;</span><br><span class="line">        <span class="type">PreparedStatement</span> <span class="variable">ps</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line">        <span class="type">ResultSet</span> <span class="variable">rs</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line">        List&lt;TriggerKey&gt; nextTriggers = <span class="keyword">new</span> <span class="title class_">LinkedList</span>&lt;TriggerKey&gt;();</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            ps = conn.prepareStatement(rtp(SELECT_NEXT_TRIGGER_TO_ACQUIRE_EXT, instanceId));</span><br><span class="line"></span><br><span class="line">            <span class="comment">// Set max rows to retrieve</span></span><br><span class="line">            <span class="keyword">if</span> (maxCount &lt; <span class="number">1</span>) &#123;</span><br><span class="line">                maxCount = <span class="number">1</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            ps.setMaxRows(maxCount);</span><br><span class="line"></span><br><span class="line">            <span class="comment">// Try to give jdbc driver a hint to hopefully not pull over more than the few rows we actually need.</span></span><br><span class="line">            <span class="comment">// Note: in some jdbc drivers, such as MySQL, you must set maxRows before fetchSize, or you get exception!</span></span><br><span class="line">            ps.setFetchSize(maxCount);</span><br><span class="line"></span><br><span class="line">            ps.setString(<span class="number">1</span>, STATE_WAITING);</span><br><span class="line">            ps.setBigDecimal(<span class="number">2</span>, <span class="keyword">new</span> <span class="title class_">BigDecimal</span>(String.valueOf(noLaterThan)));</span><br><span class="line">            ps.setBigDecimal(<span class="number">3</span>, <span class="keyword">new</span> <span class="title class_">BigDecimal</span>(String.valueOf(noEarlierThan)));</span><br><span class="line">            rs = ps.executeQuery();</span><br><span class="line"></span><br><span class="line">            <span class="keyword">while</span> (rs.next() &amp;&amp; nextTriggers.size() &lt;= maxCount) &#123;</span><br><span class="line">                nextTriggers.add(triggerKey(</span><br><span class="line">                    rs.getString(COL_TRIGGER_NAME),</span><br><span class="line">                    rs.getString(COL_TRIGGER_GROUP)));</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">return</span> nextTriggers;</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            closeResultSet(rs);</span><br><span class="line">            closeStatement(ps);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">protected</span> <span class="keyword">final</span> String <span class="title function_">rtp</span><span class="params">(String query, String instanceName)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> MessageFormat.format(query,</span><br><span class="line">            <span class="keyword">new</span> <span class="title class_">Object</span>[] &#123;tablePrefix, getSchedulerNameLiteral(), <span class="string">&quot;&#x27;&quot;</span> + instanceName + <span class="string">&quot;&#x27;&quot;</span>&#125;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>至此，完成了指定trigger在特定instanceId上运行，但是有一个问题，假如我们期望trigger可以在多台instanceId上随机执行的话，该如何实现呢？</p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2018/03/06/Java/2018-03-06-spring-quartz-trigger/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-Java/2018-01-19-spring-properties" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/01/19/Java/2018-01-19-spring-properties/">Spring中property-placeholder的使用与解析</a>
+    </h1>
+  
+
+        
+        <a href="/2018/01/19/Java/2018-01-19-spring-properties/" class="archive-article-date">
+  	<time datetime="2018-01-18T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-01-19</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>在我们程序开发中，进程会需要把一些变量通过property方式进行提取，方便不同环境配置不同的属性，替换变量的方法通常有两种，一种是静态替换，一种是动态替换；所谓静态替换，是在打包编译的时候，把变量替换掉，动态替换，是在程序运行起来时，通过把属性注入到程序的环境变量中，类初始化的时候，再使用环境变量进行替换的一种方法。</p>
+<p>静态替换常用工具：autoconfig<br>动态替换常用工具：spring.property-placeholder</p>
+<h2 id="spring动态替换变量实践"><a href="#spring动态替换变量实践" class="headerlink" title="spring动态替换变量实践"></a>spring动态替换变量实践</h2><p>简洁配置法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&lt;context:property-placeholder location=<span class="string">&quot;classpath:xxx.properties&quot;</span> </span><br><span class="line">ignore-unresolvable=<span class="string">&quot;true&quot;</span>/&gt;</span><br></pre></td></tr></table></figure>
+<p>等价于：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&lt;bean id=<span class="string">&quot;propertyConfigurer&quot;</span> class=<span class="string">&quot;org.springframework.beans.factory.config.PropertyPlaceholderConfigurer&quot;</span>&gt;</span><br><span class="line">    &lt;property name=<span class="string">&quot;location&quot;</span>&gt;</span><br><span class="line">        &lt;value&gt;myConfig.properties&lt;/value&gt;</span><br><span class="line">    &lt;/property&gt;</span><br><span class="line">&lt;/bean&gt;</span><br></pre></td></tr></table></figure>
+
+<p>完整配置属性：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">&lt;context:property-placeholder   </span><br><span class="line">        location=<span class="string">&quot;&quot;</span>  </span><br><span class="line">        file-encoding=<span class="string">&quot;&quot;</span>  </span><br><span class="line">        ignore-resource-not-found=<span class="string">&quot;&quot;</span>  </span><br><span class="line">        ignore-unresolvable=<span class="string">&quot;&quot;</span>  </span><br><span class="line">        properties-ref=<span class="string">&quot;&quot;</span>  </span><br><span class="line">        local-override=<span class="string">&quot;&quot;</span>  </span><br><span class="line">        system-properties-mode=<span class="string">&quot;&quot;</span>  </span><br><span class="line">        order=<span class="string">&quot;&quot;</span>  </span><br><span class="line">/&gt; </span><br></pre></td></tr></table></figure>
+<p>ignore-resource-not-found：如果属性文件找不到，是否忽略，默认false，即不忽略，找不到将抛出异常 </p>
+<p>ignore-unresolvable：是否忽略解析不到的属性，如果不忽略，找不到将抛出异常 </p>
+<p>order：当配置多个<a href="context:property-placeholder/">context:property-placeholder/</a>时的查找顺序</p>
+<p>不推荐将ignore-resource-not-found和ignore-unresolvable的值设置为ture，默认为false，可以有效避免程序运行异常</p>
+<h4 id="使用PropertySource注解配置"><a href="#使用PropertySource注解配置" class="headerlink" title="使用PropertySource注解配置"></a>使用PropertySource注解配置</h4><p>Spring3.1添加了@PropertySource注解,方便添加property文件到环境.</p>
+<h4 id="properties的注入与使用"><a href="#properties的注入与使用" class="headerlink" title="properties的注入与使用"></a>properties的注入与使用</h4><ul>
+<li>java中使用@Value注解获取</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Value( &quot;$&#123;jdbc.url&#125;&quot; )</span></span><br><span class="line"><span class="keyword">private</span> String jdbcUrl;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>在Spring的xml配置文件中获取</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&lt;bean id=<span class="string">&quot;dataSource&quot;</span>&gt;</span><br><span class="line">  &lt;property name=<span class="string">&quot;url&quot;</span> value=<span class="string">&quot;$&#123;jdbc.url&#125;&quot;</span> /&gt;</span><br><span class="line">&lt;/bean&gt;</span><br></pre></td></tr></table></figure>
+
+<h4 id="配置多个property-placeholder属性"><a href="#配置多个property-placeholder属性" class="headerlink" title="配置多个property-placeholder属性"></a>配置多个property-placeholder属性</h4><p>Spring容器是采用反射扫描的发现机制，通过标签的命名空间实例化实例，当Spring探测到容器中有一个org.springframework.beans.factory.config.PropertyPlaceholderCVonfigurer的Bean就会停止对剩余PropertyPlaceholderConfigurer的扫描，即只能存在一个实例！</p>
+<p>所以一遍不建议配置多个property-placeholder对象，但是在必须使用多个的场景下，如何配置呢？</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&lt;context:property-placeholder location=<span class="string">&quot;xxx.properties&quot;</span> ignore-unresolvable=<span class="string">&quot;true&quot;</span>/&gt;</span><br><span class="line"></span><br><span class="line">&lt;context:property-placeholder location=<span class="string">&quot;xxx.properties&quot;</span> ignore-unresolvable=<span class="string">&quot;true&quot;</span>/&gt;</span><br></pre></td></tr></table></figure>
+<p>需要设置ignore-unresolvable&#x3D;”true”，否则后面的property-placeholder不会被加载；</p>
+<p>ignore-unresolvable单独使用来看是“是否忽视不存在的配置项”，不仅如此，其还有一个隐含意思：是否还要扫描其他配置项：如果为false，则会忽视后续的property-placeholder，如果需要配置多个property-placeholder则应该设置为true；</p>
+<h4 id="context-property-placeholder-工作原理"><a href="#context-property-placeholder-工作原理" class="headerlink" title="context:property-placeholder 工作原理"></a>context:property-placeholder 工作原理</h4><p>在 ContextNamespaceHandler 中对于 context中的property-placeholder 标签，会采用PropertyPlaceholderBeanDefinitionParser解析器进行解析；</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ContextNamespaceHandler</span> <span class="keyword">extends</span> <span class="title class_">NamespaceHandlerSupport</span> &#123;</span><br><span class="line"></span><br><span class="line">	<span class="meta">@Override</span></span><br><span class="line">	<span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">init</span><span class="params">()</span> &#123;</span><br><span class="line">		registerBeanDefinitionParser(<span class="string">&quot;property-placeholder&quot;</span>, <span class="keyword">new</span> <span class="title class_">PropertyPlaceholderBeanDefinitionParser</span>());</span><br><span class="line">		registerBeanDefinitionParser(<span class="string">&quot;property-override&quot;</span>, <span class="keyword">new</span> <span class="title class_">PropertyOverrideBeanDefinitionParser</span>());</span><br><span class="line">		registerBeanDefinitionParser(<span class="string">&quot;annotation-config&quot;</span>, <span class="keyword">new</span> <span class="title class_">AnnotationConfigBeanDefinitionParser</span>());</span><br><span class="line">		registerBeanDefinitionParser(<span class="string">&quot;component-scan&quot;</span>, <span class="keyword">new</span> <span class="title class_">ComponentScanBeanDefinitionParser</span>());</span><br><span class="line">		registerBeanDefinitionParser(<span class="string">&quot;load-time-weaver&quot;</span>, <span class="keyword">new</span> <span class="title class_">LoadTimeWeaverBeanDefinitionParser</span>());</span><br><span class="line">		registerBeanDefinitionParser(<span class="string">&quot;spring-configured&quot;</span>, <span class="keyword">new</span> <span class="title class_">SpringConfiguredBeanDefinitionParser</span>());</span><br><span class="line">		registerBeanDefinitionParser(<span class="string">&quot;mbean-export&quot;</span>, <span class="keyword">new</span> <span class="title class_">MBeanExportBeanDefinitionParser</span>());</span><br><span class="line">		registerBeanDefinitionParser(<span class="string">&quot;mbean-server&quot;</span>, <span class="keyword">new</span> <span class="title class_">MBeanServerBeanDefinitionParser</span>());</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>PropertyPlaceholderBeanDefinitionParser解析器会将property-placeholder 标签解析为一个PropertySourcesPlaceholderConfigurer的单例 bean 。</p>
+<p>可以看出 PropertySourcesPlaceholderConfigurer 或者 PropertyPlaceholderConfigurer 仅仅是做了一个配置文件的解析工作，真正的注入并不由它们完成，而是托付给了Spring 的Bean初始化流程。<br>之所以这么做可以生效，是因为这两个类实现了 BeanFactoryPostProcessor 接口，这个接口的优先级高于后续的Spring Bean。</p>
+<p>属性元素的注入依赖于 AutowiredAnnotationBeanPostProcessor#postProcessPropertyValues。 通过解析PropertySourcesPlaceholderConfigurer 查询得到元素值。 </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> PropertyValues <span class="title function_">postProcessPropertyValues</span><span class="params">(PropertyValues pvs, PropertyDescriptor[] pds, Object bean, String beanName)</span> <span class="keyword">throws</span> BeansException &#123;</span><br><span class="line">    <span class="type">InjectionMetadata</span> <span class="variable">metadata</span> <span class="operator">=</span> <span class="built_in">this</span>.findAutowiringMetadata(beanName, bean.getClass());</span><br><span class="line"></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        metadata.inject(bean, beanName, pvs);</span><br><span class="line">        <span class="keyword">return</span> pvs;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Throwable var7) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">BeanCreationException</span>(beanName, <span class="string">&quot;Injection of autowired dependencies failed&quot;</span>, var7);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<p>PropertySourcesPlaceholderConfigurer本质上是一个BeanFactoryPostProcessor。解析XML的流程在BeanFactoryPostProcessor之前， 优先将配置文件的路径以及名字通过Setter传入PropertySourcesPlaceholderConfigurer。</p>
+<p>如上BeanFactoryPostProcessor的优先级又优于其余的Bean。因此可以实现在bean初始化之前的注入。</p>
+<h4 id="Spring-Value注入流程"><a href="#Spring-Value注入流程" class="headerlink" title="Spring @Value注入流程"></a>Spring @Value注入流程</h4><ol>
+<li>Spring Context 的初始化开始</li>
+<li>读取到context:property-placeholder标签或者PropertySourcesPlaceholderConfigurer</li>
+<li>解析并实例化一个PropertySourcesPlaceholderConfigurer。同时向其中注入配置文件路径、名称</li>
+<li>PropertySourcesPlaceholderConfigurer自身生成多个StringValueResolver备用，Bean准备完毕</li>
+<li>Spring在初始化非BeanFactoryPostProcessor的Bean的时候，AutowiredAnnotationBeanPostProcessor 负责找到Bean内有@Value注解的Field或者Method</li>
+<li>通过PropertySourcesPlaceholderConfigurer寻找合适的StringValueResolver并解析得到val值。注入给@Value的Field或Method。(Method优先)2</li>
+<li>Spring的其他流程。</li>
+</ol>
+<p>参考：<br><a href="http://blog.csdn.net/qyp199312/article/details/54313784">http://blog.csdn.net/qyp199312/article/details/54313784</a></p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2018/01/19/Java/2018-01-19-spring-properties/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
     <article id="post-Program/2018-01-04-permission-system-degisn" class="article article-type-post  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
     
@@ -1098,388 +1430,6 @@
 
 
   
-    <article id="post-Think/2017-11-24-how-to-study" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/11/24/Think/2017-11-24-how-to-study/">如何进行高效学习</a>
-    </h1>
-  
-
-        
-        <a href="/2017/11/24/Think/2017-11-24-how-to-study/" class="archive-article-date">
-  	<time datetime="2017-11-23T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2017-11-24</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <ul>
-<li><img src="/slides/how-to-study/01.jpg"></li>
-<li><img src="/slides/how-to-study/02.jpg"></li>
-<li><img src="/slides/how-to-study/03.jpg"></li>
-<li><img src="/slides/how-to-study/04.jpg"></li>
-<li><img src="/slides/how-to-study/05.jpg"></li>
-<li><img src="/slides/how-to-study/06.jpg"></li>
-<li><img src="/slides/how-to-study/07.jpg"></li>
-<li><img src="/slides/how-to-study/08.jpg"></li>
-<li><img src="/slides/how-to-study/09.jpg"></li>
-<li><img src="/slides/how-to-study/10.jpg"></li>
-<li><img src="/slides/how-to-study/11.jpg"></li>
-<li><img src="/slides/how-to-study/12.jpg"></li>
-<li><img src="/slides/how-to-study/13.jpg"></li>
-<li><img src="/slides/how-to-study/14.jpg"></li>
-<li><img src="/slides/how-to-study/15.jpg"></li>
-<li><img src="/slides/how-to-study/16.jpg"></li>
-<li><img src="/slides/how-to-study/17.jpg"></li>
-<li><img src="/slides/how-to-study/18.jpg"></li>
-<li><img src="/slides/how-to-study/19.jpg"></li>
-<li><img src="/slides/how-to-study/20.jpg"></li>
-</ul>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Think//" class="article-tag-list-link color1">Think</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2017/11/24/Think/2017-11-24-how-to-study/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-Java/2017-10-20-message-string-byte" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/10/20/Java/2017-10-20-message-string-byte/">消息收发中的中文乱码</a>
-    </h1>
-  
-
-        
-        <a href="/2017/10/20/Java/2017-10-20-message-string-byte/" class="archive-article-date">
-  	<time datetime="2017-10-19T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2017-10-20</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <blockquote>
-<p>背景：<br>A发消息给B系统，A、B应用的编码均为UTF-8，但是B收到的消息出现中文乱码。</p>
-</blockquote>
-<p>A发送消息的方式：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">new</span> <span class="title class_">Message</span>(TOPIC, TAG, <span class="literal">null</span>,          (messageContent.toString()).getBytes())</span><br></pre></td></tr></table></figure>
-
-<p>这里消息接受二进制byte数据，我们把消息string转换为byte的时候，默认使用了getBytes()，未指定编码方式，getBytes()方法的注释如下：</p>
-<p>Encodes this {@code String} into a sequence of bytes using the<br> platform’s default charset, storing the result into a new byte array.</p>
-<p>也就是会使用平台默认编码，查看StringCoding.encode方法中的Charset.defaultCharset().name()方法：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">  * Returns the default charset of this Java virtual machine.</span></span><br><span class="line"><span class="comment">  *</span></span><br><span class="line"><span class="comment">  * &lt;p&gt; The default charset is determined during virtual-machine startup and</span></span><br><span class="line"><span class="comment">  * typically depends upon the locale and charset of the underlying</span></span><br><span class="line"><span class="comment">  * operating system.</span></span><br><span class="line"><span class="comment">  *</span></span><br><span class="line"><span class="comment">  * <span class="doctag">@return</span>  A charset object for the default charset</span></span><br><span class="line"><span class="comment">  *</span></span><br><span class="line"><span class="comment">  * <span class="doctag">@since</span> 1.5</span></span><br><span class="line"><span class="comment">  */</span></span><br><span class="line"> <span class="keyword">public</span> <span class="keyword">static</span> Charset <span class="title function_">defaultCharset</span><span class="params">()</span> &#123;</span><br><span class="line">     <span class="keyword">if</span> (defaultCharset == <span class="literal">null</span>) &#123;</span><br><span class="line">         <span class="keyword">synchronized</span> (Charset.class) &#123;</span><br><span class="line">             <span class="type">String</span> <span class="variable">csn</span> <span class="operator">=</span> AccessController.doPrivileged(</span><br><span class="line">                 <span class="keyword">new</span> <span class="title class_">GetPropertyAction</span>(<span class="string">&quot;file.encoding&quot;</span>));</span><br><span class="line">             <span class="type">Charset</span> <span class="variable">cs</span> <span class="operator">=</span> lookup(csn);</span><br><span class="line">             <span class="keyword">if</span> (cs != <span class="literal">null</span>)</span><br><span class="line">                 defaultCharset = cs;</span><br><span class="line">             <span class="keyword">else</span></span><br><span class="line">                 defaultCharset = forName(<span class="string">&quot;UTF-8&quot;</span>);</span><br><span class="line">         &#125;</span><br><span class="line">     &#125;</span><br><span class="line">     <span class="keyword">return</span> defaultCharset;</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
-
-<p>注释的很清楚了，返回JVM默认的字符编码，如果在jvm启动参数中指定了-Dfile.encoding 编码，则优先使用此编码，如果未指定，则使用UTF-8编码；</p>
-<p>登录服务器查看启动参数，发现A应用进程中指定了-Dfile.encoding&#x3D;GB18030</p>
-<p><img src="/images/posts/20171020/15084809508975.jpg"></p>
-<p>示意图如下：<br><img src="/images/posts/20171020/15084807485727.jpg"></p>
-<p>总结：<br>在进行string与byte转换的时候，最好使用getBytes(String charsetName)方法，明确指定字符编码方式，最好编写一个编码转换的工具类，统一类型转换时的编码方式。</p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2017/10/20/Java/2017-10-20-message-string-byte/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-Java/2017-09-21-phantomjs-install" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/09/21/Java/2017-09-21-phantomjs-install/">Linux phantomJs install course</a>
-    </h1>
-  
-
-        
-        <a href="/2017/09/21/Java/2017-09-21-phantomjs-install/" class="archive-article-date">
-  	<time datetime="2017-09-20T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2017-09-21</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <blockquote>
-<p>背景：<br>我们在进行系统报告研发时，需要对报告结果进行定时邮件，所以需要把HTML内容自动转换为邮件内容，通常我们在发送邮件内容的时候内容是模板化的，模板基本不怎么改变，然而我们的报告却是由无数个子模块组成，这些子模块可以只有组合成为任意报告，每一个模块中的内容均为用户自定义，如果我们要实现通用化报告邮件化，那就需要把渲染后的报告转换为图片或者HTML格式，headless方案中常用的有phantomJS和Headless Chrome，phantomJS提供了截图等功能，所以称为我们的首选。</p>
-</blockquote>
-<h4 id="遇到的问题："><a href="#遇到的问题：" class="headerlink" title="遇到的问题："></a>遇到的问题：</h4><p>我们生产环境大部分机器操作系统为5u，默认的glibc版本最高到2.5。然而 PhantomJS官网中明确指出Linux 64-bit操作系统下，需要依赖GLIBCXX_3.4.9 和 GLIBC_2.7&#x2F;GLIBC_2.9&#x2F;GLIBC_2.10。<br><img src="/images/posts/20170921/15059814992587.jpg"></p>
-<p>但是在我们生产环境中：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">strings /lib64/libc.so.6 |grep GLIBC</span><br><span class="line">strings /usr/lib64/libstdc++.so.6 |grep GLIBCXX</span><br></pre></td></tr></table></figure>
-
-<p><img src="/images/posts/20170921/15059815133485.jpg"></p>
-<p>所以需要安装：GLIBCXX_3.4.9  GLIBC_2.7</p>
-<h3 id="一、安装phantoomjs"><a href="#一、安装phantoomjs" class="headerlink" title="一、安装phantoomjs"></a>一、安装phantoomjs</h3><h4 id="1-安装node："><a href="#1-安装node：" class="headerlink" title="1. 安装node："></a>1. 安装node：</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">sudo wget  http:<span class="comment">//xxxxx/node-v6.11.2-linux-x64.tar.xz</span></span><br><span class="line">sudo xz -d node-v6<span class="number">.11</span><span class="number">.2</span>-linux-x64.tar.xz</span><br><span class="line">sudo tar xvf node-v6<span class="number">.11</span><span class="number">.2</span>-linux-x64.tar</span><br><span class="line"></span><br><span class="line">sudo ln -s /home/admin/phantomjs/node-v6<span class="number">.11</span><span class="number">.2</span>-linux-x64/bin/node /usr/local/bin/node</span><br><span class="line">sudo ln -s /home/admin/phantomjs/node-v6<span class="number">.11</span><span class="number">.2</span>-linux-x64/bin/npm /usr/local/bin/npm</span><br><span class="line"></span><br><span class="line">sudo vi /etc/profile</span><br><span class="line">PATH=$PATH:/home/admin/phantomjs/node-v6<span class="number">.11</span><span class="number">.2</span>-linux-x64/bin</span><br><span class="line"></span><br><span class="line">node -v</span><br></pre></td></tr></table></figure>
-
-
-<h4 id="2-安装npm："><a href="#2-安装npm：" class="headerlink" title="2. 安装npm："></a>2. 安装npm：</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -vvvL https://npmjs.com/install.sh &gt;/dev/null</span><br></pre></td></tr></table></figure>
-
-<h4 id="3-安装phantomJS："><a href="#3-安装phantomJS：" class="headerlink" title="3. 安装phantomJS："></a>3. 安装phantomJS：</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">sudo wget http://xxxx/phantomjs-2.1.1-linux-x86_64.tar.bz2</span><br><span class="line">sudo tar -jxvf phantomjs-2.1.1-linux-x86_64.tar.bz2</span><br><span class="line">sudo ln -s /home/admin/phantomjs/phantomjs-2.1.1-linux-x86_64/bin/phantomjs /usr/local/bin/phantomjs</span><br><span class="line"></span><br><span class="line">phantomjs --version</span><br></pre></td></tr></table></figure>
-<p><img src="/images/posts/20170921/15059819937015.jpg"><br>我们的系统中没有这些动态库，有联两种办法，第一自己安装这些版本，第二升级操作系统到7u，我们先尝试使用第一种方法。</p>
-<h3 id="二、安装GCC"><a href="#二、安装GCC" class="headerlink" title="二、安装GCC"></a>二、安装GCC</h3><p>因为部分版本的Glibc的安装需要高版本的GCC，默认的GCC版本为4.1.2，导致不能编译glibc的2.10以上版本，所以必须升级，gcc&gt;&#x3D;4.3.3。</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">cd  /home/admin/gcc/gcc-build</span><br><span class="line">sudo yum install libstdc++-devel.i686</span><br><span class="line">sudo yum install  libstdc++-devel.x86_64</span><br><span class="line">sudo ../gcc-4.8.2/configure --prefix=/usr/local/gcc-4.8.2  --with-gmp=/usr/local/gmp-6.0.0 --with-mpfr=/usr/local/mpfr-3.1.2 --with-mpc=/usr/local/mpc-1.0.1  --with-java-home=/opt/taobao/java --disable-multilib  --disable-shared --enable-threads=posix --disable-checking  --enable-languages=all  --enable-static --enable-shared=libstdc++,libgcc_eh</span><br></pre></td></tr></table></figure>
-
-<p>或者：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">sudo ../gcc-4.8.2/configure --prefix=/usr/local/gcc-4.8.2 --enable-threads=posix  --with-gmp=/usr/local/gmp-6.0.0 --with-mpfr=/usr/local/mpfr-3.1.2 --with-mpc=/usr/local/mpc-1.0.1  --mandir=/usr/share/man --infodir=/usr/share/info --enable-shared --disable-multilib --enable-checking=release --with-system-zlib --enable-__cxa_atexit --disable-libunwind-exceptions --enable-libgcj-multifile --enable-languages=c,c++,objc,obj-c++,java --disable-dssi --disable-plugin --with-java-home=/opt/taobao/java/jre --with-cpu=generic</span><br><span class="line"></span><br><span class="line">sudo make</span><br><span class="line">sudo make install </span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">配置环境变量：</span></span><br><span class="line">sudo vi /etc/profile</span><br><span class="line">export PATH=$PATH:/usr/local/gcc-4.8.2</span><br><span class="line">source /etc/profile</span><br><span class="line"></span><br><span class="line">sudo rm /usr/bin/gcc    //删除旧的软连接  </span><br><span class="line">sudo ln -s /usr/local/gcc-4.8.2/bin/gcc /usr/bin/gcc //使新版本建立软连接 </span><br></pre></td></tr></table></figure>
-
-<p>安装完毕后，查看GCC版本：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_">$</span><span class="language-bash">gcc -v</span></span><br><span class="line">Using built-in specs.</span><br><span class="line">COLLECT_GCC=gcc</span><br><span class="line">COLLECT_LTO_WRAPPER=/usr/local/gcc-4.8.2/libexec/gcc/x86_64-unknown-linux-gnu/4.8.2/lto-wrapper</span><br><span class="line">Target: x86_64-unknown-linux-gnu</span><br><span class="line">Configured with: ../gcc-4.8.2/configure --prefix=/usr/local/gcc-4.8.2 --with-gmp=/usr/local/gmp-6.0.0 --with-mpfr=/usr/local/mpfr-3.1.2 --with-mpc=/usr/local/mpc-1.0.1 --with-java-home=/opt/taobao/java --disable-multilib --disable-shared --enable-threads=posix --disable-checking --enable-static --enable-shared=libstdc++</span><br><span class="line">Thread model: posix</span><br><span class="line">gcc version 4.8.2 (GCC)</span><br></pre></td></tr></table></figure>
-
-<h5 id="出现错误1："><a href="#出现错误1：" class="headerlink" title="出现错误1："></a>出现错误1：</h5><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">configure: error: cannot compute suffix of object files: cannot compile See `config.log&#x27; for more details</span><br></pre></td></tr></table></figure>
-<p>查看config.log，发现错误：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/home/admin/gcc/gcc-build/./gcc/cc1: error while loading shared libraries: libmpc.so.3: cannot open shared object file: No such file or directory</span><br></pre></td></tr></table></figure>
-<p>说明是环境变量设置未生效，检查环境变量&amp;ldconfig相关设置。</p>
-<h5 id="出现错误2："><a href="#出现错误2：" class="headerlink" title="出现错误2："></a>出现错误2：</h5><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">/usr/local/include/gnu/stubs.h:7:27: fatal error: gnu/stubs-32.h: No such file or directory</span><br><span class="line">compilation terminated.</span><br></pre></td></tr></table></figure>
-<p>安装：<br>查看可用的版本：yum list available glibc-devel<br>sudo yum install glibc-devel<br>sudo yum install libstdc++-devel.i686</p>
-<h5 id="出现错误3："><a href="#出现错误3：" class="headerlink" title="出现错误3："></a>出现错误3：</h5><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">/usr/lib/gcc/x86_64-redhat-linux/4.1.2/../../../../include/c++/4.1.2/iosfwd:44:28: error: bits/c++config.h: No such file or directory</span><br><span class="line">/usr/lib/gcc/x86_64-redhat-linux/4.1.2/../../../../include/c++/4.1.2/iosfwd:45:29: error: bits/c++locale.h: No such file or directory</span><br><span class="line">/usr/lib/gcc/x86_64-redhat-linux/4.1.2/../../../../include/c++/4.1.2/iosfwd:46:25: error: bits/c++io.h: No such file or directory</span><br></pre></td></tr></table></figure>
-<p>解决方案：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo yum install  libstdc++-devel.x86_64</span><br></pre></td></tr></table></figure>
-
-<h5 id="出现错误4："><a href="#出现错误4：" class="headerlink" title="出现错误4："></a>出现错误4：</h5><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">lib/libgmp.so: could not read symbols: File in wrong format collect2: error: ld returned 1 exit status</span><br><span class="line">/home/admin/gcc/gcc-build/x86_64-unknown-linux-gnu/32/libjava/classpath/native/jni/java-math&#x27;</span><br></pre></td></tr></table></figure>
-<p>解决方案：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo ../gcc-4.8.2/configure --prefix=/usr/local/gcc-4.8.2 --enable-threads=posix --disable-checking --with-gmp=/usr/local/gmp-6.0.0 --with-mpfr=/usr/local/mpfr-3.1.2 --with-mpc=/usr/local/mpc-1.0.1 --enable-shared --enable-languages=all  --enable-libgomp --enable-lto --enable-tls --with-fpmath=sse --disable-multilib --build=x86_64-redhat-linux    --with-java-home=/opt/taobao/java</span><br></pre></td></tr></table></figure>
-
-<h5 id="出现错误5："><a href="#出现错误5：" class="headerlink" title="出现错误5："></a>出现错误5：</h5><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Error: unrecognized symbol type &quot;gnu_unique_object&quot;</span><br></pre></td></tr></table></figure>
-<p>解决方案：移除 configure参数中的 gnu_unique_object 配置；</p>
-<h5 id="出现错误6："><a href="#出现错误6：" class="headerlink" title="出现错误6："></a>出现错误6：</h5><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">configure: error: libXtst not found, required by java.awt.Robot</span><br></pre></td></tr></table></figure>
-
-<p>解决方案：移除 configure参数中的 java.awt 配置；</p>
-<h5 id="出现错误7："><a href="#出现错误7：" class="headerlink" title="出现错误7："></a>出现错误7：</h5><p>libtool: compile: not configured to build any kind of library<br>解决方案：<br>sudo ..&#x2F;gcc-4.8.2&#x2F;configure –prefix&#x3D;&#x2F;usr&#x2F;local&#x2F;gcc-4.8.2  –with-gmp&#x3D;&#x2F;usr&#x2F;local&#x2F;gmp-6.0.0 –with-mpfr&#x3D;&#x2F;usr&#x2F;local&#x2F;mpfr-3.1.2 –with-mpc&#x3D;&#x2F;usr&#x2F;local&#x2F;mpc-1.0.1  –with-java-home&#x3D;&#x2F;opt&#x2F;taobao&#x2F;java –disable-multilib –disable-shared –enable-threads&#x3D;posix –disable-checking  –enable-languages&#x3D;all  –enable-static –enable-shared&#x3D;libstdc++,libgcc_eh</p>
-<h5 id="出现错误8："><a href="#出现错误8：" class="headerlink" title="出现错误8："></a>出现错误8：</h5><p>cc1plus: error: unrecognized command line option “-Wno-narrowing”<br>解决方案：目前没有查询到好的解决方案；</p>
-<h5 id="出现错误9："><a href="#出现错误9：" class="headerlink" title="出现错误9："></a>出现错误9：</h5><p>&#x2F;usr&#x2F;include&#x2F;string.h:550:18: error: unknown type name ‘__locale_t’<br>解决方案：暂无</p>
-<h5 id="出现错误10："><a href="#出现错误10：" class="headerlink" title="出现错误10："></a>出现错误10：</h5><p>&#x2F;usr&#x2F;lib64&#x2F;libstdc++.so.6: undefined symbol: _ZNSt7num_getIcSt19istreambuf_iteratorIcSt11char_traitsIcEEE2idE, version GLIBCXX_3.4</p>
-<h3 id="三、安装GlibC"><a href="#三、安装GlibC" class="headerlink" title="三、安装GlibC"></a>三、安装GlibC</h3><p>查看当前系统Glibc的版本：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">strings /lib64/libc.so.6 |grep GLIBC</span><br></pre></td></tr></table></figure>
-
-<p>编译glibc：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">sudo mkdir glic</span><br><span class="line">cd glic</span><br><span class="line">sudo wget http://ftp.gnu.org/pub/gnu/glibc/glibc-2.7.tar.gz</span><br><span class="line">sudo wget http://ftp.gnu.org/pub/gnu/glibc/glibc-2.9.tar.gz</span><br><span class="line">//sudo wget http://ftp.gnu.org/pub/gnu/glibc/glibc-2.10.1.tar.gz</span><br><span class="line">sudo wget http://ftp.gnu.org/pub/gnu/glibc/glibc-2.14.tar.gz</span><br><span class="line"></span><br><span class="line">sudo tar zxvf glibc-2.7.tar.gz</span><br><span class="line">sudo tar zxvf glibc-2.9.tar.gz</span><br><span class="line">sudo tar zxvf glibc-2.10.1.tar.gz</span><br><span class="line">sudo tar zxvf glibc-2.14.tar.gz</span><br><span class="line"></span><br><span class="line">sudo mkdir glibc-build-2.7</span><br><span class="line">sudo mkdir glibc-build-2.9</span><br><span class="line">sudo mkdir glibc-build-2.10.1</span><br><span class="line">sudo mkdir glibc-build-2.14</span><br><span class="line"></span><br><span class="line">cd glibc-build-2.7</span><br><span class="line"></span><br><span class="line">sudo ../glibc-2.7/configure</span><br></pre></td></tr></table></figure>
-
-<p>遇到错误：<br>configure: error: no acceptable C compiler found in $PATH<br>安装gcc套件(rpm -qa |grep gcc  可以看到目前的版本时4.1.2，注意此版本太老，导致不能编译glibc的2.10以上版本，所以必须升级，gcc&gt;&#x3D;4.3.3)：</p>
-<p>遇到错误：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">*** On GNU/Linux systems the GNU C Library should not be installed into</span><br><span class="line">*** /usr/local since this might make your system totally unusable.</span><br><span class="line">*** We strongly advise to use a different prefix.  For details read the FAQ.</span><br></pre></td></tr></table></figure>
-
-<p>INSTALL文件摘录如下：</p>
-<blockquote>
-<p><code>configure&#39; takes many options, but the only one that is usually mandatory is </code>–prefix’.  This option tells <code>configure&#39; where you want glibc installed.  This defaults to </code>&#x2F;usr&#x2F;local’, but the normal setting<br>to install as the standard system library is <code>--prefix=/usr&#39; for GNU/linux systems and </code>–prefix&#x3D;’ (an empty prefix) for GNU&#x2F;Hurd<br>systems.</p>
-</blockquote>
-<p>关于安装目录的选择:</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">--prefix=PREFIX</span><br></pre></td></tr></table></figure>
-
-<p>安装目录，默认为 &#x2F;usr&#x2F;local<br>Linux文件系统标准要求基本库必须位于 &#x2F;lib 目录并且必须与根目录在同一个分区上，但是 &#x2F;usr 可以在其他分区甚至是其他磁盘上。因此，如果指定 –prefix&#x3D;&#x2F;usr ，那么基本库部分将自动安装到 &#x2F;lib 目录下，而非基本库部分则会自动安装到 &#x2F;usr&#x2F;lib 目录中。但是如果保持默认值或指定其他目录，那么所有组件都间被安装到PREFIX目录下。</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sudo ../glibc-2.7/configure --prefix=/usr --disable-multi-arch</span><br><span class="line">sudo ../glibc-2.9/configure --prefix=/usr --disable-multi-arch</span><br><span class="line">sudo ../glibc-2.14/configure --prefix=/usr --disable-multi-arch</span><br></pre></td></tr></table></figure>
-
-
-<p>在每个build目录下，执行glibc的配置：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sudo ../glibc-2.7/configure --prefix=/usr --disable-multi-arch</span><br><span class="line">sudo ../glibc-2.9/configure --prefix=/usr --disable-multi-arch</span><br><span class="line">sudo ../glibc-2.10.1/configure --prefix=/usr --disable-multi-arch</span><br></pre></td></tr></table></figure>
-
-<p>分别进入每个build目录，执行命令(在 glibc-build-xx 目录下)：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo make all &amp;&amp; make install</span><br></pre></td></tr></table></figure>
-
-<p>如果直接执行（sudo make install）出现错误提示：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">make[2]: *** No rule to make target `/home/admin/glibc-build/dlfcn/libdl.so.2&#x27;, needed by `/home/admin/glibc-build/elf/sprof&#x27;.  Stop.</span><br><span class="line">make[2]: Leaving directory `/home/admin/glibc-2.7/elf&#x27;</span><br><span class="line">make[1]: *** [elf/subdir_install] Error 2</span><br><span class="line">make[1]: Leaving directory `/home/admin/glibc-2.7&#x27;</span><br><span class="line">make: *** [install] Error 2</span><br></pre></td></tr></table></figure>
-
-<p>解决方案(先执行make all， 再执行 make install);</p>
-<p>安装完毕后，出现提示：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Your new glibc installation seems to be ok.</span><br><span class="line">make[1]: Leaving directory `/home/admin/glibc-2.7&#x27;</span><br></pre></td></tr></table></figure>
-
-
-<h5 id="常见错误信息1："><a href="#常见错误信息1：" class="headerlink" title="常见错误信息1："></a>常见错误信息1：</h5><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">/lib/modules/2.6.32-220.23.2.ali927.el5.x86_64/build/include/linux/swab.h:6:22: fatal error: asm/swab.h: No such file or directory</span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">include &lt;asm/swab.h&gt;</span></span><br></pre></td></tr></table></figure>
-
-<p>解决办法：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo touch /lib/modules/2.6.32-220.23.2.ali927.el5.x86_64/build/include/asm-x86/swab.h</span><br></pre></td></tr></table></figure>
-
-<p>参考：<a href="https://bbs.archlinux.org/viewtopic.php?id=70488">https://bbs.archlinux.org/viewtopic.php?id=70488</a></p>
-<h5 id="常见错误信息2："><a href="#常见错误信息2：" class="headerlink" title="常见错误信息2："></a>常见错误信息2：</h5><p>configure: error: assembler too old, .cfi_personality support missing<br>解决办法：google说gcc版本太老。</p>
-<h5 id="常见错误信息3："><a href="#常见错误信息3：" class="headerlink" title="常见错误信息3："></a>常见错误信息3：</h5><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/usr/bin/ld: cannot find -lgcc_eh</span><br></pre></td></tr></table></figure>
-
-<p>原因是： glibc在安装的时候，需要使用gcc_eh（–enable-shared），但是我们在安装gcc时，添加了–disable-shared，禁用了shared功能，所以导致此库找不到；<br>测试gcc_eh是否安装：sudo gcc -lgcc_eh –verbose</p>
-<p>解决办法：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sudo find / -name libgcc.a</span><br><span class="line">sudo cp libgcc.a libgcc_eh.a</span><br></pre></td></tr></table></figure>
-
-<p>参考：<br><a href="http://www.linuxfromscratch.org/clfs/view/clfs-2.0/arm/cross-tools/glibc.html">http://www.linuxfromscratch.org/clfs/view/clfs-2.0/arm/cross-tools/glibc.html</a><br><a href="https://gcc.gnu.org/ml/gcc-patches/2005-02/msg00532.html">https://gcc.gnu.org/ml/gcc-patches/2005-02/msg00532.html</a><br><a href="http://lists.linuxfromscratch.org/pipermail/lfs-support/2012-December/044174.html">http://lists.linuxfromscratch.org/pipermail/lfs-support/2012-December/044174.html</a></p>
-<h5 id="常见错误信息4："><a href="#常见错误信息4：" class="headerlink" title="常见错误信息4："></a>常见错误信息4：</h5><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Can&#x27;t open configuration file /usr/etc/ld.so.conf: No such file or directory</span><br></pre></td></tr></table></figure>
-
-<p>参考：<br><a href="http://www.math.ias.edu/~tarzadon/pages/posts/install-opam-on-springdalerhelcentossl-5.x-111.php">http://www.math.ias.edu/~tarzadon/pages/posts/install-opam-on-springdalerhelcentossl-5.x-111.php</a></p>
-<h5 id="常见错误信息5："><a href="#常见错误信息5：" class="headerlink" title="常见错误信息5："></a>常见错误信息5：</h5><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/build/include/linux/capability.h:73: error: expected specifier-qualifier-list before ‘__le32’</span><br></pre></td></tr></table></figure>
-
-<p>解决方案：<br>参考：<br><a href="https://github.com/spotify/linux/blob/master/include/linux/capability.h">https://github.com/spotify/linux/blob/master/include/linux/capability.h</a><br>sudo yum install openssl-devel gnutls-devel libcap-devel<br>查看版本：<br>strings &#x2F;lib64&#x2F;libc.so.6 |grep GLIBC</p>
-<h3 id="四、安装GLIBCXX"><a href="#四、安装GLIBCXX" class="headerlink" title="四、安装GLIBCXX"></a>四、安装GLIBCXX</h3><p>查看版本：strings &#x2F;usr&#x2F;lib64&#x2F;libstdc++.so.6 |grep GLIBCXX<br>查看：ls -l &#x2F;usr&#x2F;lib64&#x2F;libstdc++.so.6<br>lrwxrwxrwx 1 root root 18 Aug 14  2015 &#x2F;usr&#x2F;lib64&#x2F;libstdc++.so.6 -&gt; libstdc++.so.6.0.8</p>
-<p>自己编译gcc的过程太繁琐，需要依赖非常多的文件，直接下载高版本下的文件进行替换：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">sudo wget http://xxx/libstdc%2B%2B.so.6.0.13</span><br><span class="line">sudo cp libstdc++.so.6.0.13 /usr/lib</span><br><span class="line">sudo cp libstdc++.so.6.0.13 /usr/lib64</span><br><span class="line"></span><br><span class="line">cd /usr/lib</span><br><span class="line">sudo ln -sf libstdc++.so.6.0.13  libstdc++.so.6</span><br><span class="line"></span><br><span class="line">cd /usr/lib64</span><br><span class="line">sudo ln -sf libstdc++.so.6.0.13  libstdc++.so.6</span><br></pre></td></tr></table></figure>
-
-<p>再次执行</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">strings /usr/lib64/libstdc++.so.6 |grep GLIBCXX</span><br></pre></td></tr></table></figure>
-
-<p>发现需要的安装包已经安装完毕；</p>
-<h3 id="五、MAC下安装phantomJS："><a href="#五、MAC下安装phantomJS：" class="headerlink" title="五、MAC下安装phantomJS："></a>五、MAC下安装phantomJS：</h3><p>下载文件到本地目录；<br>添加环境变量：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">vi .bash_profile</span><br><span class="line">export PATH=$PATH:/Users/xinyuan/soft/phantomjs-2.5.0-beta-macos/bin</span><br><span class="line">source  .bash_profile</span><br></pre></td></tr></table></figure>
-
-<p>安装webp：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ruby -e &quot;$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)&quot; &lt; /dev/null 2&gt; /dev/null</span><br><span class="line">brew install webp</span><br></pre></td></tr></table></figure>
-
-<p>建立软连：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ln -s  /usr/local/opt/webp/lib/libwebp.7.dylib /usr/local/opt/webp/lib/libwebp.6.dylib</span><br></pre></td></tr></table></figure>
-
-<p>查看版本：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">phantomjs -v</span><br><span class="line">2.5.0-development</span><br></pre></td></tr></table></figure>
-
-<h3 id="六、总结："><a href="#六、总结：" class="headerlink" title="六、总结："></a>六、总结：</h3><p>整个OS的环境安装由于对linux底层不熟悉，参数配置也没有详细查看文档，导致安装过程出现了非常多的意外，之前使用的操作系统是5u，gcc版本为4.1.2，依赖的glibc、glibxx、gmp、mpfr、mpc库版本都比较低，但是phantomjs（JS截图）需要依赖其高版本库，为了升级响应的库，通过下载源码，make、install ，出现了不下于30个错误，每次解决一个错误后续流程中又出现了新的错误，费劲周折把所有依赖的库都装好后，运行phantomjs还是出错，怀疑是缺少了一些动态库；  后来还是通过升级操作系统，解决了此问题，升级操作系统完成docker化文件配置，总共才花费了不到一天时间。反思：遇到问题，首选需要评估一下解决此问题的最有效手段，而不是闷头上去搞，要看我们从中能得到什么，在linux操作系统上安装一坨软件并不能证明我们有什么能力，所以这件事情就不应该自己去尝试做，投入产出比是做事情非常重要的一个衡量手段。</p>
-<h3 id="七、参考链接："><a href="#七、参考链接：" class="headerlink" title="七、参考链接："></a>七、参考链接：</h3><p><a href="http://blog.csdn.net/tsaiyong_ahnselina/article/details/21552485">http://blog.csdn.net/tsaiyong_ahnselina/article/details/21552485</a><br><a href="http://siliconcali.com/2012/10/glibcxx_3-4-9-not-found-in-red-hatfedoracentos-linux/">http://siliconcali.com/2012/10/glibcxx_3-4-9-not-found-in-red-hatfedoracentos-linux/</a><br><a href="http://blog.csdn.net/tengdazhang770960436/article/details/41348035">http://blog.csdn.net/tengdazhang770960436/article/details/41348035</a><br><a href="http://www.cnblogs.com/LitLeo/p/3534196.html">http://www.cnblogs.com/LitLeo/p/3534196.html</a><br><a href="http://blog.csdn.net/wtfmonking/article/details/17577925">http://blog.csdn.net/wtfmonking/article/details/17577925</a><br><a href="http://www.cnblogs.com/coolulu/p/4124803.html">http://www.cnblogs.com/coolulu/p/4124803.html</a></p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2017/09/21/Java/2017-09-21-phantomjs-install/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
   
     <nav id="page-nav">
       <a class="extend prev" rel="prev" href="/page/2/">&laquo; Prev</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span><a class="page-number" href="/page/4/">4</a><a class="page-number" href="/page/5/">5</a><span class="space">&hellip;</span><a class="page-number" href="/page/11/">11</a><a class="extend next" rel="next" href="/page/4/">Next &raquo;</a>
@@ -1597,11 +1547,23 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">青春</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">人生</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">青春</a>
+                <a href="javascript:void(0)" class="js-tag color3">社会</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">学习</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">职业</a>
               </li>
              
               <li class="article-tag-list-item">
