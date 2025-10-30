@@ -149,6 +149,114 @@
           <div id="js-content" class="content-ll">
             
   
+    <article id="post-Java/2016-05-31-java-method-cost-time" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2016/05/31/Java/2016-05-31-java-method-cost-time/">计算Java方法执行时间</a>
+    </h1>
+  
+
+        
+        <a href="/2016/05/31/Java/2016-05-31-java-method-cost-time/" class="archive-article-date">
+  	<time datetime="2016-05-30T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2016-05-31</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>我们在对系统进行性能调优的时候，很多时候都会统计接口的调用时间或者内部方法的执行时间来查看具体的性能瓶颈点。</p>
+<h2 id="编码式"><a href="#编码式" class="headerlink" title="编码式"></a>编码式</h2><p>一般比较简单的左右是在方法开始和结束的时候分别添加时间记录方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">long</span> <span class="variable">startTimeMillis</span> <span class="operator">=</span> System.currentTimeMillis()</span><br><span class="line">…..</span><br><span class="line"><span class="type">long</span> <span class="variable">endTimeMillis</span> <span class="operator">=</span> System.currentTimeMillis()</span><br><span class="line"><span class="type">long</span> <span class="variable">spendTime</span> <span class="operator">=</span> endTimeMillis - startTimeMillis;</span><br></pre></td></tr></table></figure>
+
+<h2 id="StopWatch"><a href="#StopWatch" class="headerlink" title="StopWatch"></a>StopWatch</h2><p>当然你可以可以通过Apache-Commons工具包中的工具类：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">org.apache.commons.lang3.time.StopWatch</span><br></pre></td></tr></table></figure>
+
+<p>StopWatch 底层也是采用的System.currentTimeMillis()进行时间统计，使用StopWatch的优点：</p>
+<ul>
+<li>封装好了基本的时间统计方法，你直接在方法开始和结束的时候调用一次就好了，使用简单；</li>
+<li>他还提供了时间统计挂起、恢复和复位等功能，这点通过方法一是无法实现的；</li>
+</ul>
+<p>使用StopWatch的弊端：</p>
+<ul>
+<li>会抛出IllegalStateException或者RuntimeException异常，这点使用者如果不进行封装容易引起业务异常。一般我们不期望一个测试性能的代码影响到了正常的业务逻辑；</li>
+</ul>
+<h2 id="使用Spring-AOP方式："><a href="#使用Spring-AOP方式：" class="headerlink" title="使用Spring AOP方式："></a>使用Spring AOP方式：</h2><p>示例如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">MethodTimeActive</span> <span class="keyword">implements</span> <span class="title class_">MethodInterceptor</span> &#123;</span><br><span class="line"> </span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">Logger</span> <span class="variable">logger</span> <span class="operator">=</span> LoggerFactory.getLogger(MethodTimeActive.class);</span><br><span class="line"> </span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 自定义map集合，key：方法名，value：[0：运行次数，1：总时间]</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> Map&lt;String, Long[]&gt; methodTest = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;String, Long[]&gt;();</span><br><span class="line"> </span><br><span class="line"> </span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> Object <span class="title function_">invoke</span><span class="params">(MethodInvocation methodInvocation)</span> <span class="keyword">throws</span> Throwable &#123;</span><br><span class="line">        <span class="type">StopWatch</span> <span class="variable">watch</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">StopWatch</span>();</span><br><span class="line">        watch.start();</span><br><span class="line">        <span class="type">Object</span> <span class="variable">object</span> <span class="operator">=</span> methodInvocation.proceed();</span><br><span class="line">        watch.stop();</span><br><span class="line">        <span class="type">String</span> <span class="variable">methodName</span> <span class="operator">=</span> methodInvocation.getMethod().getName();</span><br><span class="line">        <span class="type">Long</span> <span class="variable">time</span> <span class="operator">=</span> watch.getTime();</span><br><span class="line">        <span class="keyword">if</span> (methodTest.containsKey(methodName)) &#123;</span><br><span class="line">            Long[] x = methodTest.get(methodName);</span><br><span class="line">            x[<span class="number">0</span>]++;</span><br><span class="line">            x[<span class="number">1</span>] += time;</span><br><span class="line">            logger.info(<span class="string">&quot;MethodTime  _method=&quot;</span> + methodName + <span class="string">&quot; _totalCount=&quot;</span> + x[<span class="number">0</span>] + <span class="string">&quot; _totalTime=&quot;</span> + x[<span class="number">1</span>] + <span class="string">&quot; ms  _avgTime=&quot;</span> + x[<span class="number">1</span>] / x[<span class="number">0</span>] + <span class="string">&quot;ms&quot;</span>);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            methodTest.put(methodName, <span class="keyword">new</span> <span class="title class_">Long</span>[]&#123;<span class="number">1L</span>, time&#125;);</span><br><span class="line">            logger.info(<span class="string">&quot;MethodTime  _method=&quot;</span> + methodName + <span class="string">&quot; _totalCount=1 _totalTime=&quot;</span> + time + <span class="string">&quot;ms _avgTime=&quot;</span> + time + <span class="string">&quot;ms&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line"> </span><br><span class="line">        <span class="keyword">return</span> object;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>定义方法拦截器</p>
+<p>spring-context 中对待监控的服务和方法进行配置（通过AOP的代理bean代理需要被检测的bean对象）：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">&lt;bean id=<span class="string">&quot;venderSpuService&quot;</span> class=<span class="string">&quot;org.springframework.aop.framework.ProxyFactoryBean&quot;</span>&gt;</span><br><span class="line">        &lt;property name=<span class="string">&quot;target&quot;</span> ref=<span class="string">&quot;venderSpuServiceImpl&quot;</span>/&gt;</span><br><span class="line">        &lt;property name=<span class="string">&quot;interceptorNames&quot;</span>&gt;</span><br><span class="line">            &lt;list&gt;</span><br><span class="line">                &lt;value&gt;spuServiceAdvisor&lt;/value&gt;</span><br><span class="line">            &lt;/list&gt;</span><br><span class="line">        &lt;/property&gt;</span><br><span class="line">    &lt;/bean&gt;</span><br><span class="line"> </span><br><span class="line">    &lt;bean id=<span class="string">&quot;methodTimeActive&quot;</span> class=<span class="string">&quot;com.sfebiz.vender.util.MethodTimeActive&quot;</span>/&gt;</span><br><span class="line"> </span><br><span class="line">    &lt;bean id=<span class="string">&quot;spuServiceAdvisor&quot;</span> class=<span class="string">&quot;org.springframework.aop.support.NameMatchMethodPointcutAdvisor&quot;</span>&gt;</span><br><span class="line">        &lt;property name=<span class="string">&quot;mappedNames&quot;</span>&gt;</span><br><span class="line">            &lt;list&gt;</span><br><span class="line">                &lt;value&gt;querySpuByProvider4Page&lt;/value&gt;</span><br><span class="line">                &lt;value&gt;querySpuByVSpuId&lt;/value&gt;</span><br><span class="line">                &lt;value&gt;stashSpu&lt;/value&gt;</span><br><span class="line">                &lt;value&gt;commitSpu&lt;/value&gt;</span><br><span class="line">            &lt;/list&gt;</span><br><span class="line">        &lt;/property&gt;</span><br><span class="line">        &lt;property name=<span class="string">&quot;advice&quot;</span> ref=<span class="string">&quot;methodTimeActive&quot;</span>/&gt;</span><br><span class="line">    &lt;/bean&gt;</span><br></pre></td></tr></table></figure>
+
+<p>需要maven依赖：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&lt;dependency&gt;</span><br><span class="line">    &lt;groupId&gt;org.aspectj&lt;/groupId&gt;</span><br><span class="line">    &lt;artifactId&gt;aspectjweaver&lt;/artifactId&gt;</span><br><span class="line">    &lt;version&gt;<span class="number">1.8</span><span class="number">.6</span>&lt;/version&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br></pre></td></tr></table></figure>
+
+<p>遇到的问题：</p>
+<ul>
+<li>通过AOP统计到的方法耗时，发现每次API调用打印了次接口调用，具体为什么还没有时间去排查。</li>
+</ul>
+<h2 id="其它："><a href="#其它：" class="headerlink" title="其它："></a>其它：</h2><ol>
+<li>如果裸露的使用System.currentTimeMillis()在高并发场景下也会带来一定的耗时，因为每一个请求都会进行一次系统交互，可以通过内存缓存的方式定时更新当前时间，这样虽然性能提高了，但是可能导致统计的时间不够准确。</li>
+<li>如果期望使用System.currentTimeMillis()获取高精度的时间，可能需要注意了，因为System.currentTimeMillis()调用的还native方法，有依赖于操作系统。</li>
+<li>使用AOP代理服务于原始服务的性能差异还需要进行测试，所以目前还不太敢在生产环境上使用。</li>
+</ol>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2016/05/31/Java/2016-05-31-java-method-cost-time/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
     <article id="post-Think/2016-05-28-weiwei-car-think" class="article article-type-post  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
     
@@ -1019,106 +1127,6 @@
 
 
   
-    <article id="post-Java/2016-03-10-simpledateformat" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2016/03/10/Java/2016-03-10-simpledateformat/">为什么SimpleDateFormat 不是线程安全</a>
-    </h1>
-  
-
-        
-        <a href="/2016/03/10/Java/2016-03-10-simpledateformat/" class="archive-article-date">
-  	<time datetime="2016-03-09T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2016-03-10</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>查看SimpleDateFormat类的说明，在最后一条已经明确说明了此类非线程安全，建议为每一个线程创建一个单独的实例，如果多线程共享实例，务必保证同步性；</p>
-<p><img src="/images/posts/20160310/7BCC9F9B-0535-48BC-B247-3A13DFC9C60E.png"></p>
-<p>要知道为什么不是线程安全的，首先我们需要知道SimpleDateFormat的作用和工作原理。</p>
-<p>SimpleDateFormat继承了DateFormat,在DateFormat中定义了一个protected属性的 Calendar类的对象：calendar。只是因为Calendar类的概念复杂，牵扯到时区与本地化等等，Jdk的实现中使用了成员变量来传递参数，这就造成在多线程的时候会出现错误。</p>
-<p>SimpleDateFormat最重要的两个方法，一个是format，一个是parse。</p>
-<h4 id="format方法："><a href="#format方法：" class="headerlink" title="format方法："></a>format方法：</h4><p><img src="/images/posts/20160310/simpledataformat-format.png"></p>
-<p>可以看到，方法一开始就使用传入的date参数对属性calendar进行了初始化，试想如果此类是共享的，那么其它类还在使用此calendar的引用时，可能下一次获取到的值就与之前获取到的值不一样了。那format方法为什么要使用传入参数date对calendar的进行设置呢？为什么不可以把calendar作为方法参数在内部方法中传递呢？如果这里calendar是内部方法属性，并在subFormat中通过方法传递，一切问题就都解决了。作者这么做也许只是想减少一个参数的传递吧，但是这带了了诸多的线程安全问题。</p>
-<h4 id="parse方法："><a href="#parse方法：" class="headerlink" title="parse方法："></a>parse方法：</h4><p>首先从方法的注解上可以了解到parse的实现方式是通过对时间字符串逐步进行解析，然后通过java.text.CalendarBuilder.establish和calendar构建时间对象。 Date字符串解析中使用了calendar对象，在解析前，会调用Calendar#clear()方法，对引用的calendar对象的各个域进行初始化为默认值；然后把每次解析出来的时间片段设置到calendar相应的属性中，最后返回calendar中的time。</p>
-<p><img src="/images/posts/20160310/5C6ED2A3-C1DF-4937-8C59-A03C73582185.png"></p>
-<p>不难想出在高并发情况下，如果calendar是多线程共享的，一定会出现A线程中calendar进行了clear(),导致B线程受到影响。</p>
-<h4 id="无状态性："><a href="#无状态性：" class="headerlink" title="无状态性："></a>无状态性：</h4><p>思考：SimpleDateFormat类中是什么因素导致了此类不是线程安全的呢？是对calendar的引用，方法中对calendar的引用对象进行了修改，从而导致了此类是有状态的，我们一般在设计代码的时候尽量让自己的代码处于无状态，好处是，在各种情况下，无论并发掉多少次，结果总是一样的。</p>
-<h4 id="SimpleDateFormat线程安全的解决方案："><a href="#SimpleDateFormat线程安全的解决方案：" class="headerlink" title="SimpleDateFormat线程安全的解决方案："></a>SimpleDateFormat线程安全的解决方案：</h4><ol>
-<li>SimpleDateFormat设计为方法内实例；好处，从共享变为非共享，线程安全。弊端是每次创建性能开销大。</li>
-<li>在进行parse或者format时对SimpleDateFormat对象进行加锁；</li>
-<li>使用ThreadLocal，为每一个线程维护一个实例对象。</li>
-<li>使用Apache commons包中的FastDateFormat 或者 Joda-Time类库。</li>
-</ol>
-<p>下午在代码开发中使用到的时间Util，采用的是方法三：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * &lt;p&gt;</span></span><br><span class="line"><span class="comment"> * 由于SimpleDateFormat不是线程安全的，所以在作为静态工具类使用的时候需要特殊处理</span></span><br><span class="line"><span class="comment"> * &lt;/p&gt;</span></span><br><span class="line"><span class="comment"> * Date: 16/3/10</span></span><br><span class="line"><span class="comment"> * Time: 下午3:38</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">class</span> <span class="title class_">DateUtil</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">Logger</span> <span class="variable">logger</span> <span class="operator">=</span> LoggerFactory.getLogger(DateUtil.class);</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">DEF_PATTERN</span> <span class="operator">=</span> <span class="string">&quot;yyyy-MM-dd HH:mm:ss&quot;</span>;<span class="comment">//默认时间格式</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">DATE_PATTERN</span> <span class="operator">=</span> <span class="string">&quot;yyyy-MM-dd&quot;</span>;<span class="comment">//日期格式</span></span><br><span class="line">    <span class="comment">//注意，这里初始化会有问题，后面会讲到（自己使用时需要删除此行）</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">Date</span> <span class="variable">START_NULL_DATE</span> <span class="operator">=</span> parseDate(<span class="string">&quot;1970-01-01 08:00:00&quot;</span>, DATE_PATTERN);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> ThreadLocal&lt;Map&lt;String<span class="comment">/**pattern**/</span>, DateFormat&gt;&gt; threadLocal = <span class="keyword">new</span> <span class="title class_">ThreadLocal</span>&lt;Map&lt;String, DateFormat&gt;&gt;() &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="keyword">protected</span> Map&lt;String, DateFormat&gt; <span class="title function_">initialValue</span><span class="params">()</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;String, DateFormat&gt;();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 获取DateFormat</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> pattern</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> DateFormat <span class="title function_">getDateFormat</span><span class="params">(String pattern)</span> &#123;</span><br><span class="line">        <span class="type">DateFormat</span> <span class="variable">dateFormat</span> <span class="operator">=</span> threadLocal.get().get(pattern);</span><br><span class="line">        <span class="keyword">if</span> (dateFormat == <span class="literal">null</span>) &#123;</span><br><span class="line">            dateFormat = <span class="keyword">new</span> <span class="title class_">SimpleDateFormat</span>(pattern);</span><br><span class="line">            threadLocal.get().put(pattern, dateFormat);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> dateFormat;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>在生产环境中使用过程中，Runtime期间JVM报错：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">java.lang.NoClassDefFoundError: Could not initialize <span class="keyword">class</span> <span class="title class_">com</span>.xxxx.vender.util.DateUtil</span><br></pre></td></tr></table></figure>
-
-<p>开始怀疑是因为把ThreadLocal作为静态初始化块导致的问题，但是查阅ThreadLocal的官方文档，给出的实例就是作为static属性使用，有同学说最好把DateUtil工具类做成单例模式进行使用，但是这个并没有找到报错的原因，后来有再本地进行了测试，发现抛出了NPE的异常，再仔细看看代码，发现有同学在ThreadLocal的初始化块之上添加了静态属性START_NULL_DATE,而START_NULL_DATE的初始化依赖threadLocal属性的初始化，抛出NPE是合乎情理的，那为什么生产环境上却出现的是java.lang.NoClassDefFoundError而不是NPE呢？</p>
-<h4 id="java-lang-NoClassDefFoundError到底是什么："><a href="#java-lang-NoClassDefFoundError到底是什么：" class="headerlink" title="java.lang.NoClassDefFoundError到底是什么："></a>java.lang.NoClassDefFoundError到底是什么：</h4><p>NoClassDefFoundError发生在JVM在动态运行时，根据你提供的类名，在classpath中找到对应的类进行加载，但当它找不到这个类或者初始化这个类（静态属性或代码块）失败时，就发生了java.lang.NoClassDefFoundError的错误。</p>
-<p>更多有关此类的解释可以参考：</p>
-<p><a href="http://blog.csdn.net/jamesjxin/article/details/46606307">http://blog.csdn.net/jamesjxin/article/details/46606307</a></p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2016/03/10/Java/2016-03-10-simpledateformat/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
   
     <nav id="page-nav">
       <a class="extend prev" rel="prev" href="/page/7/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/6/">6</a><a class="page-number" href="/page/7/">7</a><span class="page-number current">8</span><a class="page-number" href="/page/9/">9</a><a class="page-number" href="/page/10/">10</a><a class="page-number" href="/page/11/">11</a><a class="extend next" rel="next" href="/page/9/">Next &raquo;</a>
@@ -1228,6 +1236,22 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">共享变量</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">缓存</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">问题定位</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">稳定性</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">成长</a>
               </li>
              
@@ -1244,11 +1268,11 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">社会</a>
+                <a href="javascript:void(0)" class="js-tag color3">三观</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">学习</a>
+                <a href="javascript:void(0)" class="js-tag color3">社会</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -1256,19 +1280,7 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">共享变量</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">缓存</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">问题定位</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">稳定性</a>
+                <a href="javascript:void(0)" class="js-tag color3">学习</a>
               </li>
              
               <li class="article-tag-list-item">

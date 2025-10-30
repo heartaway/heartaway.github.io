@@ -149,6 +149,103 @@
           <div id="js-content" class="content-ll">
             
   
+    <article id="post-Android/2014-09-11-layout" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2014/09/11/Android/2014-09-11-layout/">Android 高效的 Layout</a>
+    </h1>
+  
+
+        
+        <a href="/2014/09/11/Android/2014-09-11-layout/" class="archive-article-date">
+  	<time datetime="2014-09-10T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2014-09-11</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>我们知道随着我们业务越来越负责，UI布局也会越来越复杂，大量的布局信息必定会带来一定的性能损耗，那么我们怎么才能写出高效的布局呢？</p>
+<p>1.使用 <code>&lt;include&gt; &lt;merge&gt; &lt;viewStub&gt;</code>标签。<br><a href="https://developer.android.com/training/improving-layouts/optimizing-layout.html">https://developer.android.com/training/improving-layouts/optimizing-layout.html</a></p>
+<p>2.LinearLayout中减少使用layout_weight参数，因为使用此属性会导致子元素被测量两次。</p>
+<p>3.学会测量Layout的层次结构,优化布局<br><a href="https://developer.android.com/training/improving-layouts/optimizing-layout.html">https://developer.android.com/training/improving-layouts/optimizing-layout.html</a></p>
+<p>4.使得Layout宽而浅，而不是窄而深（在Hierarchy Viewer的Tree视图里面体现）<br>连接真机时，HierarchyVIewer报错了：无法加载设备上的窗口数据</p>
+<p>原因：若需要使用hierarchyviewer，需要手机上开启对应的ViewServer服务。Hierarchy Viewer在连接手机时，手机上必须启动一个叫View Server的客户端与其进行socket通信。而在商业手机上，是无法开启View Server的，故Hierarchy Viewer是无法连接到普通的商业手机。</p>
+<p>解决办法：</p>
+<p>方法一：使用模拟器。</p>
+<p>方法二：App中需要开启View Server，可以参考一下连个类的实现。</p>
+<p><a href="http://pan.baidu.com/s/1sjIulYl">http://pan.baidu.com/s/1sjIulYl </a>提取码：wrc8</p>
+<p>使用方法：</p>
+<p>引入ViewServer.java 类到Util包中，在需要查看Layout层次结构的Activity类中，加入以下代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title function_">onCreate</span><span class="params">(Bundle savedInstanceState)</span> &#123;</span><br><span class="line">    <span class="built_in">super</span>.onCreate(savedInstanceState);</span><br><span class="line">    …</span><br><span class="line">    ViewServer.get(<span class="built_in">this</span>).addWindow(<span class="built_in">this</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">onDestroy</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="built_in">super</span>.onDestroy();</span><br><span class="line">    ViewServer.get(<span class="built_in">this</span>).removeWindow(<span class="built_in">this</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">onResume</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="built_in">super</span>.onResume();</span><br><span class="line">    ViewServer.get(<span class="built_in">this</span>).setFocusedWindow(<span class="built_in">this</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>5.使用Lint工具来优化Layout</p>
+<ul>
+<li>使用merge根框架 – 如果FramLayout仅仅是一个纯粹的（没有设置背景，间距等）布局根元素，我们可以使用merge标签来当作根标签；</li>
+<li>无用的分支 – 如果一个layout并没有任何子组件，那么可以被移除，这样可以提高效率</li>
+<li>无用的父控件 – 如果一个layout只有子控件，没有兄弟控件，并且不是一个ScrollView或者根节点，而且没有设置背景，那么我们可以移除这个父控件，直接把子控件提升为父控件</li>
+<li>深层次的layout – 尽量减少内嵌的层级，考虑使用更多平级的组件 RelativeLayout or GridLayout来提升布局性能，默认最大的深度是10<br>Lint工具在android Studio中的使用:<br>Analyze → Inspect code 这个时候会自动启动Lint工具。</li>
+</ul>
+<p>6.虽然官方说LinearLayout 与 RelationLayout在性能上相差无几，但是能使用relative layout的地方尽量不要使用LinearLayout。</p>
+<p>7.有同事对比了RelationLayout 与 FrameLayout的性能，发现FrameLayout性能比RelationLayout更优。原因很简单：因为FrameLayout比RelationLayout更简单，没有那么多属性，所有效率更高。无论是使用那种布局，在都能满足需求的情况下，只要记住，使用属性跟少、更简单的布局方式一定是没错的。<br><a href="http://stackoverflow.com/questions/22875453/framelayout-vs-relativelayout-for-overlays">http://stackoverflow.com/questions/22875453/framelayout-vs-relativelayout-for-overlays</a></p>
+<p>8.对于textview和imageview组成的layout，直接使用textview替换（drawableTop类似属性）</p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Android//" class="article-tag-list-link color3">Android</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2014/09/11/Android/2014-09-11-layout/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
     <article id="post-Android/2014-09-01-listview" class="article article-type-post  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
     
@@ -1169,99 +1266,6 @@
 
 
   
-    <article id="post-Java/2013-03-18-java-super-this" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2013/03/18/Java/2013-03-18-java-super-this/">Java基础 之 super 和 this</a>
-    </h1>
-  
-
-        
-        <a href="/2013/03/18/Java/2013-03-18-java-super-this/" class="archive-article-date">
-  	<time datetime="2013-03-17T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2013-03-18</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>super的定义：</p>
-<blockquote>
-<p>The super keyword enables a <a href="http://java.about.com/od/s/g/subclass.htm">subclass</a> to call the methods and fields of its <a href="http://java.about.com/od/s/g/superclass.htm">superclass</a>. It is not an instance of the superclass object but a way to tell the compiler which methods or fields to reference. The effect is the same as if the subclass is calling one of its own methods.</p>
-</blockquote>
-<p>this 是对自身对象的一个地址引用，调用的是 invokevirtual。</p>
-<p>super 是类似引用 但不是引用的调用，因为 super 实际上是 调用invokespecial 。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">C <span class="keyword">extends</span> <span class="title class_">B</span>,  B <span class="keyword">extends</span> <span class="title class_">A</span>;</span><br><span class="line"><span class="type">A</span> <span class="variable">a</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">C</span>();</span><br></pre></td></tr></table></figure>
-
-<p>那么为C在堆中分配的内存区域中，分为三块，一块是C自己的，一块是B自己的，一块是A的，在C、B、A中都会有连个变量，super 和 this ；this指向当前区域，super指向父类的内存区域；</p>
-<p>从内存分配可以看出this和super变量是属于对象的，所以不能在静态块和静态方法中使用。</p>
-<h4 id="this使用场景："><a href="#this使用场景：" class="headerlink" title="this使用场景："></a>this使用场景：</h4><ol>
-<li>通过this调用另一个构造方法，用法是this(参数列表)，这个仅仅在类的构造方法中，别的地方不能这么用。</li>
-<li>函数参数或者函数中的局部变量和成员变量同名的情况下，成员变量被屏蔽，此时要访问成员变量则需要用“this.成员变量名”的方式来引用成员变量。当然，在没有同名的情况下，可以直接用成员变量的名字，而不用this，用了也不为错。</li>
-<li>在函数中，需要引用该函所属类的当前对象时候，直接用this。</li>
-</ol>
-<h4 id="super的用法："><a href="#super的用法：" class="headerlink" title="super的用法："></a>super的用法：</h4><ol>
-<li>在子类构造方法中要调用父类的构造方法，用“super(参数列表)”的方式调用，参数不是必须的。同时还要注意的一点是：“super(参数列表)”这条语句只能用在子类构造方法体中的第一行。</li>
-<li>当子类方法中的局部变量或者子类的成员变量与父类成员变量同名时，也就是子类局部变量覆盖父类成员变量时，用“super.成员变量名”来引用父类成员变量。当然，如果父类的成员变量没有被覆盖，也可以用“super.成员变量名”来引用父类成员变量，不过这是不必要的。</li>
-<li>当子类的成员方法覆盖了父类的成员方法时，也就是子类和父类有完全相同的方法定义（但方法体可以不同），此时，用“super.方法名(参数列表)”的方式访问父类的方法。</li>
-</ol>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2013/03/18/Java/2013-03-18-java-super-this/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
   
     <nav id="page-nav">
       <a class="extend prev" rel="prev" href="/page/9/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/8/">8</a><a class="page-number" href="/page/9/">9</a><span class="page-number current">10</span><a class="page-number" href="/page/11/">11</a><a class="extend next" rel="next" href="/page/11/">Next &raquo;</a>
@@ -1371,6 +1375,22 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">共享变量</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">缓存</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">问题定位</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">稳定性</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">成长</a>
               </li>
              
@@ -1387,11 +1407,11 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">社会</a>
+                <a href="javascript:void(0)" class="js-tag color3">三观</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">学习</a>
+                <a href="javascript:void(0)" class="js-tag color3">社会</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -1399,19 +1419,7 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">共享变量</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">缓存</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">问题定位</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">稳定性</a>
+                <a href="javascript:void(0)" class="js-tag color3">学习</a>
               </li>
              
               <li class="article-tag-list-item">

@@ -149,6 +149,96 @@
           <div id="js-content" class="content-ll">
             
   
+    <article id="post-Java/2016-07-07-cas-work" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2016/07/07/Java/2016-07-07-cas-work/">CAS 操作的实现原理</a>
+    </h1>
+  
+
+        
+        <a href="/2016/07/07/Java/2016-07-07-cas-work/" class="archive-article-date">
+  	<time datetime="2016-07-06T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2016-07-07</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h3 id="CAS原子操作原理："><a href="#CAS原子操作原理：" class="headerlink" title="CAS原子操作原理："></a>CAS原子操作原理：</h3><h4 id="1-在x86-平台上，CPU提供了在指令执行期间对总线加锁的手段（多处理器）"><a href="#1-在x86-平台上，CPU提供了在指令执行期间对总线加锁的手段（多处理器）" class="headerlink" title="1. 在x86 平台上，CPU提供了在指令执行期间对总线加锁的手段（多处理器）"></a>1. 在x86 平台上，CPU提供了在指令执行期间对总线加锁的手段（多处理器）</h4><p>CPU芯片上有一条引线#HLOCK pin，如果汇编语言的程序中在一条指令前面加上前缀”LOCK”，经过汇编以后的机器代码就使CPU在执行这条指令的时候把#HLOCK pin的电位拉低，持续到这条指令结束时放开，从而把总线锁住，这样同一总线上别的CPU就暂时不能通过总线访问内存了，保证了这条指令在多处理器环境中的原子性。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">inline bool <span class="title function_">CAS2</span><span class="params">(pointer_t *addr, pointer_t &amp;old_value, pointer_t &amp;new_value)</span></span><br><span class="line">&#123;</span><br><span class="line">bool ret;</span><br><span class="line">__asm__ <span class="title function_">__volatile__</span><span class="params">(</span></span><br><span class="line"><span class="params"><span class="string">&quot;lock cmpxchg16b %1;n&quot;</span></span></span><br><span class="line"><span class="params"><span class="string">&quot;sete %0;n&quot;</span></span></span><br><span class="line"><span class="params">:<span class="string">&quot;=m&quot;</span>(ret)</span>,<span class="string">&quot;+m&quot;</span> (*(<span class="keyword">volatile</span> pointer_t *) (addr))</span><br><span class="line">:<span class="string">&quot;a&quot;</span> (old_value.ptr), <span class="string">&quot;d&quot;</span> (old_value.tag), <span class="string">&quot;b&quot;</span> (new_value.ptr), <span class="string">&quot;c&quot;</span> (new_value.tag));</span><br><span class="line"><span class="keyword">return</span> ret;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>解锁来保证原子性只是保证原子性的其中一种手段而已，X86CPU保证原子性的手段有以下三种：<br>① 处理器自动保证基本内存操作的原子性。<br>一些基本的内存读写操作是本身已经被硬件提供了原子性保证（例如读写单个字节的操作）；</p>
+<p>②使用总线锁保证原子性。<br>一些需要保证原子性但是没有被第①条机制提供支持的操作（例如read-modify-write）可以通过使用”LOCK#”来锁定总线，从而保证操作的原子性。</p>
+<p>③使用缓存锁保证原子性。</p>
+<p>总线锁定把CPU和内存之间通信锁住了，这使得锁定期间，其他处理器不能操作其他内存地址的数据，所以总线锁定的开销比较大，最近的处理器在某些场合下使用缓存锁定代替总线锁定来进行优化。<br>因为很多内存数据是已经存放在L1&#x2F;L2 cache中了，对这些数据的原子操作只需要与本地的cache打交道，而不需要与总线打交道，所以CPU就提供了cache coherency机制来保证其它的那些也cache了这些数据的processor能读到最新的值。<br>所谓“缓存锁定”就是如果缓存在处理器缓存行中内存区域在LOCK操作期间被锁定，当它执行锁操作回写内存时，处理器不在总线上声言LOCK＃信号，而是修改内部的内存地址，并允许它的缓存一致性机制来保证操作的原子性，因为缓存一致性机制会阻止同时修改被两个以上处理器缓存的内存区域数据，当其他处理器回写已被锁定的缓存行的数据时会起缓存行无效.<br>但是有两种情况下处理器不会使用缓存锁定。第一种情况是：当操作的数据不能被缓存在处理器内部，或操作的数据跨多个缓存行（cache line），则处理器会调用总线锁定。第二种情况是：有些处理器不支持缓存锁定。对于Inter486和奔腾处理器,就算锁定的内存区域在处理器的缓存行中也会调用总线锁定。</p>
+<p>那么哪些操作是非原子的呢？</p>
+<blockquote>
+<p>ACCESSES TO CACHEABLE MEMORY THAT ARE SPLIT ACROSS BUS WIDTHS, CACHE LINES, AND PAGE BOUNDARIES ARE NOT GUARANTEED TO BE ATOMIC BY THE INTEL CORE 2 DUO, INTEL® ATOM™, INTEL CORE DUO, PENTIUM M, PENTIUM 4, INTEL XEON, P6 FAMILY, PENTIUM, AND INTEL486 PROCESSORS.</p>
+</blockquote>
+<p>（说点简单点，那些被总线带宽、cache line以及page大小给分隔开了的内存地址的访问不是原子的，你如果想保证这些操作是原子的，你就得求助于机制②，对总线发出相应的控制信号才行）。</p>
+<h4 id="2-对于linux而言，内核提供了两组原子操作接口"><a href="#2-对于linux而言，内核提供了两组原子操作接口" class="headerlink" title="2.对于linux而言，内核提供了两组原子操作接口"></a>2.对于linux而言，内核提供了两组原子操作接口</h4><p>一组是针对整数进行操作；另一组是针对单独的位进行操作。<br>①原子整数操作：针对整数的原子操作只能对atomic_t类型的数据处理，Linux支持的所有机器上的整型数据都是32位，但是使用atomic_t的代码只能将该类型的数据当作24位来使用。这个限制完全是因为在SPARC体系结构上，原子操作的实现不同于其它体系结构：32位int类型的低8位嵌入了一个锁，因为SPARC体系结构对原子操作缺乏指令级的支持，所以只能利用该锁来避免对原子类型数据的并发访问。<br>②原子位操作：原子位操作定义在文件中。令人感到奇怪的是位操作函数是对普通的内存地址进行操作的。原子位操作在多数情况下是对一个字长的内存访问，因而位号该位于0-31之间(在64位机器上是0-63之间),但是对位号的范围没有限制。</p>
+<h3 id="为什么关注原子操作？"><a href="#为什么关注原子操作？" class="headerlink" title="为什么关注原子操作？"></a>为什么关注原子操作？</h3><p>1）在确认一个操作是原子的情况下，多线程环境里面，我们可以避免仅仅为保护这个操作在外围加上性能开销昂贵的锁。<br>2）借助于原子操作，我们可以实现互斥锁。<br>3）借助于互斥锁，我们可以把一些列操作变为原子操作。</p>
+<h3 id="CAS带来的问题："><a href="#CAS带来的问题：" class="headerlink" title="CAS带来的问题："></a>CAS带来的问题：</h3><h4 id="1-ABA问题；"><a href="#1-ABA问题；" class="headerlink" title="1). ABA问题；"></a>1). ABA问题；</h4><p>CAS的核心思想是通过比对内存值与预期值是否一样而判断内存值是否被改过，但这个判断逻辑不严谨，假如内存值原来是A，后来被一条线程改为B，最后又被改成了A，则CAS认为此内存值并没有发生改变，但实际上是有被其他线程改过的，这种情况对依赖过程值的情景的运算结果影响很大。解决的思路是引入版本号，每次变量更新都把版本号加一。在Java中提供了AtomicStampedReference解决ABA问题。</p>
+<h4 id="2-循环时间长，开销大；"><a href="#2-循环时间长，开销大；" class="headerlink" title="2). 循环时间长，开销大；"></a>2). 循环时间长，开销大；</h4><p><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/731405bbc5b0122b43c21a44dddcbedc.png"><br>自旋CAS如果长时间不成功，会给CPU带来非常大的执行开销。如果JVM能支持处理器提供的pause指令那么效率会有一定的提升，pause指令有两个作用，第一它可以延迟流水线执行指令（de-pipeline）,使CPU不会消耗过多的执行资源，延迟的时间取决于具体实现的版本，在一些处理器上延迟时间是零。第二它可以避免在退出循环的时候因内存顺序冲突（memory order violation）而引起CPU流水线被清空（CPU pipeline flush），从而提高CPU的执行效率。</p>
+<h4 id="3-只能保证一个共享变量的原子操作；"><a href="#3-只能保证一个共享变量的原子操作；" class="headerlink" title="3). 只能保证一个共享变量的原子操作；"></a>3). 只能保证一个共享变量的原子操作；</h4><p>当对一个共享变量执行操作时，我们可以使用循环CAS的方式来保证原子操作，但是对多个共享变量操作时，循环CAS就无法保证操作的原子性，这个时候就可以用锁，或者有一个取巧的办法，就是把多个共享变量合并成一个共享变量来操作。比如有两个共享变量i＝2,j&#x3D;a，合并一下ij&#x3D;2a，然后用CAS来操作ij。从Java1.5开始JDK提供了AtomicReference类来保证引用对象之间的原子性，你可以把多个变量放在一个对象里来进行CAS操作。</p>
+<h3 id="参考连接："><a href="#参考连接：" class="headerlink" title="参考连接："></a>参考连接：</h3><p><a href="https://software.intel.com/zh-cn/blogs/2010/01/14/cpucpu">https://software.intel.com/zh-cn/blogs/2010/01/14/cpucpu</a><br><a href="http://blog.hesey.net/2011/09/resolve-aba-by-atomicstampedreference.html">http://blog.hesey.net/2011/09/resolve-aba-by-atomicstampedreference.html</a><br><a href="http://www.infoq.com/cn/articles/atomic-operation">http://www.infoq.com/cn/articles/atomic-operation</a><br><a href="http://www.infoq.com/cn/articles/java-memory-model-5">http://www.infoq.com/cn/articles/java-memory-model-5</a><br><a href="http://www.docin.com/p-92508695.html%E3%80%82">http://www.docin.com/p-92508695.html%E3%80%82</a></p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2016/07/07/Java/2016-07-07-cas-work/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
     <article id="post-Program/2016-07-05-product-high-use" class="article article-type-post  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
     
@@ -1201,114 +1291,6 @@
 
 
   
-    <article id="post-Java/2016-05-31-java-method-cost-time" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2016/05/31/Java/2016-05-31-java-method-cost-time/">计算Java方法执行时间</a>
-    </h1>
-  
-
-        
-        <a href="/2016/05/31/Java/2016-05-31-java-method-cost-time/" class="archive-article-date">
-  	<time datetime="2016-05-30T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2016-05-31</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>我们在对系统进行性能调优的时候，很多时候都会统计接口的调用时间或者内部方法的执行时间来查看具体的性能瓶颈点。</p>
-<h2 id="编码式"><a href="#编码式" class="headerlink" title="编码式"></a>编码式</h2><p>一般比较简单的左右是在方法开始和结束的时候分别添加时间记录方法：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">long</span> <span class="variable">startTimeMillis</span> <span class="operator">=</span> System.currentTimeMillis()</span><br><span class="line">…..</span><br><span class="line"><span class="type">long</span> <span class="variable">endTimeMillis</span> <span class="operator">=</span> System.currentTimeMillis()</span><br><span class="line"><span class="type">long</span> <span class="variable">spendTime</span> <span class="operator">=</span> endTimeMillis - startTimeMillis;</span><br></pre></td></tr></table></figure>
-
-<h2 id="StopWatch"><a href="#StopWatch" class="headerlink" title="StopWatch"></a>StopWatch</h2><p>当然你可以可以通过Apache-Commons工具包中的工具类：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">org.apache.commons.lang3.time.StopWatch</span><br></pre></td></tr></table></figure>
-
-<p>StopWatch 底层也是采用的System.currentTimeMillis()进行时间统计，使用StopWatch的优点：</p>
-<ul>
-<li>封装好了基本的时间统计方法，你直接在方法开始和结束的时候调用一次就好了，使用简单；</li>
-<li>他还提供了时间统计挂起、恢复和复位等功能，这点通过方法一是无法实现的；</li>
-</ul>
-<p>使用StopWatch的弊端：</p>
-<ul>
-<li>会抛出IllegalStateException或者RuntimeException异常，这点使用者如果不进行封装容易引起业务异常。一般我们不期望一个测试性能的代码影响到了正常的业务逻辑；</li>
-</ul>
-<h2 id="使用Spring-AOP方式："><a href="#使用Spring-AOP方式：" class="headerlink" title="使用Spring AOP方式："></a>使用Spring AOP方式：</h2><p>示例如下：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">MethodTimeActive</span> <span class="keyword">implements</span> <span class="title class_">MethodInterceptor</span> &#123;</span><br><span class="line"> </span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">Logger</span> <span class="variable">logger</span> <span class="operator">=</span> LoggerFactory.getLogger(MethodTimeActive.class);</span><br><span class="line"> </span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 自定义map集合，key：方法名，value：[0：运行次数，1：总时间]</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> Map&lt;String, Long[]&gt; methodTest = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;String, Long[]&gt;();</span><br><span class="line"> </span><br><span class="line"> </span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> Object <span class="title function_">invoke</span><span class="params">(MethodInvocation methodInvocation)</span> <span class="keyword">throws</span> Throwable &#123;</span><br><span class="line">        <span class="type">StopWatch</span> <span class="variable">watch</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">StopWatch</span>();</span><br><span class="line">        watch.start();</span><br><span class="line">        <span class="type">Object</span> <span class="variable">object</span> <span class="operator">=</span> methodInvocation.proceed();</span><br><span class="line">        watch.stop();</span><br><span class="line">        <span class="type">String</span> <span class="variable">methodName</span> <span class="operator">=</span> methodInvocation.getMethod().getName();</span><br><span class="line">        <span class="type">Long</span> <span class="variable">time</span> <span class="operator">=</span> watch.getTime();</span><br><span class="line">        <span class="keyword">if</span> (methodTest.containsKey(methodName)) &#123;</span><br><span class="line">            Long[] x = methodTest.get(methodName);</span><br><span class="line">            x[<span class="number">0</span>]++;</span><br><span class="line">            x[<span class="number">1</span>] += time;</span><br><span class="line">            logger.info(<span class="string">&quot;MethodTime  _method=&quot;</span> + methodName + <span class="string">&quot; _totalCount=&quot;</span> + x[<span class="number">0</span>] + <span class="string">&quot; _totalTime=&quot;</span> + x[<span class="number">1</span>] + <span class="string">&quot; ms  _avgTime=&quot;</span> + x[<span class="number">1</span>] / x[<span class="number">0</span>] + <span class="string">&quot;ms&quot;</span>);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            methodTest.put(methodName, <span class="keyword">new</span> <span class="title class_">Long</span>[]&#123;<span class="number">1L</span>, time&#125;);</span><br><span class="line">            logger.info(<span class="string">&quot;MethodTime  _method=&quot;</span> + methodName + <span class="string">&quot; _totalCount=1 _totalTime=&quot;</span> + time + <span class="string">&quot;ms _avgTime=&quot;</span> + time + <span class="string">&quot;ms&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line"> </span><br><span class="line">        <span class="keyword">return</span> object;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>定义方法拦截器</p>
-<p>spring-context 中对待监控的服务和方法进行配置（通过AOP的代理bean代理需要被检测的bean对象）：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">&lt;bean id=<span class="string">&quot;venderSpuService&quot;</span> class=<span class="string">&quot;org.springframework.aop.framework.ProxyFactoryBean&quot;</span>&gt;</span><br><span class="line">        &lt;property name=<span class="string">&quot;target&quot;</span> ref=<span class="string">&quot;venderSpuServiceImpl&quot;</span>/&gt;</span><br><span class="line">        &lt;property name=<span class="string">&quot;interceptorNames&quot;</span>&gt;</span><br><span class="line">            &lt;list&gt;</span><br><span class="line">                &lt;value&gt;spuServiceAdvisor&lt;/value&gt;</span><br><span class="line">            &lt;/list&gt;</span><br><span class="line">        &lt;/property&gt;</span><br><span class="line">    &lt;/bean&gt;</span><br><span class="line"> </span><br><span class="line">    &lt;bean id=<span class="string">&quot;methodTimeActive&quot;</span> class=<span class="string">&quot;com.sfebiz.vender.util.MethodTimeActive&quot;</span>/&gt;</span><br><span class="line"> </span><br><span class="line">    &lt;bean id=<span class="string">&quot;spuServiceAdvisor&quot;</span> class=<span class="string">&quot;org.springframework.aop.support.NameMatchMethodPointcutAdvisor&quot;</span>&gt;</span><br><span class="line">        &lt;property name=<span class="string">&quot;mappedNames&quot;</span>&gt;</span><br><span class="line">            &lt;list&gt;</span><br><span class="line">                &lt;value&gt;querySpuByProvider4Page&lt;/value&gt;</span><br><span class="line">                &lt;value&gt;querySpuByVSpuId&lt;/value&gt;</span><br><span class="line">                &lt;value&gt;stashSpu&lt;/value&gt;</span><br><span class="line">                &lt;value&gt;commitSpu&lt;/value&gt;</span><br><span class="line">            &lt;/list&gt;</span><br><span class="line">        &lt;/property&gt;</span><br><span class="line">        &lt;property name=<span class="string">&quot;advice&quot;</span> ref=<span class="string">&quot;methodTimeActive&quot;</span>/&gt;</span><br><span class="line">    &lt;/bean&gt;</span><br></pre></td></tr></table></figure>
-
-<p>需要maven依赖：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&lt;dependency&gt;</span><br><span class="line">    &lt;groupId&gt;org.aspectj&lt;/groupId&gt;</span><br><span class="line">    &lt;artifactId&gt;aspectjweaver&lt;/artifactId&gt;</span><br><span class="line">    &lt;version&gt;<span class="number">1.8</span><span class="number">.6</span>&lt;/version&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br></pre></td></tr></table></figure>
-
-<p>遇到的问题：</p>
-<ul>
-<li>通过AOP统计到的方法耗时，发现每次API调用打印了次接口调用，具体为什么还没有时间去排查。</li>
-</ul>
-<h2 id="其它："><a href="#其它：" class="headerlink" title="其它："></a>其它：</h2><ol>
-<li>如果裸露的使用System.currentTimeMillis()在高并发场景下也会带来一定的耗时，因为每一个请求都会进行一次系统交互，可以通过内存缓存的方式定时更新当前时间，这样虽然性能提高了，但是可能导致统计的时间不够准确。</li>
-<li>如果期望使用System.currentTimeMillis()获取高精度的时间，可能需要注意了，因为System.currentTimeMillis()调用的还native方法，有依赖于操作系统。</li>
-<li>使用AOP代理服务于原始服务的性能差异还需要进行测试，所以目前还不太敢在生产环境上使用。</li>
-</ol>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2016/05/31/Java/2016-05-31-java-method-cost-time/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
   
     <nav id="page-nav">
       <a class="extend prev" rel="prev" href="/page/6/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/5/">5</a><a class="page-number" href="/page/6/">6</a><span class="page-number current">7</span><a class="page-number" href="/page/8/">8</a><a class="page-number" href="/page/9/">9</a><span class="space">&hellip;</span><a class="page-number" href="/page/11/">11</a><a class="extend next" rel="next" href="/page/8/">Next &raquo;</a>
@@ -1418,6 +1400,22 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">共享变量</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">缓存</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">问题定位</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">稳定性</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">成长</a>
               </li>
              
@@ -1434,11 +1432,11 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">社会</a>
+                <a href="javascript:void(0)" class="js-tag color3">三观</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">学习</a>
+                <a href="javascript:void(0)" class="js-tag color3">社会</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -1446,19 +1444,7 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">共享变量</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">缓存</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">问题定位</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">稳定性</a>
+                <a href="javascript:void(0)" class="js-tag color3">学习</a>
               </li>
              
               <li class="article-tag-list-item">

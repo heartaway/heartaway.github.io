@@ -149,6 +149,138 @@
           <div id="js-content" class="content-ll">
             
   
+    <article id="post-Program/2017-12-07-architecture-design-rule" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/12/07/Program/2017-12-07-architecture-design-rule/">应用架构设计原则</a>
+    </h1>
+  
+
+        
+        <a href="/2017/12/07/Program/2017-12-07-architecture-design-rule/" class="archive-article-date">
+  	<time datetime="2017-12-06T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2017-12-07</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>软件系统架构设计原则就是把我们在各种场景下的架构设计进行抽选化提取公共特征形成过一定的方法论，这些方法论是经过严格推敲并具备移植性的，我们在设计系统时遵从这些设计规则可以为我们的体统提供更高的扩展性、稳定性。</p>
+<h2 id="抽象原则"><a href="#抽象原则" class="headerlink" title="抽象原则"></a>抽象原则</h2><p>各平台(含基础设施、中间件技术服务、各层业务服务等)需要通过合理地抽象，将内部信息、处理与扩展能力聚合成标准的服务于扩展接口，并通过统一的形式提供给使用者，屏蔽内部的实现与运行细节。</p>
+<p>以下是一些符合抽象原则的架构规范或模式：<br>架构分层(layer)&#x2F;级(tier)，层、级间提供标准服务与数据接口<br>根据业务模型，统一服务标准与数据标准<br>使用服务目录屏蔽服务位置等实现细节<br>使用“逻辑库”屏蔽数据库物理细节<br>通过SLA，标准化服务的质量水平<br>提供标准插件架构支持扩展<br>使用标准数据库特性，保持厂商无关性<br>使用逻辑的网络与系统名称<br>使用商品化硬件单元</p>
+<h2 id="共享原则"><a href="#共享原则" class="headerlink" title="共享原则"></a>共享原则</h2><p>最大化重用数据、计算资源、业务组件等资产，防止数据、逻辑与技术实现不一致性带来的管理复杂性，避免重复建设成本与管理成本，通过安全机制保证共享资产的合法使用，通过业务分级保障共享资源效益最大化。<br>以下是一些符合共享原则的架构规范或模式：</p>
+<ul>
+<li>同一业务服务有唯一提供者</li>
+<li>同一技术服务有唯一提供者</li>
+<li>同一数据有唯一可信源</li>
+<li>控制技术多样性 (但需要同时防止厂商绑定)</li>
+<li>服务具备互操作性</li>
+<li>服务具备易用性</li>
+<li>统一的身份、访问控制与加解密机制</li>
+<li>为共享服务提供多租户能力 (Multi-tenancy)</li>
+<li>提供访问计量与控制能力</li>
+<li>提供业务分级能力，对不同级别的业务提供区分服务</li>
+</ul>
+<h2 id="自治原则"><a href="#自治原则" class="headerlink" title="自治原则"></a>自治原则</h2><p>每一个组件（计算资源、业务组件、信息实体等）具备最大可能的自我完备性，可独立运行、监控、部署、配置与禁用，具备确定的SLA，并与其它组件之间以松散耦合的方式进行协作。当依赖的组件不存在或者无法正常提供服务时，能够以良好的方式降级，且在故障解除后自动恢复。<br>以下是一些符合自治原则的架构规范或模式：</p>
+<ul>
+<li>基于开-闭原则(OCP)设计组件</li>
+<li>应用无启动依赖</li>
+<li>最小化运行依赖集</li>
+<li>根据运行依赖关系合理安排组件物理colocation</li>
+<li>能够隔离依赖组件的故障</li>
+<li>异步调用 (提升异常流量的承载能力，简化故障隔离的实现)</li>
+<li>具备自我健康检查能力</li>
+<li>具备自我恢复能力</li>
+<li>无状态设计</li>
+</ul>
+<h2 id="冗余原则"><a href="#冗余原则" class="headerlink" title="冗余原则"></a>冗余原则</h2><p>各组件（计算资源、业务组件、数据等）都必须有充分、合理的冗余实例，保证单一组件实例失效不影响业务正常运行（多活&#x2F;热备），或可以通过切换备份实例快速恢复（温备&#x2F;冷备），不会丢失不可恢复的数据。针对不同类型的组件，需要明确定义冗余量与冗余类型。<br>以下是一些符合冗余原则的架构规范或模式：</p>
+<ul>
+<li>高可用水平扩展服务器集群（负载均衡、健康检查与自动切换）</li>
+<li>无单点设计 (含逻辑单点)</li>
+<li>采用“随机写”策略的数据库水平拆分</li>
+<li>Failover数据库</li>
+<li>N+1或N+x设计</li>
+<li>“多活”数据中心</li>
+<li>数据复制</li>
+<li>灾难备份</li>
+</ul>
+<h2 id="分布原则"><a href="#分布原则" class="headerlink" title="分布原则"></a>分布原则</h2><p>整个系统拆分成职责清晰、粒度恰当、便于管理的组件，各组件（计算资源、业务组件、数据等）可分布部署运行。组件的拆分与分布可以采取复制、根据功能垂直拆分、或根据用户与访问模式水平拆分等形式。<br>以下是一些符合分布原则的架构规范或模式：</p>
+<ul>
+<li>读写分离设计</li>
+<li>垂直分拆</li>
+<li>水平分拆</li>
+<li>柔性的分布事务</li>
+</ul>
+<h2 id="自动原则"><a href="#自动原则" class="headerlink" title="自动原则"></a>自动原则</h2><p>系统设计了具备自监控、自管理、自适应与自优化能力，可以随着业务量与访问模式的变化、以及其它内、外部因素的改变，自动地对资源进行调度、调整服务策略，保障自身的稳定与服务的质量。<br>以下是一些符合自动原则的架构规范或模式：</p>
+<ul>
+<li>监控每一个服务的质量与资源的状态与报警</li>
+<li>从客户视角监控最终服务的质量</li>
+<li>统一、自动的错误报告、管理与响应</li>
+<li>提供完备的配置能力</li>
+<li>自动化系统安装</li>
+<li>自动化应用部署</li>
+<li>自动化资源分配</li>
+<li>可以mark up&#x2F;mark down服务</li>
+<li>支持优雅降级</li>
+<li>自动拒绝超出SLA之外异常流量</li>
+</ul>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Program//" class="article-tag-list-link color3">Program</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2017/12/07/Program/2017-12-07-architecture-design-rule/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
     <article id="post-Think/2017-11-24-how-to-study" class="article article-type-post  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
     
@@ -1244,84 +1376,6 @@
 
 
   
-    <article id="post-Java/2017-07-04-mysql-max-orderby-limit" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/04/Java/2017-07-04-mysql-max-orderby-limit/">Mysql MAX/MIN vs ORDER BY and LIMIT</a>
-    </h1>
-  
-
-        
-        <a href="/2017/07/04/Java/2017-07-04-mysql-max-orderby-limit/" class="archive-article-date">
-  	<time datetime="2017-07-03T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2017-07-04</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>我们在进行数据库的TOP N 操作时，又两种选择，一种使用内置的函数MAX&#x2F;MIN，另外一种是采用 ORDER BY  和 LIMIT的组合，那么在什么情况下使用那种策略呢，哪种效率会更高一些呢？</p>
-<p>在最坏的情况下，如果你正在寻找在一个无索引的字段，使用min()需要全表扫描。使用order by + limit 要求一个排序后的文件。如果碰到一个大表，性能差异会非常大。在我本机上测试了一个106000行的随机数据表，min()带消耗了0.36s,而order by + limit消耗了0.84s。如果对于一个索引列，两者的差别并不是太大。</p>
-<p><strong>总的来说：</strong><br>似乎min()性能更高，它在最坏的情况下的速度更快，在最好的情况下，没有什么区别；</p>
-<p>通过“show status like ‘last_query_cost’” 查看执行成本；分别测试了在无索引列下使用max 和 order by limit 两种查询条件下的cbo，分别为 228322 和 67359，结果展示使用max的成本要比order by更高,这点还需要进一步探究；</p>
-<p>参考：<br><a href="https://stackoverflow.com/questions/426731/min-max-vs-order-by-and-limit">https://stackoverflow.com/questions/426731/min-max-vs-order-by-and-limit</a></p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2017/07/04/Java/2017-07-04-mysql-max-orderby-limit/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
   
     <nav id="page-nav">
       <a class="extend prev" rel="prev" href="/page/3/">&laquo; Prev</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><span class="page-number current">4</span><a class="page-number" href="/page/5/">5</a><a class="page-number" href="/page/6/">6</a><span class="space">&hellip;</span><a class="page-number" href="/page/11/">11</a><a class="extend next" rel="next" href="/page/5/">Next &raquo;</a>
@@ -1431,6 +1485,22 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">共享变量</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">缓存</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">问题定位</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">稳定性</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">成长</a>
               </li>
              
@@ -1447,11 +1517,11 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">社会</a>
+                <a href="javascript:void(0)" class="js-tag color3">三观</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">学习</a>
+                <a href="javascript:void(0)" class="js-tag color3">社会</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -1459,19 +1529,7 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">共享变量</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">缓存</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">问题定位</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">稳定性</a>
+                <a href="javascript:void(0)" class="js-tag color3">学习</a>
               </li>
              
               <li class="article-tag-list-item">
