@@ -149,120 +149,6 @@
           <div id="js-content" class="content-ll">
             
   
-    <article id="post-Java/2015-03-25-crm-cpu-high-analysis" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2015/03/25/Java/2015-03-25-crm-cpu-high-analysis/">小二后台CPU使用率超高的问题排查</a>
-    </h1>
-  
-
-        
-        <a href="/2015/03/25/Java/2015-03-25-crm-cpu-high-analysis/" class="archive-article-date">
-  	<time datetime="2015-03-24T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2015-03-25</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>排查方法：</p>
-<h4 id="首先找到cpu使用率高的进程："><a href="#首先找到cpu使用率高的进程：" class="headerlink" title="首先找到cpu使用率高的进程："></a>首先找到cpu使用率高的进程：</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">top</span><br></pre></td></tr></table></figure>
-
-<p><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/3b592916b5baec5553bf6076f5966a32.png"></p>
-<h4 id="查看进程对应的应用信息："><a href="#查看进程对应的应用信息：" class="headerlink" title="查看进程对应的应用信息："></a>查看进程对应的应用信息：</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ps -ef |grep 进程id</span><br></pre></td></tr></table></figure>
-<p><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/17d53d36e9a5222ef2b730a9ce5c1eae.png"><br>发现是小二后台的进程，由于没有配置gc日志，所以看不当gc日志，但是可通过其他方法排查；</p>
-<h4 id="打印堆栈信息，查找占用大量CPU的线程："><a href="#打印堆栈信息，查找占用大量CPU的线程：" class="headerlink" title="打印堆栈信息，查找占用大量CPU的线程："></a>打印堆栈信息，查找占用大量CPU的线程：</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">jstack</span><br></pre></td></tr></table></figure>
-<h4 id="查看GC情况："><a href="#查看GC情况：" class="headerlink" title="查看GC情况："></a>查看GC情况：</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">jstat -gc  </span><br></pre></td></tr></table></figure>
-
-<p>每列的含义：</p>
-<p>S0C Current survivor space 0 capacity (KB). 当前survivor0的容量</p>
-<p>S1C Current survivor space 1 capacity (KB). 当前survivor1的容量</p>
-<p>S0U Survivor space 0 utilization (KB). survivor0的使用</p>
-<p>S1U Survivor space 1 utilization (KB). survivor1的使用</p>
-<p>EC Current eden space capacity (KB). 当前eden的容量</p>
-<p>EU Eden space utilization (KB). eden的使用</p>
-<p>OC Current old space capacity (KB). 当前old的容量</p>
-<p>OU Old space utilization (KB). old的使用</p>
-<p>PC Current permanent space capacity (KB). 当前perm的容量</p>
-<p>PU Permanent space utilization (KB). perm的使用</p>
-<p>YGC Number of young generation GC Events. young gc的次数</p>
-<p>YGCT Young generation garbage collection time. young gc的总时间</p>
-<p>FGC Number of full GC events. full gc的次数</p>
-<p>FGCT Full garbage collection time. full gc的总时间</p>
-<p>GCT Total garbage collection time. 所有gc的总时间</p>
-<p>从上图看到 Yong GC 次数不变，但是FGC的次数几乎每4s一次，一般FGC的触发是由于YGC触发，但是这个就比较特殊了，难道是主动调用了FGC？不会呀，从我们的启动脚本上看，我们禁止了主动调用GC(-XX:+DisableExplicitGC)。<br>重启后，发现没有再频繁的FGC了，恢复了正常，此时我们也同时开启了GC日志（-verbose:gc -Xloggc:&#x2F;home&#x2F;admin&#x2F;logs&#x2F;gc.log）。</p>
-<p><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/babc327d486ccbce313f8b16ce951f7d.png"></p>
-<p>但是一天后又出现了同样的情况，CPU使用率飙高，FGC频繁，此时内存使用为1.3G。<br>那有没有可能是大对象在Eden内存不够分配，直接进入Old区，而Old区也不够触发了FGC呢？</p>
-<p>通过分析，这种情况不台可能，首先我们看了Eden和Old区还剩余大量内存，通过Jmap也没有发现大对象。其次，我们使用的GC收集器是CMS，这种情况，CMS必定会触发YGC，因为CMS无法回收New区（至于为什么还需要查一些文档）。</p>
-<p>根据之前毕玄大师给出的GC频繁的排查方法：</p>
-<p><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/31d9dbfe8fb11073e7180fbb5eb069f6.png"></p>
-<p>CMS GC频繁 的原因可能是缺少UseCMSInitiatingOccupancyOnly参数，而触发了JVM的悲观策略。</p>
-<h4 id="那什么是JVM的悲观策略呢？"><a href="#那什么是JVM的悲观策略呢？" class="headerlink" title="那什么是JVM的悲观策略呢？"></a>那什么是JVM的悲观策略呢？</h4><p>JVM自动触发GC(JVM的动态策略)，是基于之前GC的频率以及旧生代的增长趋势来评估决定什么时候开始执GC；如果不希望JVM自行决定，可以通过-XX：UseCMSInitiatingOccupancyOnly&#x3D;true来制定；</p>
-<p>旧生代剩余的空间（available）大于新生代中使用的空间（max_promotion_in_bytes），或者大于之前平均晋升的old的大小（av_promo），返回false。cms gc是每隔一个周期（默认2s）就会做一次这个检查，如果为false，则不执行YGC，而触发cms gc。</p>
-<p><strong>对于悲观策略的解释换句话说：</strong></p>
-<p>当Minor GC时如果存活对象过多，无法完全放入Survivor区，就会向老年代借用内存存放对象，以完成Minor GC。在触发Minor GC时，虚拟机会先检测之前GC时租借的老年代内存的平均大小是否大于老年代的剩余内存，如果大于，则将Minor GC变为一次Full GC，如果小于，则查看虚拟机是否允许担保失败，如果允许担保失败，则只执行一次Minor GC，否则也要将Minor GC变为一次Full GC。说白了，新生代放不下就会借用老年代的空间来进行GC。<br>查看GC的log日志：（由于被重启了所以被请清理掉了，但是看到CMS后的内存比CMS前的还大），类似：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">2015</span>-<span class="number">03</span>-26T18:<span class="number">18</span>:<span class="number">06.349</span>+0800: <span class="number">7.092</span>: [GC <span class="number">7.092</span>: [ParNew: 471872K-&gt;471872K(471872K), <span class="number">0.0000420</span> secs]<span class="number">7.092</span>: [CMS: 366666K-&gt;524287K(524288K), <span class="number">27.0023450</span> secs] 838538K-&gt;829914K(996160K), [CMS Perm : 3196K-&gt;3195K(131072K)], <span class="number">27.0025170</span> secs]</span><br></pre></td></tr></table></figure>
-
-<p>ParNew的时间特别短，jvm在FGC前会首先确认old区是不是足够大，如果不够大，这次YGC直接返回，进行MSC。<br>综合以上判断可能是触发了JVM的悲观策略，所以在JVM的启动参数中添加了-XX：UseCMSInitiatingOccupancyOnly&#x3D;true，在观察一段时间内存使用情况。</p>
-<h4 id="其他思考："><a href="#其他思考：" class="headerlink" title="其他思考："></a>其他思考：</h4><p>为什么生产环境只有小二后台出现了这个情况，其他应用没有呢？</p>
-<p>目前我们小二后台配置的Heap的大小为1G，GC的策略为CMS方式，但是毕玄写过一片文章叫做《<a href="http://hellojava.info/?p=142">为什么不建议&lt;&#x3D;3G的情况下使用CMS GC</a>》；而其他应用大部分配置的Heap区大小为2G；<br>淘宝线上应用基本配置均为4核8G，配置的Heap大小为4G，所以一般GC采用CMS，并开启UseCMSInitiatingOccupancyOnly，非常明确的GC策略，方便问题排查。</p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2015/03/25/Java/2015-03-25-crm-cpu-high-analysis/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
     <article id="post-Think/2014-10-07-learn-choise" class="article article-type-post  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
     
@@ -1256,6 +1142,125 @@
 
 
   
+    <article id="post-Java/2013-04-28-java-collection" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2013/04/28/Java/2013-04-28-java-collection/">Java基础 之 集合</a>
+    </h1>
+  
+
+        
+        <a href="/2013/04/28/Java/2013-04-28-java-collection/" class="archive-article-date">
+  	<time datetime="2013-04-27T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2013-04-28</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Java 中的广义集合分两大类，Collection 和 Map ;</p>
+<h4 id="Set-成员不能重复"><a href="#Set-成员不能重复" class="headerlink" title="Set : 成员不能重复"></a>Set : 成员不能重复</h4><p>HashSet: 外部无序地遍历成员；覆盖了equals方法，注意修改hashCode方法。<br>TreeSet：外部有序地遍历成员；成员要求实现caparable接口，或者使用 Comparator构造TreeSet。<br>LinkedHashSet：外部按成员的插入顺序遍历成员。</p>
+<h4 id="List：提供基于索引对成员随机访问。"><a href="#List：提供基于索引对成员随机访问。" class="headerlink" title="List：提供基于索引对成员随机访问。"></a>List：提供基于索引对成员随机访问。</h4><p>LinkedList可以实现 队列(queue)，栈（stack），双向队列（deque）。注意LinkedList没有同步方法。<br>ArrayList 实现了可变大小的数组.ArrayList缺省情况下自动增长原来一倍的50%,<br>Vector非常类似ArrayList，但是Vector是同步的，ArrayList是非同步的。Vector缺省情况下自动增长原来一倍的数组长度。</p>
+<h4 id="Map-提供一组key-value的键值对"><a href="#Map-提供一组key-value的键值对" class="headerlink" title="Map:  提供一组key-value的键值对"></a>Map:  提供一组key-value的键值对</h4><p>Hashtable：是同步的。不允许null为key或value。查找value是通过对key进行散列计算，所以确保key对象，要同时复写equals方法和hashCode方法，而不要只写其中一个。Hashtable原理：通过节点的关键码确定节点的位置，即给定的关键码K，通过一定的函数关系H(散列函数)，得到函数值H(K)，将此值解释为这个节点的存储位置。<br>HashMap:非同步的。允许null 为key 或value。<br>WeakHashMap：是一种改进的HashMap，它对key实行“弱引用”，如果一个key不再被外部所引用，那么该key可以被GC回收。<br>IdentityHashMap：它在比较键时，使用的是引用等价而不是值等价性 ，而HashMap使用的是值等价性</p>
+<h3 id="使用总结："><a href="#使用总结：" class="headerlink" title="使用总结："></a>使用总结：</h3><ol>
+<li>如果涉及 堆栈，队列等操作，应该考虑使用List，对需要快速插入元素、删除元素的 使用LinkedList，如果需要快速随机访问元素，应该使用ArrayList</li>
+<li>如果程序在单线程的环境中，或者访问仅仅在一个线程中心进行，那就可以考虑使用非同步的类，执行效率高，如果在多线程可能同时操作一个类，应该使用 同步的类；</li>
+<li>要特别注意哈希表的使用，作为key的对象要正确覆写equals 和 hashcode 方法。</li>
+<li>尽量返回接口而非实际的类型，如返回List而非ArrayList，这样如果以后需要将ArrayList换成LinkedList时，客户端代码不用改变。</li>
+<li>如果一个HashSet  ,Hashtable  或 HashMap被序列化，那么请确认他们的内容没有直接或间接地引用他们自身。</li>
+<li>在对List进行循环的时候不要在循环体内对List元素进行remove操作；</li>
+</ol>
+<h3 id="探究实现原理："><a href="#探究实现原理：" class="headerlink" title="探究实现原理："></a>探究实现原理：</h3><h4 id="ArrayList"><a href="#ArrayList" class="headerlink" title="ArrayList"></a>ArrayList</h4><p><strong>实现原理：</strong>内部维护了一个数组 和 int 型 大小变量 size；</p>
+<p><strong>动态扩容原理：</strong>没有显示定义容量的时候，默认开辟10个数组大小空间；每次add的时候调用ensureCapacity方法，判断添加一个元素后是否超过现有容量，如果超过，那么新开辟之前容量的1.5倍，然后将之前的数据拷贝的新的数组当中.</p>
+<p><strong>总结：</strong>可以看出进行动态扩容实际是进行数组拷贝，这个就会花费一定的时间消耗，所以当我们的数据比较大或者能够与之数据大小的时候，做好提前做一次ensureCapacity，或定义时指定。</p>
+<h4 id="LinkedList"><a href="#LinkedList" class="headerlink" title="LinkedList"></a>LinkedList</h4><p>**实现原理:**底层采用双向循环列表实现。(可以使用LinkedList来实现队列和栈)</p>
+<p><strong>Entry类数据模型：</strong>一个数据element，两个指针，一个指向前一个节点，名为previous，一个指向下一个节点，名为next，形成双向列表，LinkedList的无参构造函数初始化的时候就实现了链表的循环。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">header.next = header.previous = header</span><br></pre></td></tr></table></figure>
+
+<h4 id="HashSet"><a href="#HashSet" class="headerlink" title="HashSet"></a>HashSet</h4><p><strong>实现原理：</strong>HashSet的底层采用HashMap来存放数据，在add的时候调用hashMap的put方法，对应hashmap的key是hashSet的值，value是一个常量对象PRESENT</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">Object</span> <span class="variable">PRESENT</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Object</span>();</span><br></pre></td></tr></table></figure>
+
+<p>它的原理就是利用 hashMap的key是不可重复的这一特性来用key存储Set的元素值以达到Set的元素不可重复。</p>
+<h4 id="HashMap"><a href="#HashMap" class="headerlink" title="HashMap"></a>HashMap</h4><p><strong>实现原理:</strong> 底层采用 数组链表 作为数据存储模型；Entry[] table；</p>
+<p><strong>Entry类数据模型：</strong>一个泛型Key，一个泛型value，一个指向下一个Entry的指针 next，一个 hash int型值。</p>
+<p>put操作：</p>
+<p>首先判断key是否为null，为null的话就会去table[0]链循环查找key为null的节点Entry，找到则替换value，无则添加；其次对key的hashcode进行hash得到数组下标 i ，遍历 i 链上的所有节点，判断是否有key重复的，有则替换value，并返回，无则继续；最后在 数组中添加 下标为 i 的 Entry链中第一个节点出添加这个节点。Entry[]的长度一定后，随着map里面数据的越来越长，这样同一个i的链就会很长，会不会影响性能？HashMap里面设置一个因素（也称为因子），随着map的size越来越大，Entry[]会以一定的规则加长长度。</p>
+<p>get操作：</p>
+<p>首先判断key是否为null，为null的话就去table[0]链循环查找key为null的节点Entry。不为null，就根据key的hashcode进行hash得到数据下标i ，遍历 下标为 i 的链，查找key元素，如果不存在就返回null。</p>
+<h4 id="Hashtable"><a href="#Hashtable" class="headerlink" title="Hashtable"></a>Hashtable</h4><p><strong>实现原理：</strong>底层采用 数组链表 作为数据存储模型；Entry[] table；<br>HashTable和HashMap采用相同的存储机制，二者的实现基本一致.<br>在Hashtable中调用put方法时，如果key为null，直接抛出NullPointerException<br>Hashtable是线程安全的，内部的方法基本都是synchronized.</p>
+<h4 id="ConcurrentHashMap"><a href="#ConcurrentHashMap" class="headerlink" title="ConcurrentHashMap"></a>ConcurrentHashMap</h4><p><strong>实现原理：</strong>基于一个叫Segment数组的，其实和Entry类似。</p>
+<p>ConcurrentHashMap基于concurrentLevel划分出了多个Segment来对key-value进行存储，从而避免每次锁定整个数组，在默认的情况下，允许16个线程并发无阻塞的操作集合对象，尽可能地减少并发时的阻塞现象。</p>
+<h4 id="WeakHashMap"><a href="#WeakHashMap" class="headerlink" title="WeakHashMap"></a>WeakHashMap</h4><p><strong>实现原理：</strong>内部类Entry继承了WeakReference类，且在构造函数中构造了Key的弱引用，当进行put或者get操作时，都会调用一个函数叫expungeStaleEntries()用来判断，如果key存在弱引用，则进行垃圾回收。</p>
+<p>WeakHashMap在不考了命中率的情况下，多用于缓存系统，就是说在系统内存紧张的时候可随时进行GC，但是如果内存不紧张则可以用来存放一些缓存数据。因为如果使用HashMap的话，它里面的值基本都是强引用，即使内存不足，它也不会进行GC。</p>
+<h3 id="补充："><a href="#补充：" class="headerlink" title="补充："></a>补充：</h3><ol>
+<li>集合的排序：Comparator &amp; Comparable<br> 当需要排序的集合或数组不是纯数字时，通常使用 Comparator 或 Comparable 实现对象排序或者自定义排序<br>一个类实现了Camparable接口则表明这个类的对象之间是可以相互比较的，这个类对象组成的集合就可以直接使用sort方法排序。<br>Comparator可以看成一种算法的实现，将算法和数据分离；</li>
+<li>集合工具类：Collections（一系列算法的集合，里面属性都是static）<ul>
+<li>生成单元素集合：    Collections.singletonList、Collections.singletonMap、Collections.singleton</li>
+<li>Checked集合：checkedCollection、checkedList、checkedMap、checkedSet、checkedSortedMap、checkedSortedSet</li>
+<li>同步集合：为一些非线程安全的集合类提供同步机制。</li>
+<li>查找替换：fill、frequency、indexOfSubList、lastIndexOfSubList、max、min、replaceAll</li>
+<li>集合排序：reverse、shuffle、sort、swap、rotate</li>
+</ul>
+</li>
+<li>hashCode()方法的作用：<br>hashCode() 是用来产生哈希码的，而哈希码是用来在散列存储结构中确定对象的存储地址的。对于Object类的 hashCode方法，会针对不同对象返回不同的整数，这一般是通过将该对象的内部地址转换为一个整数来实现的，当两个对象是一样的时（equals为true），他们的hashCode码也是相同的。String的hashCode返回值是基于String的内容的，内容相同，hashCode就相同。在集合中很多地方使用了hashCode，比如保证hashSet的元素不重复，保证hashMap的key不重复，提高hashMap存取数据的效率。</li>
+</ol>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2013/04/28/Java/2013-04-28-java-collection/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
   
     <nav id="page-nav">
       <a class="extend prev" rel="prev" href="/page/9/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/8/">8</a><a class="page-number" href="/page/9/">9</a><span class="page-number current">10</span><a class="page-number" href="/page/11/">11</a><a class="extend next" rel="next" href="/page/11/">Next &raquo;</a>
@@ -1414,10 +1419,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">学习</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">金钱</a>
               </li>
              
               <li class="article-tag-list-item">

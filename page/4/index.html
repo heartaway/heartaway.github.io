@@ -149,120 +149,6 @@
           <div id="js-content" class="content-ll">
             
   
-    <article id="post-Program/2017-12-24-devops-three-method" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/12/24/Program/2017-12-24-devops-three-method/">DevOps的三种方式</a>
-    </h1>
-  
-
-        
-        <a href="/2017/12/24/Program/2017-12-24-devops-three-method/" class="archive-article-date">
-  	<time datetime="2017-12-23T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2017-12-24</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>这篇博客中提到的“三种方式“源自 <a href="http://www.itrevolution.com/book/the-devops-handbook/">《DevOps Handbook》</a> 及<a href="https://itrevolution.com/books/novel/">《凤凰项目》</a>（The Phoenix Project: A Novel About IT, DevOps, and Helping Your Business Win.），这三种方式描述了构成 DevOps 的理论框架、流程、实践及价值观和哲学。</p>
-<p>感谢《Lean IT》的作者 Mike Orzen 为此文提供宝贵建议。</p>
-<h2 id="三种方式"><a href="#三种方式" class="headerlink" title="三种方式"></a>三种方式</h2><p>下文将介绍三种模式及在该种模式指导下的 DevOps 实践。</p>
-<h3 id="第一种方式：-系统思考"><a href="#第一种方式：-系统思考" class="headerlink" title="第一种方式： 系统思考"></a>第一种方式： 系统思考</h3><p><img src="https://gw.alipayobjects.com/zos/skylark/90fda8c1-ed1d-414d-bf7a-379e3fc7bd54/2018/png/46243fa7-bffa-4015-acd8-2597e974feee.png"></p>
-<p>第一种方式强调全局优化，而非局部改进。— 大到部门职能划分（例如研发部和运维部门），小到个人（开发和系统工程师）。</p>
-<p>这种方式将关注点放在整个业务价值流上。换句话说，整个团队应该关注在从需求被定义到开发，再到运维这个过程，直到价值被以服务的形式交付给最终用户。</p>
-<p>将这种方式带到实践中的产出便是永远不要将已知的缺陷传递到下游工作，永远不要为了局部优化影响了整体价值流交付，总是为了增加价值流动努力，永远追求对架构的深刻理解。</p>
-<p>涉及到这种方式的实践有：</p>
-<ul>
-<li>所有环境和代码使用同一个仓库，将软件包纳入版本管理</li>
-<li>团队共同决定发布流程</li>
-<li>保持 DEV、TEST、PRODUCTION 环境的一致性</li>
-<li>自动化回归测试</li>
-<li>小步提交，每日部署；而不是一次部署大量变更</li>
-<li>更快、更频繁发布</li>
-</ul>
-<h3 id="第二种方式：经过放大的反馈回路"><a href="#第二种方式：经过放大的反馈回路" class="headerlink" title="第二种方式：经过放大的反馈回路"></a>第二种方式：经过放大的反馈回路</h3><p><img src="https://gw.alipayobjects.com/zos/skylark/f6cc08b5-b7e5-4162-92a3-0d0df213d902/2018/png/c8e97809-c293-4170-a84c-143789ea7faf.png"></p>
-<p>第二种方式是创建从开发过程下游至上游的反馈环。几乎所有的流程改进都是为了从时间上缩短和从覆盖面上放大反馈循环，从而可以不断地进行必要的改正。</p>
-<p>第二种方式的产出是关注到价值流中所有涉及到的用户，包括价值流内部和外部的，缩短和放大反馈回路，并且可以随时定位到需要改进的地方。</p>
-<p>涉及到这种方式的实践有：</p>
-<ul>
-<li>代码审查及配置变更检查</li>
-<li>有纪律的自动化测试，使许多同时的小型敏捷团队能够有效地工作</li>
-<li>尽早设置监控预警</li>
-<li>修复 bug 为团队最高优先级</li>
-<li>团队成员之间高度互相信任</li>
-<li>团队之间保持沟通和良好合作</li>
-</ul>
-<h3 id="第三种方式：持续做试验和学习的文化"><a href="#第三种方式：持续做试验和学习的文化" class="headerlink" title="第三种方式：持续做试验和学习的文化"></a>第三种方式：持续做试验和学习的文化</h3><p><img src="https://gw.alipayobjects.com/zos/skylark/dfea288e-e3e5-4f41-b1c0-998f7def0202/2018/png/096c5099-06da-403c-8329-3c88f8851fd9.png"></p>
-<p>第三种方式提倡持续做试验，承担风险、从失败中学习；通过反复实践来达到精通。</p>
-<p>我们需要实验和冒着失败的风险，及时不断地尝试将我们置于一个危险的境地，我们要通过反复试错来掌握使我们远离危险的技能。</p>
-<p>第三种方式的输出为为改善日常工作分配时间、奖励团队冒险精神，将错误人工引入系统以提高系统健壮性。</p>
-<p>最具有代表性的就是 Netfilx 的 Chaos monkey ，Netflix 在他们的生产环境搭建一个服务用于定时随机关闭服务器，用以模拟服务器正常损坏或服务异常，他们的系统长期在这种环境下运行，“服务器故障”成为系统每日都要面临的问题，因此当服务器真的以外故障时不会对系统整体造成任何的影响。</p>
-<h2 id="译者后记"><a href="#译者后记" class="headerlink" title="译者后记"></a>译者后记</h2><p>全局优化、快速反馈、鼓励失败。我们发现其实敏捷、精益、持续交付、DevOps中间有很多相似的东西。</p>
-<blockquote>
-<p>参考资料: <a href="https://es.slideshare.net/SonatypeCorp/devops-connect-josh-corman-and-gene-kim-discuss-devopssec">https://es.slideshare.net/SonatypeCorp/devops-connect-josh-corman-and-gene-kim-discuss-devopssec</a></p>
-</blockquote>
-<blockquote>
-<p><a href="http://itrevolution.com/the-three-ways-principles-underpinning-devops/">http://itrevolution.com/the-three-ways-principles-underpinning-devops/</a></p>
-</blockquote>
-<p>转发自：@duyidong</p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Program//" class="article-tag-list-link color3">Program</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2017/12/24/Program/2017-12-24-devops-three-method/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
     <article id="post-Think/2017-12-20-high-school-years" class="article article-type-post  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
     
@@ -1373,6 +1259,93 @@
 
 
   
+    <article id="post-Java/2017-07-31-distrubute-id-gen" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/07/31/Java/2017-07-31-distrubute-id-gen/">Distributed System Id Gen</a>
+    </h1>
+  
+
+        
+        <a href="/2017/07/31/Java/2017-07-31-distrubute-id-gen/" class="archive-article-date">
+  	<time datetime="2017-07-30T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2017-07-31</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="分布式系统高效唯一ID生成方案"><a href="#分布式系统高效唯一ID生成方案" class="headerlink" title="分布式系统高效唯一ID生成方案"></a>分布式系统高效唯一ID生成方案</h1><blockquote>
+<p>背景：在分布式系统中，对于订单ID如何保证全局唯一地高效的生成，并对性能影响不大的情况下，利于建立索引和业务使用？</p>
+</blockquote>
+<h3 id="方案一：使用数据库主键ID"><a href="#方案一：使用数据库主键ID" class="headerlink" title="方案一：使用数据库主键ID"></a>方案一：使用数据库主键ID</h3><p>优势：实现简单；<br>弊端：使用数据库增加写库的压力，生成订单的上限受限于数据库的写性能上限；扩展性差；</p>
+<h3 id="方案二：使用数据库的列-1"><a href="#方案二：使用数据库的列-1" class="headerlink" title="方案二：使用数据库的列+1"></a>方案二：使用数据库的列+1</h3><p>主键采用业务编码，普通列current_value标识id当前值，通过数据库的行锁来保障唯一的；<br>优势：一张表可以存储不同业务类型的生成规则，没必要每一个id规则都新建一张附表；<br>劣势：涉及行锁，性能不高；</p>
+<p>需要注意使用此方式生成数字序列事务隔离级别需要是RR。</p>
+<h3 id="方案三：单点批量生成订单号的服务"><a href="#方案三：单点批量生成订单号的服务" class="headerlink" title="方案三：单点批量生成订单号的服务"></a>方案三：单点批量生成订单号的服务</h3><p>优势：批量降低了数据库的读写压力<br>弊端：服务单点风险；</p>
+<h3 id="方案四：使用UUID"><a href="#方案四：使用UUID" class="headerlink" title="方案四：使用UUID"></a>方案四：使用UUID</h3><p>优势：本地生成ID，不进行远程调用，延迟低；<br>弊端：无法保证趋势增长；uuid过长且建立索引效率低下；64位太长；</p>
+<h3 id="方案五：使用毫秒数"><a href="#方案五：使用毫秒数" class="headerlink" title="方案五：使用毫秒数"></a>方案五：使用毫秒数</h3><p>优势：本地生成ID，不进行远程调用，延迟低；ID为整数利于建立索引；<br>弊端：并发超过1000，可能会重复；<br>优化方案：使用LRU Cache存储最近生成的100Key，去除后先判断是否重复；进一步降低重复的可能性；但是无法根本上解决高并发下的重复；</p>
+<h3 id="方案六：订单号分段表示具体含义"><a href="#方案六：订单号分段表示具体含义" class="headerlink" title="方案六：订单号分段表示具体含义"></a>方案六：订单号分段表示具体含义</h3><p>方案描述：使用39bit表示毫秒数、4bit表示业务线、7bit表示机器等<br>优势：实现简单，且重复可能性很低；<br>弊端：订单长度过长，不利于业务使用；</p>
+<h3 id="方案七：使用Redis服务-毫秒数双重方案"><a href="#方案七：使用Redis服务-毫秒数双重方案" class="headerlink" title="方案七：使用Redis服务+毫秒数双重方案"></a>方案七：使用Redis服务+毫秒数双重方案</h3><p>优势：使用redis的自增序列特性，每次获取一定数量的数据（1000个），降低了每次调用Redis的开销；当Redis挂了，使用基于毫秒数的本地生成ID优化方案；<br>弊端：redis挂了后，订单号的重复性不可避免；</p>
+<p>使用redis需要配置主备，避免在极端情况下redis节点down机， 导致丢失序列或序列重复。</p>
+<h3 id="总结："><a href="#总结：" class="headerlink" title="总结："></a>总结：</h3><p>我们在设计分布式全局唯一单号的时候，不仅需要考虑生成单号的是否重复性，还要考虑生成时的性能开销、是否有容灾方案、是否便于建立索引、是否利于业务使用等。基于这些点的考虑，我们采用了方案六作为线上的唯一生成方案，并把此方案作为一个业务隔离的二方库，可以提供给不同业务方式用；</p>
+<p>参考：<a href="https://mp.weixin.qq.com/s?__biz=MzIwODA4NjMwNA==&mid=2652898525&idx=1&sn=7e7c1a64fa288eceb17fd4057afd2a62&chksm=8cdcd092bbab598469534293f1eff0d65edcfeaf65050c79f8d054e008c0d1843af1502d34a7&mpshare=1&scene=1&srcid=0731m6EiK3LyvkmVltj03hG9&key=807bd2816f4e78936c683f90def8c012cc01115330c60aaa1377edae1f76fec7b00e4698f4d6ddc22680f9a80dade15c2cf6caa00853e61b925ff2ab93d1110eff532aedcb1347a8db1074bea22542a1&ascene=0&uin=MTE3NTkxNDk4MA==&devicetype=iMac+MacBookPro11,4+OSX+OSX+10.12.5+build(16F73)&version=12020810&nettype=WIFI&fontScale=100&pass_ticket=Q2dSEf7cwUT/HuuZ1wpxUh3/d9hovwWFg9YsoOzUMokJ2WygwbBZxUPkJXDCEA09">高可用高性能可扩展的单号生成方案</a></p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2017/07/31/Java/2017-07-31-distrubute-id-gen/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
   
     <nav id="page-nav">
       <a class="extend prev" rel="prev" href="/page/3/">&laquo; Prev</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><span class="page-number current">4</span><a class="page-number" href="/page/5/">5</a><a class="page-number" href="/page/6/">6</a><span class="space">&hellip;</span><a class="page-number" href="/page/11/">11</a><a class="extend next" rel="next" href="/page/5/">Next &raquo;</a>
@@ -1531,10 +1504,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">学习</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">金钱</a>
               </li>
              
               <li class="article-tag-list-item">
