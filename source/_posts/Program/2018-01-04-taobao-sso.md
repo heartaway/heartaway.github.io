@@ -33,7 +33,7 @@ date: 2018-01-04
 6. 请求页面https://tmcc.tmall.com/pass.htm?tbpm=1 302 跳转到 https://tmcc.tmall.com/pass.htm
 
 抓包信息：
-![](http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/87d35687c06bdf7d01ea78c3aa1f8c7f.png)
+![](/images/posts/20180104/20180104-03.png)
 图中隐藏了非关键请求，比如页面的静态资源等；
 
 同样：
@@ -50,7 +50,7 @@ date: 2018-01-04
     * 响应中把请求中的cookie信息set 到 浏览器cookie中，以此完成tmall.com域名下的cookie同步;
 
 示意图：
-![](http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/ad93fbcaff26e6b4bc3ca3af620468e9.png)
+![](/images/posts/20180104/20180104-04.png)
 1. 访问原始url： tmcc.tmall.com
 2. 重定向，访问login.taobao.com/jump
 3. 重定向，访问pass.tmall.com
@@ -62,7 +62,7 @@ date: 2018-01-04
 
 
 当然，这个过程是正向流程，那退出登录的逆向流程是怎么样的呢？会同步请求login.taobao.com/clear, 通过set-cookie 清楚session cookie（会话cookie），然后进行 302 跳转到 https://pass.tmall.com/clear 进行cookie清理，然后 302 跳转到 https://pass.etao.com/clear 进行cookie清理，然后 302 跳转到https://pass.etao.com/clear 进行 cookie清理，如此重复知道所有域名cookie进行清理完毕。
-![](http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/eafb7fc66c6139c50a6a8bbb5bd89e58.png)
+![](/images/posts/20180104/20180104-05.png)
 通过测试发现淘系的系统所有的退出登录都是走login.taobao.com/member/logout.jhtml , 然后通过一些列302 跳转pass系统进行登录态的清理。 登录态在到阿里云、支付宝是不通的,因为阿里云和支付宝的账号体系不一样。
 
 
@@ -83,8 +83,7 @@ date: 2018-01-04
 问：为什么有了cookie 还需要 session？
 
 答：cookie存储本身具备一些优势，比如信息存储在客户端，分散了资源消耗，cookie可以在客户端进行持久化存储（cookie在客户端分为：Permanent Cookies，Session Cookie）。    主要是只使用cookie作为资源访问的鉴权记录具备不安全性，容易引起CSRF（跨站请求伪造），比如攻击者劫持登录后的cookie信息进行页面操作，此时服务器以为还是用户自身在登录态下的本人操作。当然，只是简单的使用session也并不能彻底解决CSRF，使用session只是把用户的登录态信息保存在服务器端，客户端cookie往往会记录一个JSessionId 用来标识当前会话ID，jsessionid在网络中传输还是存在被劫持的可能性（参考下面的session劫持），所以需要配合响应的解决手段防止CSRF的发生。其次，cookie的使用在大小和条数上限制，大于需要存储大量用户态信息的场景下已经不够用了，此时需要借助session在服务端的存储设备来实现。
-![](http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/877347f9c7fc1318a494640818519c2a.png)
-
+![](/images/posts/20180104/20180104-06.png)
 问：登录后会会话中的每一次访问受限资源都需要访问验证？
 
 答：是的，因为每一次请求都无法确认你的身份，所以为了降低复杂认证授权的过程，通过sessionId 来标识某一会话；如果我们的Cookie信息泄露，那么不法分子就可以使用我们包含登录态的Cookie进行访问我们的受限资源（比如拷贝登录后的cookie信息通过postman请求需要登录后才能查看的信息），即便是我们丢增删改的请求采用了crsf_token ,不法分子还是可以看到我们的信息，信息已经造成了泄露。所以对于持久化Cookie，尽量设置为httpOnly，不允许通过JS脚本读取Cookie信息。还有就是使用https协议代替http协议（从tcp到ssl），这样不法分子劫持了请求信息，也无法破解请求信息的内容。

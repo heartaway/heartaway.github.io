@@ -62,11 +62,10 @@ Keycenter容灾策略主要有以下两个点：
 2. 对生产网而言，只允许访问同一IDC内Keycenter集群的内部VIP，不产生跨机房调用，如果某一个IDC出现故障，只需要切走Aserver流量即可。
 
 SSL-KeyCenter在阿里的单个IDC中的部署结构：
-![](http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/857f6dba0cf5e6e3a821eae46d1c0d86.png)
-
+![](/images/posts/20170316/20170316-01.png)
 
 SSL-KeyCenter在多机房下的部署：
-![](http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/832d9f9b7e39289800160087996d8be0.png)
+![](/images/posts/20170316/20170316-02.png)
 IDC1中访问KeyCenter目前只能在机房内访问，不能跨机房调用，当IDC1中的KeyCenter全部挂了，则直接从统一接入层中切走整个机房的流量。
 疑问：那为什么KeyCenter为什么不能像一般App那样，单机房内服务不可用时，允许跨机房调用呢？
 原因：没时间实现，后续会通过VIPServer来动态获取服务机器列表，这样如果单元内服务不可用，就可以允许跨单元调用了。

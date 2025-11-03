@@ -40,9 +40,9 @@ date: 2018-01-04
         * http://profsandhu.com/dissert/xin_slides.pdf
 
 示意图：
-![](http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/068d3b155b6538ee6f4651d7febe19cd.png)
+![](/images/posts/20180104/20180104-01.png)
 基于RBAC权限模型的常见数据库模型设计：
-![](http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/af745d65be9e6922518ff6402e805464.png)
+![](/images/posts/20180104/20180104-02.png)
 设计的核心主题: 用户、权限、角色、用户角色、角色权限、用户组、用户组角色、操作审计
 阿里巴巴登录鉴权与审计的三驾马车：BUC、ACL、OpLog；
 

@@ -15,15 +15,15 @@
 <meta property="og:site_name" content="心静思远">
 <meta property="og:description" content="我们在做报表类方案的时，我们通过web页面进行了数据展示，此时期望能够把这个网页通过邮件客户端发送到用户邮箱中，如果我们为了保持页面和邮件内的样式的统一，就很期望做到页面内容的复用，不再为邮件内容单独制定一套模板，当用户的内容样式谁内容而不同时，无法通过单一的模板来解决，是否可以通过复用页面的html内容来达到目的呢？  比如我们的页面结构是模块化的，每一个模块内的内容可能都随着模块的不同而呈现">
 <meta property="og:locale">
-<meta property="og:image" content="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/85c79200d05ddb180dbb9c9e13d4faa7.png">
-<meta property="og:image" content="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/5de5be6777232569dc731140fc61e24c.png">
-<meta property="og:image" content="https://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/983e0ff2eb534e206e702f2065829ee4.png">
+<meta property="og:image" content="https://mingming.tech/images/posts/20170314/20170314-01.png">
+<meta property="og:image" content="https://mingming.tech/images/posts/20170314/20170314-02.png">
+<meta property="og:image" content="https://mingming.tech/images/posts/20170314/20170314-03.png">
 <meta property="article:published_time" content="2017-03-13T16:00:00.000Z">
-<meta property="article:modified_time" content="2025-10-29T12:50:13.302Z">
+<meta property="article:modified_time" content="2025-11-03T10:48:05.613Z">
 <meta property="article:author" content="心静思远">
 <meta property="article:tag" content="心静思远, xinjinsiyuan, heartaway, mingming">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/85c79200d05ddb180dbb9c9e13d4faa7.png">
+<meta name="twitter:image" content="https://mingming.tech/images/posts/20170314/20170314-01.png">
   
     <link rel="alternative" href="/atom.xml" title="心静思远" type="application/atom+xml">
   
@@ -178,7 +178,7 @@
         <blockquote>
 <p>我们在做报表类方案的时，我们通过web页面进行了数据展示，此时期望能够把这个网页通过邮件客户端发送到用户邮箱中，如果我们为了保持页面和邮件内的样式的统一，就很期望做到页面内容的复用，不再为邮件内容单独制定一套模板，当用户的内容样式谁内容而不同时，无法通过单一的模板来解决，是否可以通过复用页面的html内容来达到目的呢？</p>
 </blockquote>
-<p>比如我们的页面结构是模块化的，每一个模块内的内容可能都随着模块的不同而呈现出不同的样式，如下图：<br><a href="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/85c79200d05ddb180dbb9c9e13d4faa7.png">http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/85c79200d05ddb180dbb9c9e13d4faa7.png</a><br><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/85c79200d05ddb180dbb9c9e13d4faa7.png"></p>
+<p>比如我们的页面结构是模块化的，每一个模块内的内容可能都随着模块的不同而呈现出不同的样式，如下图：<br><img src="/images/posts/20170314/20170314-01.png"></p>
 <p>如果我们让用户一键拷贝内容，在一键发送邮件，既可以做到页面内容的复用，也可以简化用户复制粘贴以及启动邮件客户端的繁琐任务。</p>
 <p>问题来了，在我们实践过程中，为了支持足够美观的模块，使用了CSS3、HTML5等一些新特性，但是在内容复制到邮件客户端进行发送后，收到的邮件随着客户端的不同而呈现出不同的样式（当然，是样式错乱），这里面发生了什么呢？</p>
 <p>经过查询一番资料，发现，不同的邮件客户端有不同的HTML过滤规则，我们需要遵循<a href="https://en.wikipedia.org/wiki/HTML_email">HTML Email</a>规范。</p>
@@ -193,7 +193,7 @@
 
 
 
-<h4 id="使用table代替css布局"><a href="#使用table代替css布局" class="headerlink" title="使用table代替css布局"></a>使用table代替css布局</h4><p>由于电子邮件无法支持标准，是不可使用div、section或article——替代的是使用table。此外，你需要使用大量的表格嵌套，因为HTML电子邮件既不支持colspan和rowspan属性。<br><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/5de5be6777232569dc731140fc61e24c.png"></p>
+<h4 id="使用table代替css布局"><a href="#使用table代替css布局" class="headerlink" title="使用table代替css布局"></a>使用table代替css布局</h4><p>由于电子邮件无法支持标准，是不可使用div、section或article——替代的是使用table。此外，你需要使用大量的表格嵌套，因为HTML电子邮件既不支持colspan和rowspan属性。<br><img src="/images/posts/20170314/20170314-02.png"></p>
 <p>这是多个table容器，并且使用嵌套table格式。我们一般会在最外面设置一个table（#backgroundTable），充当排序的容器 ，它指定了电子邮件客户端中的可见空间的宽度。因为一些客户端任意地限制区域呈现 ，不设置可能导致奇怪对齐的内容。然后我们再在内部设置一个table，用来作为真正内容的容器，第二个table最好设置一定的宽度，防止超过客户端的显示宽度。</p>
 <figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">table</span> <span class="attr">cellpadding</span>=<span class="string">&quot;0&quot;</span> <span class="attr">cellspacing</span>=<span class="string">&quot;0&quot;</span> <span class="attr">border</span>=<span class="string">&quot;0&quot;</span> <span class="attr">style</span>=<span class="string">&quot;margin:0; padding:0; width:100% !important; line-height: 100% !important;&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">tr</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">td</span> <span class="attr">valign</span>=<span class="string">&quot;top&quot;</span>&gt;</span> </span><br><span class="line">        	<span class="tag">&lt;<span class="name">table</span> <span class="attr">align</span>=<span class="string">&quot;center&quot;</span> <span class="attr">border</span>=<span class="string">&quot;1&quot;</span> <span class="attr">cellpadding</span>=<span class="string">&quot;0&quot;</span> <span class="attr">cellspacing</span>=<span class="string">&quot;0&quot;</span> <span class="attr">width</span>=<span class="string">&quot;600&quot;</span> <span class="attr">style</span>=<span class="string">&quot;border-collapse: collapse;&quot;</span>&gt;</span></span><br><span class="line">        	<span class="tag">&lt;<span class="name">tr</span>&gt;</span><span class="tag">&lt;<span class="name">td</span>&gt;</span>邮件内容<span class="tag">&lt;/<span class="name">td</span>&gt;</span><span class="tag">&lt;/<span class="name">tr</span>&gt;</span></span><br><span class="line">        	<span class="tag">&lt;/<span class="name">table</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">td</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">tr</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">table</span>&gt;</span></span><br></pre></td></tr></table></figure>
 <p>第一个table设置的样式表有助于重置某些电子邮件客户端特定的格式。</p>
@@ -205,7 +205,7 @@
 <figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">style</span> <span class="attr">type</span>=<span class="string">&quot;text/css&quot;</span>&gt;</span><span class="language-css"></span></span><br><span class="line"><span class="language-css"><span class="keyword">@media</span> <span class="keyword">only</span> screen <span class="keyword">and</span> (<span class="attribute">min-device-width</span>: <span class="number">601px</span>) &#123;</span></span><br><span class="line"><span class="language-css"><span class="selector-class">.content</span> &#123;<span class="attribute">width</span>: <span class="number">600px</span> <span class="meta">!important</span>;&#125;</span></span><br><span class="line"><span class="language-css">&#125;</span></span><br><span class="line"><span class="language-css"></span><span class="tag">&lt;/<span class="name">style</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
 
-<p><strong>多列布局：</strong><br>我们在进行多列布局的时候，不能把列宽度给占满了，需要预留一定的空间，比较好的实践是：预留25px的空间来防止Outlook堆叠你的table。因为Outlook会在边框宽度上占用一定的宽度。<br><img src="https://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/983e0ff2eb534e206e702f2065829ee4.png"><br>如何达到预留空间的方式呢？通过使用table的align属性实现。</p>
+<p><strong>多列布局：</strong><br>我们在进行多列布局的时候，不能把列宽度给占满了，需要预留一定的空间，比较好的实践是：预留25px的空间来防止Outlook堆叠你的table。因为Outlook会在边框宽度上占用一定的宽度。<br><img src="/images/posts/20170314/20170314-03.png"><br>如何达到预留空间的方式呢？通过使用table的align属性实现。</p>
 <h4 id="使用表格代替段落"><a href="#使用表格代替段落" class="headerlink" title="使用表格代替段落"></a>使用表格代替段落</h4><p>同样，由于缺乏对标准的支持，使用标准的标签，如h1,h2,h3或p并不是一个好主意。我发现这些渲染在电子邮件客户端存在相当大的麻烦。<br>你最好选择将每一块文本放在息的单元格中，并且将行内样式应用于这个单元格。</p>
 <h4 id="CSS行内样式代替样式表"><a href="#CSS行内样式代替样式表" class="headerlink" title="CSS行内样式代替样式表"></a>CSS行内样式代替样式表</h4><p>所有的CSS规则，最好都采用行内样式。因为放置在网页头部的样式，很可能会被客户端删除。客户端对CSS规则的支持情况，请看<a href="https://www.campaignmonitor.com/css/">这里</a>，可以看到很多css的伪标签都是不被支持的。<br>不要忘记：你不能将多个类应用于HTML电子邮件，因为它不支持的这些。每个元素最多可以有一个类。</p>
 <p>也不要忘记：你不能用简短的样式缩写如font-size（例如：style&#x3D;”font:8px&#x2F;14px Arial,sans-serif”），因为HTML电子邮件不支持它，你需要展开单独写，margin也不例外。</p>
@@ -487,6 +487,22 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">共享变量</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">缓存</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">问题定位</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">稳定性</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">成长</a>
               </li>
              
@@ -500,6 +516,10 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">人生</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">四观</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -519,19 +539,11 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">共享变量</a>
+                <a href="javascript:void(0)" class="js-tag color3">金钱</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">缓存</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">问题定位</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">稳定性</a>
+                <a href="javascript:void(0)" class="js-tag color3">读书</a>
               </li>
              
               <li class="article-tag-list-item">

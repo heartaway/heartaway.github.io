@@ -43,7 +43,7 @@ List<ProcessEntity> processEntities = processCache.getIfPresent(cacheKey);
 
 <a name="bgu6rd"></a>
 ### 解决
-使用本地缓存时，如果有数据变更的需求，则需要使用副本，这也是共享变量在多线程中容易导致的一个容易发生的错误。<br />![](https://cdn.nlark.com/yuque/0/2018/png/104361/1542351217947-009a8e54-41ed-4409-a896-9bad779f631c.png#width=747)
+使用本地缓存时，如果有数据变更的需求，则需要使用副本，这也是共享变量在多线程中容易导致的一个容易发生的错误。<br />![](/images/posts/20181116/20181116-01.png)
 
 <a name="q71zsp"></a>
 ### 反思
