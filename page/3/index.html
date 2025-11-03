@@ -149,6 +149,250 @@
           <div id="js-content" class="content-ll">
             
   
+    <article id="post-Java/2018-03-22-java-bean-setter-return" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/03/22/Java/2018-03-22-java-bean-setter-return/">POJO 对象setter 方法是否合适return &#34;this&#34;</a>
+    </h1>
+  
+
+        
+        <a href="/2018/03/22/Java/2018-03-22-java-bean-setter-return/" class="archive-article-date">
+  	<time datetime="2018-03-21T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-03-22</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>通常的POJO对象setter方法return 为void</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">setStatus</span><span class="params">(String status)</span> &#123;</span><br><span class="line">    <span class="built_in">this</span>.status = status;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>但是面对对象属性填充时，一堆的set方法让代码看起来很臃肿，部分同学采用类build模式，对setter方法进行改造，改造后就可以使用链式处理简化属性设置；</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> Employee <span class="title function_">setName</span><span class="params">(String name)</span> &#123;</span><br><span class="line">    <span class="built_in">this</span>.name = name;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">this</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>流式编码风格如：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">new</span> <span class="title class_">Employee</span>().setName(<span class="string">&quot;Xin yuan&quot;</span>).setHeight(<span class="number">178</span>);</span><br></pre></td></tr></table></figure>
+
+<p>有人认为这让pojo方法设置变得更加便捷，有其使用之处，但是也有人认为<code>return this</code>打破了<a href="https://docstore.mik.ua/orelly/java-ent/jnut/ch06_02.htm">Java Bean</a>的规约，破坏了每个函数单一职责的原则，也可能会破坏一些工具库的使用，或组织JVM做一些优化。而且在IDE中getter&amp;setter的自动生成内容中并没有“return this”。综其所述，setter方法“return this”并不建议。</p>
+<p>当然还有其它选择方案：</p>
+<p><strong>方法一：</strong></p>
+<p>采用java内置语法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">new</span> <span class="title class_">Employee</span>()</span><br><span class="line">&#123;&#123;</span><br><span class="line">    setName(<span class="string">&quot;Jack Sparrow&quot;</span>);</span><br><span class="line">    setId(<span class="number">1</span>);</span><br><span class="line">    setFoo(<span class="string">&quot;bacon!&quot;</span>);</span><br><span class="line">&#125;&#125;);</span><br></pre></td></tr></table></figure>
+
+<p><strong>方法二：</strong></p>
+<p>采用更加复杂的内部类builder模式：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> Employee <span class="title function_">setName</span><span class="params">(String name)</span> &#123;</span><br><span class="line">    <span class="built_in">this</span>.name = name;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">this</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">class</span> <span class="title class_">Builder</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> String name;</span><br><span class="line">      <span class="keyword">public</span> Builder <span class="title function_">name</span><span class="params">(Strig name)</span> &#123;</span><br><span class="line">        <span class="built_in">this</span>.name = name;</span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">this</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>造者模式(Builder Pattern)：将一个<strong>复杂对象</strong>的<strong>构建</strong>与它的<strong>表示</strong>分离，使得同样的构建过程可以创建不同的表示。但是一般POJO 类都比较简单，非复杂对象，所以采用builder模式并不会让代码变得简洁，反而会显得更加臃肿。</p>
+<p><strong>方法三：</strong></p>
+<p>属性新增withXxx方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> Employee <span class="title function_">setName</span><span class="params">(String name)</span> &#123;</span><br><span class="line">    <span class="built_in">this</span>.name = name;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">this</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> Employee <span class="title function_">withName</span><span class="params">(String name)</span> &#123;</span><br><span class="line">    setName(name);</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">this</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//使用方式</span></span><br><span class="line"><span class="keyword">new</span> <span class="title class_">Employee</span>().withName(<span class="string">&quot;Xin yuan&quot;</span>).withHeight(<span class="number">178</span>);</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h3 id="结论："><a href="#结论：" class="headerlink" title="结论："></a>结论：</h3><p>不建议在POJO： Java Bean的setter方法中添加‘return this’，我们遵循Java规范，如果期望简化Java Bean的属性设置，可以采用with或build方法。</p>
+<p><strong>参考：</strong></p>
+<p><a href="https://en.wikipedia.org/wiki/Plain_old_Java_object">https://en.wikipedia.org/wiki/Plain_old_Java_object</a></p>
+<p><a href="https://stackoverflow.com/questions/1345001/is-it-bad-practice-to-make-a-setter-return-this">https://stackoverflow.com/questions/1345001/is-it-bad-practice-to-make-a-setter-return-this</a></p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/Java//" class="article-tag-list-link color5">Java</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2018/03/22/Java/2018-03-22-java-bean-setter-return/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-HighAvailability/2018-03-15-aws-application-discovery" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/03/15/HighAvailability/2018-03-15-aws-application-discovery/">AWS应用自动发现服务</a>
+    </h1>
+  
+
+        
+        <a href="/2018/03/15/HighAvailability/2018-03-15-aws-application-discovery/" class="archive-article-date">
+  	<time datetime="2018-03-14T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-03-15</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <blockquote>
+<p>定义：AWS Application Discovery Service 收集并呈现数据，以使企业客户能了解其本地环境中服务器的配置、使用和行为。</p>
+</blockquote>
+<h2 id="工作模式："><a href="#工作模式：" class="headerlink" title="工作模式："></a>工作模式：</h2><h3 id="无代理自动发现"><a href="#无代理自动发现" class="headerlink" title="无代理自动发现"></a>无代理自动发现</h3><p>原理：基于 VMware vCenter Server 的环境的数据上报；</p>
+<p>弊端：</p>
+<ul>
+<li>采用VMware 方式在国内并不常用；</li>
+<li>采集到的数据有限，只是系统层面的静态数据与CPU、MEM的指标数据；</li>
+</ul>
+<h3 id="基于代理-Agent-的发现模式："><a href="#基于代理-Agent-的发现模式：" class="headerlink" title="基于代理(Agent)的发现模式："></a>基于代理(Agent)的发现模式：</h3><p>通过Agent可以采集更加丰富的数据集合，比如系统进程，系统间的网络连接；这里重点了解Agent模式。</p>
+<h2 id="采集的数据："><a href="#采集的数据：" class="headerlink" title="采集的数据："></a>采集的数据：</h2><ul>
+<li>静态配置数据： <ul>
+<li>系统标识信息：主机名、IP地址、MAC地址、操作系统名称、操作系统版本号，cpuType；</li>
+<li>运行中的进程数据；</li>
+<li>系统间的网络调用（TCP&#x2F;IP v4 和 v6）；<ul>
+<li>sourceIP、sourceProcess、destinationIp、destinationPort、dstProcess，ipVersion；</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>性能指标数据：<ul>
+<li>操作系统层面：<ul>
+<li>参考之前的OS监控采集项；</li>
+</ul>
+</li>
+<li>进程层面：<ul>
+<li>%CPU</li>
+<li>%MEM</li>
+<li>%DISK</li>
+</ul>
+</li>
+<li>网络层面：<ul>
+<li>待补充</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="数据安全性："><a href="#数据安全性：" class="headerlink" title="数据安全性："></a>数据安全性：</h3><p>采用SSL协议进行数据传输；<br>数据存储采用AWS KMS静态加密；</p>
+<h2 id="Agent模式下的自动发现"><a href="#Agent模式下的自动发现" class="headerlink" title="Agent模式下的自动发现"></a>Agent模式下的自动发现</h2><p>Agent启动时，自动注册到Arsenal中，并频繁对该服务执行 ping 操作以获取配置信息。<br><img src="https://gw.alipayobjects.com/zos/skylark/2a647cf5-d9b2-42f6-bcab-39a16b5ead2b/2018/png/179f1e58-a729-4ab0-8dea-b604269d0ad9.png"></p>
+<h3 id="数据收集"><a href="#数据收集" class="headerlink" title="数据收集"></a>数据收集</h3><p>数据的收集需要自动显示开启；</p>
+<h4 id="数据采集状态："><a href="#数据采集状态：" class="headerlink" title="数据采集状态："></a>数据采集状态：</h4><ul>
+<li>STARTED – 收集工具已开始收集和发送数据到 Discovery Service。</li>
+<li>START_SCHEDULED – 已计划数据收集开始时间。下次收集工具联系 AWS 时，它将开始将数据发送到 Discovery Service，并且收集状态将更改为 STARTED。</li>
+<li>STOPPED – 收集工具已停止发送数据到 Discovery Service。</li>
+<li>STOP_SCHEDULED – 已计划数据收集停止时间。下次收集工具联系 AWS 时，它将停止向 DiscoveryService 发送数据，并且收集状态将更改为 STOPPED。</li>
+</ul>
+<h3 id="组件分类"><a href="#组件分类" class="headerlink" title="组件分类"></a>组件分类</h3><p>DiscoveryService识别组件后，通过TAG标签的方式，对资源进行标记；用户也可以同通过控制台进行自定义TAG标记；</p>
+<p><strong>进程数据分类方法：</strong> 通过采集到的进程数据，可以推测出aws判断进程属于哪一类基础设施应该是通过进程名称与commondLine来判断的。</p>
+<h3 id="Agent模式自动发现不足："><a href="#Agent模式自动发现不足：" class="headerlink" title="Agent模式自动发现不足："></a>Agent模式自动发现不足：</h3><ul>
+<li>不能保存资源组件快照或跟踪资源变更；</li>
+<li>收集的性能数据不是通用的运行状况监控解决方案；</li>
+</ul>
+<h2 id="自动发现API"><a href="#自动发现API" class="headerlink" title="自动发现API"></a>自动发现API</h2><ol>
+<li>Agent相关API<ul>
+<li>Agent的启动、停止数据采集操作；</li>
+<li>Agent的描述信息；</li>
+<li>Agent的运行状态；</li>
+</ul>
+</li>
+<li>配置相关API<ul>
+<li>server、application、process、connection 的指标查询、过滤与配置；</li>
+</ul>
+</li>
+<li>标签相关API<ul>
+<li>TAG的增删改查；</li>
+</ul>
+</li>
+</ol>
+<h2 id="其他："><a href="#其他：" class="headerlink" title="其他："></a>其他：</h2><p>产品链接：<a href="https://aws.amazon.com/cn/documentation/application-discovery/">https://aws.amazon.com/cn/documentation/application-discovery/</a></p>
+<p>API地址：<a href="https://docs.aws.amazon.com/zh_cn/application-discovery/latest/APIReference/discovery-api.pdf#discovery-api-queries">https://docs.aws.amazon.com/zh_cn&#x2F;application-discovery&#x2F;latest&#x2F;APIReference&#x2F;discovery-api.pdf#discovery-api-queries</a></p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/HighAvailability//" class="article-tag-list-link color2">HighAvailability</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2018/03/15/HighAvailability/2018-03-15-aws-application-discovery/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
     <article id="post-HighAvailability/2018-03-14-monitor-system" class="article article-type-post  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
     
@@ -1340,7 +1584,7 @@
 </ul>
 </li>
 </ul>
-<p>示意图：<br><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/068d3b155b6538ee6f4651d7febe19cd.png"><br>基于RBAC权限模型的常见数据库模型设计：<br><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/af745d65be9e6922518ff6402e805464.png"><br>设计的核心主题: 用户、权限、角色、用户角色、角色权限、用户组、用户组角色、操作审计<br>阿里巴巴登录鉴权与审计的三驾马车：BUC、ACL、OpLog；</p>
+<p>示意图：<br><img src="/images/posts/20180104/20180104-01.png"><br>基于RBAC权限模型的常见数据库模型设计：<br><img src="/images/posts/20180104/20180104-02.png"><br>设计的核心主题: 用户、权限、角色、用户角色、角色权限、用户组、用户组角色、操作审计<br>阿里巴巴登录鉴权与审计的三驾马车：BUC、ACL、OpLog；</p>
 <h3 id="Java常用访问控制框架："><a href="#Java常用访问控制框架：" class="headerlink" title="Java常用访问控制框架："></a>Java常用访问控制框架：</h3><ul>
 <li>JAAS框架：<ul>
 <li>Authentication（鉴别），    Authorization（授权），Accounting（计费）；</li>
@@ -1462,7 +1706,7 @@
 </li>
 <li>请求页面<a href="https://tmcc.tmall.com/pass.htm?tbpm=1">https://tmcc.tmall.com/pass.htm?tbpm=1</a> 302 跳转到 <a href="https://tmcc.tmall.com/pass.htm">https://tmcc.tmall.com/pass.htm</a></li>
 </ol>
-<p>抓包信息：<br><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/87d35687c06bdf7d01ea78c3aa1f8c7f.png"><br>图中隐藏了非关键请求，比如页面的静态资源等；</p>
+<p>抓包信息：<br><img src="/images/posts/20180104/20180104-03.png"><br>图中隐藏了非关键请求，比如页面的静态资源等；</p>
 <p>同样：</p>
 <ol>
 <li>访问 <a href="http://www.alitrip.com,会同步请求https//ffa.alitrip.com/userInfo.htm%E7%9A%84%E8%AF%B7%E6%B1%82">www.alitrip.com，会同步请求https://ffa.alitrip.com/userInfo.htm的请求</a></li>
@@ -1482,7 +1726,7 @@
 </ul>
 </li>
 </ol>
-<p>示意图：<br><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/ad93fbcaff26e6b4bc3ca3af620468e9.png"></p>
+<p>示意图：<br><img src="/images/posts/20180104/20180104-04.png"></p>
 <ol>
 <li>访问原始url： tmcc.tmall.com</li>
 <li>重定向，访问login.taobao.com&#x2F;jump</li>
@@ -1491,7 +1735,7 @@
 <li>重定向，访问原始url（去掉同步标识tbpm）</li>
 </ol>
 <p>如果我们taobao.com域下没有登录cookie，通过在login.tmall.com页面进行登录，那么cookie的传递是怎么样的呢？<br>通过测试，发现在请求login.tmall.com的时候会同步请求login.taobao.com然后cookie依然是通过taobao域同步到tmall域名，也就是cookie的同步是单向；</p>
-<p>当然，这个过程是正向流程，那退出登录的逆向流程是怎么样的呢？会同步请求login.taobao.com&#x2F;clear, 通过set-cookie 清楚session cookie（会话cookie），然后进行 302 跳转到 <a href="https://pass.tmall.com/clear">https://pass.tmall.com/clear</a> 进行cookie清理，然后 302 跳转到 <a href="https://pass.etao.com/clear">https://pass.etao.com/clear</a> 进行cookie清理，然后 302 跳转到<a href="https://pass.etao.com/clear">https://pass.etao.com/clear</a> 进行 cookie清理，如此重复知道所有域名cookie进行清理完毕。<br><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/eafb7fc66c6139c50a6a8bbb5bd89e58.png"><br>通过测试发现淘系的系统所有的退出登录都是走login.taobao.com&#x2F;member&#x2F;logout.jhtml , 然后通过一些列302 跳转pass系统进行登录态的清理。 登录态在到阿里云、支付宝是不通的,因为阿里云和支付宝的账号体系不一样。</p>
+<p>当然，这个过程是正向流程，那退出登录的逆向流程是怎么样的呢？会同步请求login.taobao.com&#x2F;clear, 通过set-cookie 清楚session cookie（会话cookie），然后进行 302 跳转到 <a href="https://pass.tmall.com/clear">https://pass.tmall.com/clear</a> 进行cookie清理，然后 302 跳转到 <a href="https://pass.etao.com/clear">https://pass.etao.com/clear</a> 进行cookie清理，然后 302 跳转到<a href="https://pass.etao.com/clear">https://pass.etao.com/clear</a> 进行 cookie清理，如此重复知道所有域名cookie进行清理完毕。<br><img src="/images/posts/20180104/20180104-05.png"><br>通过测试发现淘系的系统所有的退出登录都是走login.taobao.com&#x2F;member&#x2F;logout.jhtml , 然后通过一些列302 跳转pass系统进行登录态的清理。 登录态在到阿里云、支付宝是不通的,因为阿里云和支付宝的账号体系不一样。</p>
 <h2 id="禁用Cookie："><a href="#禁用Cookie：" class="headerlink" title="禁用Cookie："></a>禁用Cookie：</h2><p>可以看出整个跨域登录依赖的是cookie信息的传递与跨域设置，如果出于安全考虑，我们禁用了cookie，是否还能正常工作呢？经过测试，发现禁用cookie后，跨域自动登录不能正常执行了，跨域请求后对于受限的访问请求还是会自动跳登录。由于设计上没有考虑cookie禁用的情况，淘宝的登录页面竟然无法进入，一直循环跳转登录页面。</p>
 <h2 id="分布式Session-的常见解决方案："><a href="#分布式Session-的常见解决方案：" class="headerlink" title="分布式Session 的常见解决方案："></a>分布式Session 的常见解决方案：</h2><ol>
 <li>通过cookie进行共享；</li>
@@ -1504,8 +1748,7 @@
 <li>passcookie：用来解决不同域名之间cookie同步的问题，以及决定同步那些cookie；</li>
 </ol>
 <h2 id="思考："><a href="#思考：" class="headerlink" title="思考："></a>思考：</h2><p>问：为什么有了cookie 还需要 session？</p>
-<p>答：cookie存储本身具备一些优势，比如信息存储在客户端，分散了资源消耗，cookie可以在客户端进行持久化存储（cookie在客户端分为：Permanent Cookies，Session Cookie）。    主要是只使用cookie作为资源访问的鉴权记录具备不安全性，容易引起CSRF（跨站请求伪造），比如攻击者劫持登录后的cookie信息进行页面操作，此时服务器以为还是用户自身在登录态下的本人操作。当然，只是简单的使用session也并不能彻底解决CSRF，使用session只是把用户的登录态信息保存在服务器端，客户端cookie往往会记录一个JSessionId 用来标识当前会话ID，jsessionid在网络中传输还是存在被劫持的可能性（参考下面的session劫持），所以需要配合响应的解决手段防止CSRF的发生。其次，cookie的使用在大小和条数上限制，大于需要存储大量用户态信息的场景下已经不够用了，此时需要借助session在服务端的存储设备来实现。<br><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/877347f9c7fc1318a494640818519c2a.png"></p>
-<p>问：登录后会会话中的每一次访问受限资源都需要访问验证？</p>
+<p>答：cookie存储本身具备一些优势，比如信息存储在客户端，分散了资源消耗，cookie可以在客户端进行持久化存储（cookie在客户端分为：Permanent Cookies，Session Cookie）。    主要是只使用cookie作为资源访问的鉴权记录具备不安全性，容易引起CSRF（跨站请求伪造），比如攻击者劫持登录后的cookie信息进行页面操作，此时服务器以为还是用户自身在登录态下的本人操作。当然，只是简单的使用session也并不能彻底解决CSRF，使用session只是把用户的登录态信息保存在服务器端，客户端cookie往往会记录一个JSessionId 用来标识当前会话ID，jsessionid在网络中传输还是存在被劫持的可能性（参考下面的session劫持），所以需要配合响应的解决手段防止CSRF的发生。其次，cookie的使用在大小和条数上限制，大于需要存储大量用户态信息的场景下已经不够用了，此时需要借助session在服务端的存储设备来实现。<br><img src="/images/posts/20180104/20180104-06.png"><br>问：登录后会会话中的每一次访问受限资源都需要访问验证？</p>
 <p>答：是的，因为每一次请求都无法确认你的身份，所以为了降低复杂认证授权的过程，通过sessionId 来标识某一会话；如果我们的Cookie信息泄露，那么不法分子就可以使用我们包含登录态的Cookie进行访问我们的受限资源（比如拷贝登录后的cookie信息通过postman请求需要登录后才能查看的信息），即便是我们丢增删改的请求采用了crsf_token ,不法分子还是可以看到我们的信息，信息已经造成了泄露。所以对于持久化Cookie，尽量设置为httpOnly，不允许通过JS脚本读取Cookie信息。还有就是使用https协议代替http协议（从tcp到ssl），这样不法分子劫持了请求信息，也无法破解请求信息的内容。</p>
 <p>问：是否采用了https就不需要防范CSRF了？</p>
 <p>答：不是的，我们采用https，是在数据传输层对请求进行进行加密后发送，但是如果CSRF是在浏览器的本地读取我们的Cookie信息（存储在我们浏览器中本地的Cookie信息确实明文的），还是可以读取到我们明文的Cookie信息。采用https只是防止了请求在传输中拦截后窃取我们的Cookie进行攻击而已。</p>
@@ -1900,206 +2143,6 @@
 
 
   
-    <article id="post-Program/2017-12-24-devops-three-method" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/12/24/Program/2017-12-24-devops-three-method/">DevOps的三种方式</a>
-    </h1>
-  
-
-        
-        <a href="/2017/12/24/Program/2017-12-24-devops-three-method/" class="archive-article-date">
-  	<time datetime="2017-12-23T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2017-12-24</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>这篇博客中提到的“三种方式“源自 <a href="http://www.itrevolution.com/book/the-devops-handbook/">《DevOps Handbook》</a> 及<a href="https://itrevolution.com/books/novel/">《凤凰项目》</a>（The Phoenix Project: A Novel About IT, DevOps, and Helping Your Business Win.），这三种方式描述了构成 DevOps 的理论框架、流程、实践及价值观和哲学。</p>
-<p>感谢《Lean IT》的作者 Mike Orzen 为此文提供宝贵建议。</p>
-<h2 id="三种方式"><a href="#三种方式" class="headerlink" title="三种方式"></a>三种方式</h2><p>下文将介绍三种模式及在该种模式指导下的 DevOps 实践。</p>
-<h3 id="第一种方式：-系统思考"><a href="#第一种方式：-系统思考" class="headerlink" title="第一种方式： 系统思考"></a>第一种方式： 系统思考</h3><p><img src="https://gw.alipayobjects.com/zos/skylark/90fda8c1-ed1d-414d-bf7a-379e3fc7bd54/2018/png/46243fa7-bffa-4015-acd8-2597e974feee.png"></p>
-<p>第一种方式强调全局优化，而非局部改进。— 大到部门职能划分（例如研发部和运维部门），小到个人（开发和系统工程师）。</p>
-<p>这种方式将关注点放在整个业务价值流上。换句话说，整个团队应该关注在从需求被定义到开发，再到运维这个过程，直到价值被以服务的形式交付给最终用户。</p>
-<p>将这种方式带到实践中的产出便是永远不要将已知的缺陷传递到下游工作，永远不要为了局部优化影响了整体价值流交付，总是为了增加价值流动努力，永远追求对架构的深刻理解。</p>
-<p>涉及到这种方式的实践有：</p>
-<ul>
-<li>所有环境和代码使用同一个仓库，将软件包纳入版本管理</li>
-<li>团队共同决定发布流程</li>
-<li>保持 DEV、TEST、PRODUCTION 环境的一致性</li>
-<li>自动化回归测试</li>
-<li>小步提交，每日部署；而不是一次部署大量变更</li>
-<li>更快、更频繁发布</li>
-</ul>
-<h3 id="第二种方式：经过放大的反馈回路"><a href="#第二种方式：经过放大的反馈回路" class="headerlink" title="第二种方式：经过放大的反馈回路"></a>第二种方式：经过放大的反馈回路</h3><p><img src="https://gw.alipayobjects.com/zos/skylark/f6cc08b5-b7e5-4162-92a3-0d0df213d902/2018/png/c8e97809-c293-4170-a84c-143789ea7faf.png"></p>
-<p>第二种方式是创建从开发过程下游至上游的反馈环。几乎所有的流程改进都是为了从时间上缩短和从覆盖面上放大反馈循环，从而可以不断地进行必要的改正。</p>
-<p>第二种方式的产出是关注到价值流中所有涉及到的用户，包括价值流内部和外部的，缩短和放大反馈回路，并且可以随时定位到需要改进的地方。</p>
-<p>涉及到这种方式的实践有：</p>
-<ul>
-<li>代码审查及配置变更检查</li>
-<li>有纪律的自动化测试，使许多同时的小型敏捷团队能够有效地工作</li>
-<li>尽早设置监控预警</li>
-<li>修复 bug 为团队最高优先级</li>
-<li>团队成员之间高度互相信任</li>
-<li>团队之间保持沟通和良好合作</li>
-</ul>
-<h3 id="第三种方式：持续做试验和学习的文化"><a href="#第三种方式：持续做试验和学习的文化" class="headerlink" title="第三种方式：持续做试验和学习的文化"></a>第三种方式：持续做试验和学习的文化</h3><p><img src="https://gw.alipayobjects.com/zos/skylark/dfea288e-e3e5-4f41-b1c0-998f7def0202/2018/png/096c5099-06da-403c-8329-3c88f8851fd9.png"></p>
-<p>第三种方式提倡持续做试验，承担风险、从失败中学习；通过反复实践来达到精通。</p>
-<p>我们需要实验和冒着失败的风险，及时不断地尝试将我们置于一个危险的境地，我们要通过反复试错来掌握使我们远离危险的技能。</p>
-<p>第三种方式的输出为为改善日常工作分配时间、奖励团队冒险精神，将错误人工引入系统以提高系统健壮性。</p>
-<p>最具有代表性的就是 Netfilx 的 Chaos monkey ，Netflix 在他们的生产环境搭建一个服务用于定时随机关闭服务器，用以模拟服务器正常损坏或服务异常，他们的系统长期在这种环境下运行，“服务器故障”成为系统每日都要面临的问题，因此当服务器真的以外故障时不会对系统整体造成任何的影响。</p>
-<h2 id="译者后记"><a href="#译者后记" class="headerlink" title="译者后记"></a>译者后记</h2><p>全局优化、快速反馈、鼓励失败。我们发现其实敏捷、精益、持续交付、DevOps中间有很多相似的东西。</p>
-<blockquote>
-<p>参考资料: <a href="https://es.slideshare.net/SonatypeCorp/devops-connect-josh-corman-and-gene-kim-discuss-devopssec">https://es.slideshare.net/SonatypeCorp/devops-connect-josh-corman-and-gene-kim-discuss-devopssec</a></p>
-</blockquote>
-<blockquote>
-<p><a href="http://itrevolution.com/the-three-ways-principles-underpinning-devops/">http://itrevolution.com/the-three-ways-principles-underpinning-devops/</a></p>
-</blockquote>
-<p>转发自：@duyidong</p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Program//" class="article-tag-list-link color3">Program</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2017/12/24/Program/2017-12-24-devops-three-method/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-Think/2017-12-20-high-school-years" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/12/20/Think/2017-12-20-high-school-years/">《那时花开》</a>
-    </h1>
-  
-
-        
-        <a href="/2017/12/20/Think/2017-12-20-high-school-years/" class="archive-article-date">
-  	<time datetime="2017-12-19T16:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2017-12-20</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <blockquote>
-<p>作品：《那时花开》</p>
-<p>字数：约 35000 字</p>
-<p>体裁：中篇小说</p>
-<p>关键字：校园青春</p>
-<p>背景：小说记录了自己以在高中时期一群小伙伴的学习生活，作者：陈晓雷</p>
-</blockquote>
-<p><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/ebd88c6345e5ad414d1007e6f121417e.jpg"></p>
-<p>袁河是高二上学期转到陆可凡他们班的。至于转班的原因却不得而知。不过众所周知的是，陆可凡他们班的语文老师是袁河的爸爸，所以就有人猜测这可能是他爸爸的注意，目的很简单，无非就是为了方便监督和管教儿子学习。那为什么到了高二才转班呢？答案也很简单，因为高二是承上启下的关键学期，既能延续高一时的学习状态，又能为高三做准备，所以这时转班最合适不过了。</p>
-<p>转到陆可凡他们班上后，袁河发现了一个奇怪的现象。</p>
-<p>比如一般课间休息的时候，同学们都会以固有的方式来放松自己。其中少数同学会走出教室，站在外面的走廊上，抬头仰望天空，认真盘算自己忧伤的心事。或者靠在旁边的栏杆上，低头看着地面，仔细回忆某天的快乐心情。而大多数同学则会三五成群地聚在一起，找一个大家都感兴趣的话题，然后各抒己见，开始谈论。
-        
-          <a class="article-more-a" href="/2017/12/20/Think/2017-12-20-high-school-years/#more">more >></a>
-        
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/Think//" class="article-tag-list-link color1">Think</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2017/12/20/Think/2017-12-20-high-school-years/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
   
     <nav id="page-nav">
       <a class="extend prev" rel="prev" href="/page/2/">&laquo; Prev</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span><a class="page-number" href="/page/4/">4</a><a class="page-number" href="/page/5/">5</a><span class="space">&hellip;</span><a class="page-number" href="/page/11/">11</a><a class="extend next" rel="next" href="/page/4/">Next &raquo;</a>
@@ -2209,7 +2252,7 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">成长</a>
+                <a href="javascript:void(0)" class="js-tag color3">青春</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -2217,11 +2260,15 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">青春</a>
+                <a href="javascript:void(0)" class="js-tag color3">成长</a>
               </li>
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">人生</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">四观</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -2238,6 +2285,14 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">学习</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">金钱</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">读书</a>
               </li>
              
               <li class="article-tag-list-item">
